@@ -1,0 +1,15 @@
+Language: Cpp
+BasedOnStyle: Google
+UseTab: Never # 使用空格而不是制表符。
+IndentWidth: 4 # 缩进宽度为4个空格。
+TabWidth: 4 # Tab长度
+ColumnLimit: 100 # 单行的长度不超过80字符
+AccessModifierOffset: -4 # 访问修饰符 -4 public...
+BraceWrapping: 
+    AfterFunction: true # 函数后换行
+    AfterClass: true # 类后换行
+    AfterStruct: true # 结构体后换行
+    AfterNamespace: false # 命名空间后换行
+    
+
+BreakBeforeBraces: Custom # 大括号换行需要此设置生效
