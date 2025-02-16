@@ -22,9 +22,13 @@ public:
     /// === 游戏框架相关参数操作 ===
 
     /// @brief 设置屏幕的长度和宽度
-    void setScreenSize(int width, int height);
-    /// @brief 获取屏幕的长度和宽度
-    std::tuple<int, int> getScreenSize();
+    void setScreenSize(float width, float height);
+    /// @brief 获取屏幕的大小
+    std::tuple<float, float> getScreenSize() { return {m_screenWidth, m_screenHeight}; }
+    /// @brief 获取屏幕的宽度
+    float getScreenWidth() { return m_screenWidth; }
+    /// @brief 获取屏幕的高度
+    float getScreenHeight() { return m_screenHeight; }
     /// @brief 设置是否显示控制台
     void setShowConsole(bool isShowConsole);
     /// @brief 设置窗口名字
@@ -37,15 +41,10 @@ public:
 
     /// === 游戏框架相关参数设置 ===
 
-    /// === 游戏日志 ===
+    /// === 游戏框架获取相关参数 ===
 
-    template <typename... Args>
-    void log(const std::string& fmt, Args&&... args)
-    {
-        gameaf::log(fmt, std::forward<Args>(args)...);
-    }
-
-    /// === 游戏日志 ===
+    /// @brief 获取当前帧和上一帧的相隔时间, 单位为s
+    float getDeltaTime() { return m_delta_time; }
 
 private:
     GameAF() = default;
@@ -55,10 +54,11 @@ private:
 
 private:
     // 屏幕的长度和宽度 是否显示控制台 窗口名字
-    int m_screenWidth = 1280;
-    int m_screenHeight = 720;
+    float m_screenWidth = 1280.0f;
+    float m_screenHeight = 720.0f;
     bool m_isShowConsole = false;
     std::string m_screenName = "MyGame";
+    float m_delta_time;
 
     // 游戏帧数
     int m_fps = 144;

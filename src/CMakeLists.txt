@@ -17,4 +17,5 @@ target_include_directories(${PROJECT_NAME}
     "${CMAKE_CURRENT_SOURCE_DIR}/common"
     "${CMAKE_CURRENT_SOURCE_DIR}/game_object"
     "${CMAKE_CURRENT_SOURCE_DIR}/scene"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )

@@ -11,7 +11,7 @@
 // 最大帧率
 #define GAMEAF_MAX_FPS (int)260
 // 最小帧率
-#define GAMEAF_MIN_FPS (int)14
+#define GAMEAF_MIN_FPS (int)24
 
 // 设置windows控制台输出/输入编码为 UTF-8
 #if defined(_WIN32) || defined(_WIN64)

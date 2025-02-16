@@ -5,6 +5,7 @@
 #include <thread>
 
 #include "../common/macros.h"
+#include "../include/input_manager.h"
 #include "../include/scene_manager.h"
 
 using namespace gameaf;
@@ -47,15 +48,17 @@ void GameAF::run()
 #endif
 
     while (!m_exit) {
-        // TODO: 处理消息
+        // 处理消息
+        InputManager::getInstance().processInput();
 
         // 计算当前帧经过时间
         start_tick = steady_clock::now();
         auto delta = duration<float>(start_tick - last_tick);
+        m_delta_time = delta.count();
         last_tick = start_tick;
 
         // 场景数据更新
-        SceneManager::getInstance().onUpdate(delta.count());
+        SceneManager::getInstance().onUpdate(m_delta_time);
         // TODO: 全局游戏对象数据更新
 
 #ifdef GAMEAF_USE_EASYX
@@ -72,6 +75,8 @@ void GameAF::run()
         FlushBatchDraw();
 #else
 #endif
+        // 清除帧间消息缓存
+        InputManager::getInstance().clearFrameInput();
 
         // 计算当前帧多余的时间进行sleep
         auto sleep_delta = frame_duration - (steady_clock::now() - last_tick);
@@ -86,13 +91,11 @@ void GameAF::run()
 #endif
 }
 
-void GameAF::setScreenSize(int width, int height)
+void GameAF::setScreenSize(float width, float height)
 {
     m_screenWidth = width;
     m_screenHeight = height;
 }
-
-std::tuple<int, int> GameAF::getScreenSize() { return {m_screenWidth, m_screenHeight}; }
 
 void GameAF::setShowConsole(bool isShowConsole) { m_isShowConsole = isShowConsole; }
 

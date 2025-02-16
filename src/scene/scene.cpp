@@ -3,14 +3,14 @@
 #include <algorithm>
 
 #include "../include/game_af.h"
-#include "camera.hpp"
 
 namespace gameaf {
 
 Scene::Scene()
 {
+    auto [s_w, s_h] = GameAF::getInstance().getScreenSize();
     // 初始化main摄像机
-    newCamera();
+    addCamera("scene-main", std::make_shared<Camera>(Vector2({s_w, s_h})));
 }
 Scene::~Scene() = default;
 
@@ -29,12 +29,8 @@ void Scene::onUpdate(float delta)
         }
     }
 
-    // 场景中其他更新
-    // 摄像机跟随
-    if (m_focusCameras) {
-        for (auto& item : *m_focusCameras) {
-            m_cameras.at(item.first).lookAt(item.second->getPosition());
-        }
+    for (auto& [_, camera] : m_cameras) {
+        camera->onUpdate(delta);
     }
 }
 void Scene::onRender()
@@ -44,10 +40,13 @@ void Scene::onRender()
         std::sort(m_gameObjects->begin(), m_gameObjects->end(), CompareByZOrder);
         m_needRenderLayerUpdate = false;
     }
-    // TODO: camera 是否需要优化?
-    for (const auto& camera : m_cameras) {
-        for (auto& object : *m_gameObjects) {
-            object->onRender(camera);
+
+    for (auto& object : *m_gameObjects) {
+        for (auto& [_, camera] : m_cameras) {
+            if (camera->isAllRender())
+                object->onRender(*camera);
+            else if (camera->hasRender(object->getName()))
+                object->onRender(*camera);
         }
     }
 }
@@ -86,32 +85,16 @@ void Scene::delGameObjects(const std::string& id)
     while (it != m_gameObjects->end()) {
         if ((*it)->getName() == id) {
             it = m_gameObjects->erase(it);
-
-            // 删除内存中对应游戏对象追随摄像机信息
-            if (m_focusCameras) {
-                auto it_ = m_focusCameras->begin();
-                while (it_ != m_focusCameras->end()) {
-                    if (it_->second->getName() == id) {
-                        it_ = m_focusCameras->erase(it_);
-                    } else {
-                        ++it_;
-                    }
-                }
-            }
         } else {
             ++it;
         }
     }
 }
-void Scene::delAllGameObject()
-{
-    m_gameObjects = nullptr;
-    m_focusCameras = nullptr;
-}
+void Scene::delAllGameObject() { m_gameObjects = nullptr; }
 
 std::vector<Scene::GameObjectPtr> Scene::getGameObjects(const std::string& id)
 {
-    if (m_gameObjects) return {};
+    if (!m_gameObjects) return {};
     std::vector<GameObjectPtr> game_objects;
     for (auto& object : (*m_gameObjects)) {
         if (object->getName() == id) {
@@ -122,44 +105,22 @@ std::vector<Scene::GameObjectPtr> Scene::getGameObjects(const std::string& id)
     return game_objects;
 }
 
-size_t Scene::newCamera()
+bool Scene::addCamera(const std::string& camera_id, CameraPtr camera)
 {
-    auto [screenW, screenH] = GameAF::getInstance().getScreenSize();
-    m_cameras.emplace_back(Camera({(float)screenW, (float)screenH}));
-    return m_cameras.size() - 1;
-}
-bool Scene::setCameraSize(size_t id, const Vector2& size)
-{
-    if (m_cameras.size() <= id) return false;
-    m_cameras.at(id).setSize(size);
+    if (m_cameras.count(camera_id) != 0) return false;
+    m_cameras.emplace(camera_id, std::move(camera));
     return true;
 }
-bool Scene::setCameraPos(size_t id, const Vector2& pos)
+void Scene::setCenterAnchorPoint(const std::string& camera_id, GameObjectPtr game_object)
 {
-    if (m_cameras.size() <= id) return false;
-    m_cameras.at(id).setPosition(pos);
-    return true;
+    if (m_cameras.count(camera_id) == 0) return;
+    auto& camera = m_cameras.at(camera_id);
+    game_object->setPosition(camera->getPosition() + camera->getSize() / 2);
 }
-void Scene::CameraFocusOn(size_t id, GameObjectPtr game_object)
+void Scene::delCamera(const std::string& camera_id)
 {
-    if (m_focusCameras == nullptr) {
-        m_focusCameras = std::make_unique<std::unordered_map<size_t, GameObjectWeakPtr>>();
-    }
-    m_focusCameras->emplace(id, game_object.get());
-}
-
-void Scene::setCenterAnchorPoint(size_t id, GameObjectPtr game_object)
-{
-    if (m_cameras.size() <= id) return;
-    auto& camera = m_cameras.at(id);
-    game_object->setPosition(camera.getPosition() + camera.getSize() / 2);
-}
-
-// TODO: 删除摄像机后，删除的后面的摄像机的id会发生调整
-void Scene::delCamera(size_t id)
-{
-    if (m_cameras.size() <= id) return;
-    m_cameras.erase(m_cameras.begin() + id);
+    if (m_cameras.count(camera_id) == 0) return;
+    m_cameras.erase(camera_id);
 }
 
 }  // namespace gameaf

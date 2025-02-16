@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 namespace gameaf {
 
 class Vector2
@@ -35,4 +37,10 @@ public:
         Y *= vec.Y;
     }
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Vector2& vec)
+{
+    os << '(' << vec.X << ", " << vec.Y << ")";
+    return os;
+}
 }  // namespace gameaf

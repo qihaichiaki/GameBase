@@ -1,7 +1,6 @@
 #include "../include/game_object.h"
 
 #include <functional>
-#include <unordered_map>
 
 #include "../common/media_utils.hpp"
 #include "../game_object/module/animator.h"
@@ -19,16 +18,18 @@ GameObject::~GameObject() = default;
 
 GameObject::GameObject(const GameObject& obj)
 {
+    m_enterCallback = obj.m_enterCallback;
+    m_updateCallback = obj.m_updateCallback;
     // 资源复制
     m_name = obj.m_name;
     m_zOrder = obj.m_zOrder;
     m_myScene = obj.m_myScene;
     m_position = obj.m_position;
-    m_size = obj.m_size;
+    m_img_size = obj.m_img_size;
     m_anchor_mode = obj.m_anchor_mode;
     m_anchor_position = obj.m_anchor_position;
     m_image = obj.m_image;
-    m_animator = std::make_unique<Animator>(*(obj.m_animator));
+    if (obj.m_animator != nullptr) m_animator = std::make_unique<Animator>(*(obj.m_animator));
     // 子对象全部复制一遍
     if (obj.m_child_gameObjects) {
         m_child_gameObjects =
@@ -43,12 +44,14 @@ GameObject::GameObject(const GameObject& obj)
 
 void GameObject::swap(GameObject& mv_obj)
 {
+    m_enterCallback = mv_obj.m_enterCallback;
+    m_updateCallback = mv_obj.m_updateCallback;
     // 资源转移
     mv_obj.m_name.swap(m_name);
     m_zOrder = mv_obj.m_zOrder;
     m_myScene = mv_obj.m_myScene;
     m_position = mv_obj.m_position;
-    m_size = mv_obj.m_size;
+    m_img_size = mv_obj.m_img_size;
     m_anchor_mode = mv_obj.m_anchor_mode;
     m_anchor_position = mv_obj.m_anchor_position;
     m_image = mv_obj.m_image;
@@ -85,21 +88,6 @@ GameObject::GameObjectPtr GameObject::clone()
         parent_ptr->addChildObject(clone_ptr);
     }
     return clone_ptr;
-}
-
-bool GameObject::newImage(const std::string& img_id)
-{
-    ImagePtr new_img = ResourceManager::getInstance().getImage(img_id);
-    if (new_img == nullptr) return false;
-    m_image = new_img;
-    return true;
-}
-
-void GameObject::adaptImageSize()
-{
-    if (m_image) {
-        m_size = {m_image->getWidth() * 1.0f, m_image->getHeight() * 1.0f};
-    }
 }
 
 void GameObject::detachChildObject(GameObject* detach_child)
@@ -164,43 +152,44 @@ inline Rect buildRender(const Vector2& pos, const Vector2& size, GameObject::Anc
     Rect dst;
     dst.w = static_cast<int>(size.X);
     dst.h = static_cast<int>(size.Y);
-    static std::unordered_map<
-        GameObject::AnchorMode,
-        std::function<void(Rect&, const Vector2&, const Vector2&, const Vector2&)>>
-        map_fuc = {
-            {GameObject::AnchorMode::Centered,
-             [](Rect& dst, const Vector2& pos, const Vector2& size, const Vector2& anchor_pos) {
-                 dst.x = static_cast<int>(pos.X - size.X / 2);
-                 dst.y = static_cast<int>(pos.Y - size.Y / 2);
-             }},
-            {GameObject::AnchorMode::BottomCentered,
-             [](Rect& dst, const Vector2& pos, const Vector2& size, const Vector2& anchor_pos) {
-                 dst.x = static_cast<int>(pos.X - size.X / 2);
-                 dst.y = static_cast<int>(pos.Y - size.Y);
-             }},
-            {GameObject::AnchorMode::TopCentered,
-             [](Rect& dst, const Vector2& pos, const Vector2& size, const Vector2& anchor_pos) {
-                 dst.x = static_cast<int>(pos.X - size.X / 2);
-                 dst.y = static_cast<int>(pos.Y);
-             }},
-            {GameObject::AnchorMode::Customized,
-             [](Rect& dst, const Vector2& pos, const Vector2& size, const Vector2& anchor_pos) {
-                 // 注意，如果anchor_pos不符合0.0~1.0的范围,则视为0进行处理
-                 dst.x = static_cast<int>(pos.X - size.X * anchor_pos.X);
-                 dst.y = static_cast<int>(pos.Y - size.Y * anchor_pos.Y);
-             }},
-        };
 
-    map_fuc[mode](dst, pos, size, anchor_pos);
+    switch (mode) {
+        case GameObject::AnchorMode::Centered:
+            dst.x = pos.X - size.X / 2;
+            dst.y = pos.Y - size.Y / 2;
+            break;
+        case GameObject::AnchorMode::BottomCentered:
+            dst.x = pos.X - size.X / 2;
+            dst.y = pos.Y - size.Y;
+            break;
+        case GameObject::AnchorMode::TopCentered:
+            dst.x = pos.X - size.X / 2;
+            dst.y = pos.Y;
+            break;
+        case GameObject::AnchorMode::Customized:
+            // 注意，如果anchor_pos不符合0.0~1.0的范围,则视为0进行处理
+            dst.x = static_cast<int>(pos.X - size.X * anchor_pos.X);
+            dst.y = static_cast<int>(pos.Y - size.Y * anchor_pos.Y);
+            break;
+        default:
+            break;
+    }
     return dst;
 }
 
 void GameObject::onRender(const Camera& camera)
 {
-    Rect build_rect = buildRender(m_position, m_size, m_anchor_mode, m_anchor_position);
     // 特殊属性处理渲染
-    if (m_image) putImageEx(camera, *m_image, build_rect);
-    if (m_animator) m_animator->onRender(camera, build_rect);
+    if (m_image) {
+        putImageEx(camera, *m_image,
+                   buildRender(m_position, m_img_size, m_anchor_mode, m_anchor_position));
+    }
+
+    if (m_animator) {
+        m_animator->onRender(camera, buildRender(m_position, m_animator->currentAnimationSize(),
+                                                 m_anchor_mode, m_anchor_position));
+    }
+
     if (m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
             game_object->onRender(camera);

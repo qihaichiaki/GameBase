@@ -18,13 +18,19 @@ public:
     static ResourceManager& getInstance();
 
     /// @brief 加载图像资源
-    bool loadImage(const std::string& image_path, const std::string& image_name);
+    bool loadImage(const std::string& image_path, const std::string& image_name, int rows = 1,
+                   int cols = 1);
     /// @brief 加载字体资源
     bool loadFont(const std::string& font_path);
     /// @brief 加载图集资源
     bool loadAtlas(const std::string& atlas_path, size_t n_images, const std::string& atlas_name);
     /// @brief 加载音频资源
     bool loadAudio(const std::string& audio_path, const std::string& audio_name);
+
+    /// @brie 翻转图像, 产生新的图像
+    bool flipImage(const std::string& image_name, const std::string& flip_image_name);
+    /// @brief 翻转图集, 产生新的图集
+    bool flipAtlas(const std::string& atlas_name, const std::string& flip_atlas_name);
 
     /// @brief 卸载图像资源
     void unloadImage(const std::string& image_name);

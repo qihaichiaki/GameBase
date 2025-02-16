@@ -26,6 +26,8 @@ public:
     using ChildGameObjects = std::unique_ptr<std::vector<GameObjectPtr>>;
 
 public:
+    friend class ImageTool;
+    friend class AnimatorTool;
     friend class Scene;
     enum class AnchorMode { Centered, BottomCentered, TopCentered, Customized };
 
@@ -43,11 +45,28 @@ public:
 
 public:
     /// @brief 游戏对象加载入scene会进行调用
-    virtual void onEnter() {}
-    virtual void onUpdate() {};
+    virtual void onEnter() { m_enterCallback ? m_enterCallback(this) : 0; }
+    virtual void onUpdate() { m_updateCallback ? m_updateCallback(this) : 0; }
+
+    /// 注入回调式更新游戏对象
+    using EnterCallback = void (*)(GameObject*);
+    using UpdateCallback = void (*)(GameObject*);
+
+    /// @brief 注入update调用依赖.
+    /// @warning 如果当前对象为派生类对象, 重写的update函数中没有调用基类的update则依赖失效.
+    void addUpdateCallback(UpdateCallback callback) { m_updateCallback = callback; }
+    /// @brief 注入enter调用依赖.
+    /// @warning 如果当前对象为派生类对象, 重写的enter函数中没有调用基类的update则依赖失效.
+    void addEnterCallback(EnterCallback callback) { m_enterCallback = callback; }
+
+private:
+    EnterCallback m_enterCallback = nullptr;
+    UpdateCallback m_updateCallback = nullptr;
 
 public:
-    /// @brief 克隆一个一致的对象, 父中关系稳定
+    /// @brief 克隆一个一致的对象
+    /// @warning 注意派生类中的属性并没有复制, 需要自己手动继承实现
+    /// @note 此clone会自动继承父游戏对象
     virtual GameObjectPtr clone();
     /// @brief 获取当前对象名字
     std::string getName() const { return m_name; }
@@ -70,31 +89,19 @@ public:
     }
     /// @brief 设置当前对象的锚点位置(世界坐标)
     void setPosition(const Vector2& position) { m_position = position; }
+    /// @brief 设置当前对象锚点的X坐标
+    void setPositionX(float x) { m_position.X = x; }
+    /// @brief 设置当前对象锚点的Y坐标
+    void setPositionY(float y) { m_position.Y = y; }
     /// @brief 获取当前对象的锚点位置(世界坐标)
     const Vector2& getPosition() const { return m_position; }
     /// @brief 锚点位置进行位移
     /// @param offset 位移大小
     void translate(const Vector2& offset) { m_position += offset; }
-    /// @brief 设置当前对象的大小
-    void setSize(const Vector2& size) { m_size = size; }
-    /// @brief 获取当前对象的大小
-    const Vector2& getSize() const { return m_size; }
     /// @brief 设置渲染层级
     void setZOrder(int z_order);
     /// @brief 获得渲染层级
     int getZOrder() const { return m_zOrder; }
-    /// @brief 从资源管理器中获取对应id的图像组件
-    /// @param img_id 图像的唯一id
-    /// @return 是否加载成功
-    bool newImage(const std::string& img_id);
-    /// @brief 适配图像组件的原始大小
-    void adaptImageSize();
-    /// @brief 大小等比缩放
-    /// @param zoom_factor 缩放因子
-    void scaleProportionally(float zoom_factor) { m_size *= zoom_factor; }
-    /// @brief 大小按照X, Y进行缩放
-    /// @param zoom_factor
-    void scale(const Vector2& zoom_factor) { m_size *= zoom_factor; }
     /// @brief 添加子对象
     /// @note - 父对象会添加为当前对象, 并且如果之前存在父对象, 则会遍历删除一遍
     /// @note - 成为子对象, 渲染级别和父对象一致(子对象之间看插入的先后关系)
@@ -135,12 +142,12 @@ private:
     // scene的生命周期不由gameobject进行管理
     SceneWeakPtr m_myScene;
     Vector2 m_position;                               // 位置组件
-    Vector2 m_size = {1.0f, 1.0f};                    // 大小组件
     AnchorMode m_anchor_mode = AnchorMode::Centered;  // 锚点模式, 默认锚点在对象的中心
     Vector2 m_anchor_position;  // 自定义锚点相对于当前对象位置 (x/y: 0.0 ~ 1.0)
 
     // === 特殊属性(可有可无, 使用指针管理,延迟加载) ===
     ImagePtr m_image = nullptr;                      // 图像组件
+    Vector2 m_img_size;                              // 图像组件的大小(临时)
     AnimatorPtr m_animator = nullptr;                // 动画管理器组件
     ChildGameObjects m_child_gameObjects = nullptr;  // 子游戏对象容器
     GameObjectWeakPtr m_parent;                      // 父对象

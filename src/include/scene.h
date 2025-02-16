@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "camera.h"
 #include "game_object.h"
 #include "state_node.hpp"
 
@@ -17,9 +18,9 @@ class Scene : public StateNode, public std::enable_shared_from_this<Scene>
 public:
     using GameObjectPtr = ::std::shared_ptr<GameObject>;
     using GameObjects = ::std::unique_ptr<std::vector<GameObjectPtr>>;
-    using Cameras = std::vector<Camera>;
     using GameObjectWeakPtr = GameObject*;
-    using FocusCameras = std::unique_ptr<std::unordered_map<size_t, GameObjectWeakPtr>>;
+    using CameraPtr = std::shared_ptr<Camera>;
+    using Cameras = std::unordered_map<std::string, CameraPtr>;
 
 public:
     Scene();
@@ -42,36 +43,26 @@ public:
     std::vector<GameObjectPtr> getGameObjects(const std::string& id);
     /// @brief 游戏对象渲染层级更新
     void notifyRenderLayerUpdate() { m_needRenderLayerUpdate = true; }
-    /// @brief 添加场景摄像机, 返回新增场景摄像机编号
+    /// @brief 添加场景摄像机
     /// @note 新增摄像机后, 默认位置为世界坐标(0, 0), 大小和游戏屏幕大小一致
-    size_t newCamera();
-    /// @brief 设置摄像机大小
-    /// @param id 摄像机id
-    /// @param size 摄像机大小
-    /// @return 是否设置成功(摄像机id是否正确)
-    bool setCameraSize(size_t id, const Vector2& size);
-    /// @brief 设置摄像机位置
-    /// @param id 摄像机id
-    /// @param pos 摄像机世界坐标(矩形的左上角)
-    /// @return 是否设置成功(摄像机id是否正确)
-    bool setCameraPos(size_t id, const Vector2& pos);
-    /// @brief 指定摄像机聚焦游戏对象
-    /// @param id 摄像机id
-    /// @param game_object 游戏对象
-    void CameraFocusOn(size_t id, GameObjectPtr game_object);
+    bool addCamera(const std::string& camera_id, CameraPtr camera);
     /// @brief 设置游戏对象的锚点位于对应摄像机的中心位置(设置一次, 不会追随)
     /// @param game_object
-    void setCenterAnchorPoint(size_t id, GameObjectPtr game_object);
+    void setCenterAnchorPoint(const std::string& camera_id, GameObjectPtr game_object);
     /// @brief 删除摄像机对象
-    void delCamera(size_t id);
+    void delCamera(const std::string& camera_id);
+    /// @brief 获取摄像机对象
+    CameraPtr getCamera(const std::string& camera_id)
+    {
+        if (m_cameras.count(camera_id) == 0) return nullptr;
+        return m_cameras.at(camera_id);
+    }
 
 private:
     // 场景下的所有游戏对象
     GameObjects m_gameObjects = nullptr;
     // 场景下的所有摄像机对象, 默认存在一个
     Cameras m_cameras;
-    // 场景下的摄像机跟随目标
-    FocusCameras m_focusCameras = nullptr;
 
     // 是否需要排序 在渲染对象的时候, 判断当前是否需要排序
     bool m_needRenderLayerUpdate = false;
