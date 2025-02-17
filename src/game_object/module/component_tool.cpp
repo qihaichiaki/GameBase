@@ -86,7 +86,7 @@ bool CollisionTool::setCollisionEnabled(GameObject& game_obj, bool enabled)
     return true;
 }
 
-bool CollisionTool::setOnCollide(GameObject& game_obj, std::function<void()> on_collide)
+bool CollisionTool::setOnCollide(GameObject& game_obj, std::function<void(GameObject&)> on_collide)
 {
     if (game_obj.m_collision_component == nullptr) return false;
     game_obj.m_collision_component->setOnCollide(on_collide);
@@ -115,9 +115,10 @@ bool CollisionTool::modCollisionBox(GameObject& game_obj)
         return false;
     if (game_obj.m_collision_component == nullptr) {
         collision_box = CollisionManager::getInstance().createCollisionBox();
+        collision_box->setGameObject(&game_obj);
         game_obj.m_collision_component = collision_box;
     } else {
-        collision_box = (CollisionBox*)game_obj.m_collision_component;
+        collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
     }
 
     if (game_obj.m_image) {
@@ -133,7 +134,7 @@ bool CollisionTool::modCollisionBox(GameObject& game_obj, float factor_x, float 
 {
     if (!modCollisionBox(game_obj)) return false;
 
-    auto collision_box = (CollisionBox*)game_obj.m_collision_component;
+    auto collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
     collision_box->size() *= Vector2{factor_x, factor_y};
     return true;
 }
@@ -150,9 +151,24 @@ bool CollisionTool::setCollisionBoxSize(GameObject& game_obj, Vector2 size)
 {
     if (!modCollisionBox(game_obj)) return false;
 
-    auto collision_box = (CollisionBox*)game_obj.m_collision_component;
+    auto collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
     collision_box->size() = size;
     return true;
+}
+
+Vector2 CollisionTool::getCollisionBoxSize(GameObject& game_obj)
+{
+    if (!modCollisionBox(game_obj)) return {};
+
+    auto collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
+    return collision_box->size();
+}
+
+Vector2 CollisionTool::getCollisionPostion(GameObject& game_obj)
+{
+    if (!modCollisionBox(game_obj)) return {};
+
+    return game_obj.m_collision_component->position();
 }
 
 }  // namespace gameaf

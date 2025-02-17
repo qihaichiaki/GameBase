@@ -8,6 +8,7 @@
 #include <log.hpp>
 #include <media_utils.hpp>
 #include <module/collision_component.hpp>
+#include <module/collision_manager.hpp>
 #include <module/image.hpp>
 
 namespace gameaf {
@@ -15,7 +16,10 @@ namespace gameaf {
 GameObject::GameObject() = default;
 GameObject::GameObject(const std::string& name) : m_name(name) {}
 GameObject::GameObject(int z_order, const std::string& name) : m_name(name), m_zOrder(z_order) {}
-GameObject::~GameObject() = default;
+GameObject::~GameObject()
+{
+    CollisionManager::getInstance().deleteCollisionComponent(m_collision_component);
+}
 
 GameObject::GameObject(const GameObject& obj)
 {
@@ -40,6 +44,10 @@ GameObject::GameObject(const GameObject& obj)
         }
     }
     m_parent = obj.m_parent;
+    m_collision_component =
+        CollisionManager::getInstance().copyCollisionComponent(obj.m_collision_component);
+    m_collision_component_delta = obj.m_collision_component_delta;
+
     gameaf::log("[debug] 对象{}复制成功......", m_name);
 }
 
@@ -62,6 +70,9 @@ void GameObject::swap(GameObject& mv_obj)
         m_child_gameObjects = std::move(mv_obj.m_child_gameObjects);
     }
     m_parent = mv_obj.m_parent;
+    m_collision_component = mv_obj.m_collision_component;
+    mv_obj.m_collision_component = nullptr;
+    m_collision_component_delta = mv_obj.m_collision_component_delta;
 }
 
 GameObject::GameObject(GameObject&& mv_obj)

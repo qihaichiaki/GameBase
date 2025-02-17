@@ -32,6 +32,26 @@ public:
     }
 
 public:
+    void deleteCollisionComponent(CollisionComponent* del_coll_component)
+    {
+        if (del_coll_component == nullptr) return;
+        m_collide_components.erase(std::remove(m_collide_components.begin(),
+                                               m_collide_components.end(), del_coll_component),
+                                   m_collide_components.end());
+    }
+
+    CollisionComponent* copyCollisionComponent(CollisionComponent* copy_coll_component)
+    {
+        if (copy_coll_component == nullptr) return nullptr;
+        if (copy_coll_component->type() == CollisionComponentType::Box) {
+            CollisionBox* new_collision_box = createCollisionBox();
+            *new_collision_box = *(static_cast<CollisionBox*>(copy_coll_component));
+            return new_collision_box;
+        }
+
+        return nullptr;
+    }
+
     CollisionBox* createCollisionBox()
     {
         CollisionBox* collision_box = new CollisionBox();

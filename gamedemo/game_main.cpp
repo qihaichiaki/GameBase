@@ -49,9 +49,8 @@ public:
         CollisionTool::modCollisionBox(*this);
         CollisionTool::setSrcLayer(*this, Layer::player);
         CollisionTool::addDstLayer(*this, Layer::wall);
-        CollisionTool::setOnCollide(*this, [this]() {
-            gameaf::log("触发碰撞检测回调");
-            // this->velocity = {0.0f, 0.0f};
+        CollisionTool::setOnCollide(*this, [this](GameObject& object) {
+            // gameaf::log("{}触发碰撞检测回调, 目标对象{}", getName(), object.getName());
         });
     }
 
@@ -132,6 +131,8 @@ public:
         if (is_dir_left && !is_left) AnimatorTool::switchToAnimation(*this, "idle-left");
         if (!is_dir_left && !is_right) AnimatorTool::switchToAnimation(*this, "idle-right");
     }
+
+    Vector2 getVelocity() const { return velocity; }
 
 private:
     Vector2 velocity;
@@ -245,16 +246,47 @@ int main()
 
     // 添加空气墙
     auto air_wall = std::make_shared<GameObject>();
+    air_wall->setName("air_wall");
     if (!CollisionTool::setCollisionBoxSize(*air_wall, {500.0f, 500.0f})) return -1;
     CollisionTool::setSrcLayer(*air_wall, Layer::wall);
+    CollisionTool::addDstLayer(*air_wall, Layer::player);
+    CollisionTool::setOnCollide(*air_wall, [&air_wall](GameObject& dst_object) {
+        Player& player = static_cast<Player&>(dst_object);
+        auto player_box_size = CollisionTool::getCollisionBoxSize(player);
+        static auto air_box_size = CollisionTool::getCollisionBoxSize(*air_wall);
+
+        float player_left = player.getPosition().X - player_box_size.X / 2;
+        float player_right = player.getPosition().X + player_box_size.X / 2;
+        float player_top = player.getPosition().Y - player_box_size.Y / 2;
+        float player_bottom = player.getPosition().Y + player_box_size.Y / 2;
+
+        float wall_left = air_wall->getPosition().X - air_box_size.X / 2;
+        float wall_right = air_wall->getPosition().X + air_box_size.X / 2;
+        float wall_top = air_wall->getPosition().Y - air_box_size.Y / 2;
+        float wall_bottom = air_wall->getPosition().Y + air_box_size.Y / 2;
+
+        if (player.getVelocity().X < 0 && player_left < wall_right && player_right > wall_right) {
+            player.translate({wall_right - player_left, 0});
+        } else if (player.getVelocity().X > 0 && player_right > wall_left &&
+                   player_left < wall_left) {
+            player.translate({wall_left - player_right, 0});
+        } else if (player.getVelocity().Y < 0 && player_top < wall_bottom &&
+                   player_bottom > wall_bottom) {
+            player.translate({0, wall_bottom - player_top});
+        } else if (player.getVelocity().Y >= 0 && player_bottom > wall_top &&
+                   player_top < wall_top) {
+            player.translate({0, wall_top - player_bottom});
+        }
+    });
+    // CollisionTool::setCollisionEnabled(*air_wall, false);
 
     // 主场景添加游戏对象
     main_scene->addGameObjects({background2, background, player, air_wall});
     auto main_camera = main_scene->getCamera("scene-main");
     // 主摄像机聚焦player
     main_camera->setFollowTarget(player);
-    main_camera->addRenderObj("GameObject");
-    main_camera->addRenderObj("Player");
+    // main_camera->addRenderObj("GameObject");
+    // main_camera->addRenderObj("Player");
 
     gameaf::log("{}", "游戏开始运行...");
     my_game.run();

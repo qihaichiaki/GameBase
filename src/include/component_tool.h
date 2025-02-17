@@ -82,7 +82,7 @@ struct CollisionTool
     static bool setCollisionEnabled(GameObject& game_obj, bool enabled);
 
     /// @brief 设置游戏对象碰撞器触发后的回调
-    static bool setOnCollide(GameObject& game_obj, std::function<void()> on_collide);
+    static bool setOnCollide(GameObject& game_obj, std::function<void(GameObject&)> on_collide);
 
     /// @brief 设置游戏对象碰撞器的源层级
     static bool setSrcLayer(GameObject& game_obj, Collisionlayer src_layer);
@@ -90,8 +90,15 @@ struct CollisionTool
     /// @brief 添加游戏对象碰撞器的目标层级
     static bool addDstLayer(GameObject& game_obj, Collisionlayer dst_layer);
 
+    /// @brief 获取游戏对象碰撞组件的位置
+    static Vector2 getCollisionPostion(GameObject& game_obj);
+
     /// @brief 操作游戏对象的碰撞box
     static bool modCollisionBox(GameObject& game_obj);
+
+    /// @brief 操作游戏对象的碰撞box
+    /// @param delta 和游戏对象之间的位移
+    static bool modCollisionBox(GameObject& game_obj, Vector2 delta);
 
     /// @brief 操作游戏对象的碰撞box
     /// @param factor_x x方向的缩放因子
@@ -102,9 +109,8 @@ struct CollisionTool
     /// @param size 设置碰撞box的大小
     static bool setCollisionBoxSize(GameObject& game_obj, Vector2 size);
 
-    /// @brief 操作游戏对象的碰撞box
-    /// @param delta 和游戏对象之间的位移
-    static bool modCollisionBox(GameObject& game_obj, Vector2 delta);
+    /// @brief 获取游戏对象的碰撞box的大小
+    static Vector2 getCollisionBoxSize(GameObject& game_obj);
 };
 
 }  // namespace gameaf

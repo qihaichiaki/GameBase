@@ -41,7 +41,16 @@ public:
 
             if (is_collide_x && is_collide_y) {
                 // 碰撞回调调用
-                if (m_on_collide) m_on_collide();
+                // 将对方的游戏对象传入进去
+                if (m_on_collide) {
+                    if (dst->getGameObject() == nullptr) {
+                        gameaf::log(
+                            "[fatal][processCollide]: "
+                            "目标CollisionComponent并没有传入gameobject对象");
+                        return;
+                    }
+                    m_on_collide(*dst->getGameObject());
+                }
                 // TODO: 物理更新?
             }
         }
