@@ -52,6 +52,7 @@ public:
     {
         return m_animations.at(animation_id);
     }
+    const Animation& initialAnimation() const { return m_animations.at(m_initial_animation_id); }
 
 private:
     std::unordered_map<std::string, Animation> m_animations;

@@ -5,8 +5,10 @@
  * 工具头文件
  */
 
+#include <functional>
 #include <string>
 
+#include "collision_layer.hpp"
 #include "vector2.hpp"
 
 namespace gameaf {
@@ -72,6 +74,37 @@ struct ImageTool
     /// @brief 大小按照X, Y进行缩放
     /// @param zoom_factor
     static void scale(GameObject& game_obj, const Vector2& zoom_factor);
+};
+
+struct CollisionTool
+{
+    /// @brief 设置游戏对象的碰撞器的可用
+    static bool setCollisionEnabled(GameObject& game_obj, bool enabled);
+
+    /// @brief 设置游戏对象碰撞器触发后的回调
+    static bool setOnCollide(GameObject& game_obj, std::function<void()> on_collide);
+
+    /// @brief 设置游戏对象碰撞器的源层级
+    static bool setSrcLayer(GameObject& game_obj, Collisionlayer src_layer);
+
+    /// @brief 添加游戏对象碰撞器的目标层级
+    static bool addDstLayer(GameObject& game_obj, Collisionlayer dst_layer);
+
+    /// @brief 操作游戏对象的碰撞box
+    static bool modCollisionBox(GameObject& game_obj);
+
+    /// @brief 操作游戏对象的碰撞box
+    /// @param factor_x x方向的缩放因子
+    /// @param factor_y y方向的缩放因子
+    static bool modCollisionBox(GameObject& game_obj, float factor_x, float factor_y);
+
+    /// @brief 操作游戏对象的碰撞box
+    /// @param size 设置碰撞box的大小
+    static bool setCollisionBoxSize(GameObject& game_obj, Vector2 size);
+
+    /// @brief 操作游戏对象的碰撞box
+    /// @param delta 和游戏对象之间的位移
+    static bool modCollisionBox(GameObject& game_obj, Vector2 delta);
 };
 
 }  // namespace gameaf

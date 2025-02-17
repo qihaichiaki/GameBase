@@ -1,12 +1,13 @@
 #include "../include/game_af.h"
 
+#include <input_manager.h>
+#include <macros.h>
+#include <scene_manager.h>
+
 #include <chrono>
 #include <codecvt>
+#include <module/collision_manager.hpp>
 #include <thread>
-
-#include "../common/macros.h"
-#include "../include/input_manager.h"
-#include "../include/scene_manager.h"
 
 using namespace gameaf;
 
@@ -60,6 +61,9 @@ void GameAF::run()
         // 场景数据更新
         SceneManager::getInstance().onUpdate(m_delta_time);
         // TODO: 全局游戏对象数据更新
+
+        // 碰撞管理器更新
+        CollisionManager::getInstance().processCollide();
 
 #ifdef GAMEAF_USE_EASYX
         setbkcolor(RGB(0, 0, 0));

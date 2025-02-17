@@ -13,6 +13,7 @@ class Image;
 class Animator;
 class Scene;
 class Camera;
+class CollisionComponent;
 
 class GameObject : public std::enable_shared_from_this<GameObject>
 {
@@ -24,11 +25,13 @@ public:
     using GameObjectWeakPtr = std::weak_ptr<GameObject>;
     using SceneWeakPtr = std::weak_ptr<Scene>;
     using ChildGameObjects = std::unique_ptr<std::vector<GameObjectPtr>>;
+    using CollisionComponentPtr = CollisionComponent*;  // 碰撞组件的生命周期由碰撞管理器管理
 
 public:
+    friend class Scene;
     friend class ImageTool;
     friend class AnimatorTool;
-    friend class Scene;
+    friend class CollisionTool;
     enum class AnchorMode { Centered, BottomCentered, TopCentered, Customized };
 
 public:
@@ -146,11 +149,13 @@ private:
     Vector2 m_anchor_position;  // 自定义锚点相对于当前对象位置 (x/y: 0.0 ~ 1.0)
 
     // === 特殊属性(可有可无, 使用指针管理,延迟加载) ===
-    ImagePtr m_image = nullptr;                      // 图像组件
-    Vector2 m_img_size;                              // 图像组件的大小(临时)
-    AnimatorPtr m_animator = nullptr;                // 动画管理器组件
-    ChildGameObjects m_child_gameObjects = nullptr;  // 子游戏对象容器
-    GameObjectWeakPtr m_parent;                      // 父对象
+    ImagePtr m_image = nullptr;                             // 图像组件
+    Vector2 m_img_size;                                     // 图像组件的大小(临时)
+    AnimatorPtr m_animator = nullptr;                       // 动画管理器组件
+    ChildGameObjects m_child_gameObjects = nullptr;         // 子游戏对象容器
+    GameObjectWeakPtr m_parent;                             // 父对象
+    CollisionComponentPtr m_collision_component = nullptr;  // 碰撞组件
+    Vector2 m_collision_component_delta;                    // 碰撞组件位置和游戏对象位置的差距
     // ...
 };
 }  // namespace gameaf

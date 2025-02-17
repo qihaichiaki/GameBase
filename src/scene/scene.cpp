@@ -24,8 +24,8 @@ void Scene::onUpdate(float delta)
 {
     if (m_gameObjects) {
         for (auto& object : *m_gameObjects) {
-            object->onUpdate(delta);
             object->onUpdate();
+            object->onUpdate(delta);
         }
     }
 

@@ -1,13 +1,14 @@
 #include "../include/game_object.h"
 
-#include <functional>
+#include <module/animator.h>
+#include <resource_manager.h>
+#include <scene.h>
 
-#include "../common/media_utils.hpp"
-#include "../game_object/module/animator.h"
-#include "../game_object/module/image.hpp"
-#include "../include/log.hpp"
-#include "../include/resource_manager.h"
-#include "../include/scene.h"
+#include <functional>
+#include <log.hpp>
+#include <media_utils.hpp>
+#include <module/collision_component.hpp>
+#include <module/image.hpp>
 
 namespace gameaf {
 
@@ -139,9 +140,14 @@ void GameObject::onUpdate(float delta)
     if (m_animator) m_animator->onUpdate(delta);
     if (m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
-            game_object->onUpdate(delta);
             game_object->onUpdate();
+            game_object->onUpdate(delta);
         }
+    }
+
+    // 更新碰撞组件位置
+    if (m_collision_component) {
+        m_collision_component->position() = m_position + m_collision_component_delta;
     }
 }
 
@@ -195,6 +201,9 @@ void GameObject::onRender(const Camera& camera)
             game_object->onRender(camera);
         }
     }
+
+    // debug render
+    if (m_collision_component) m_collision_component->onDebugRender(camera);
 }
 
 void GameObject::setZOrder(int z_order)

@@ -9,9 +9,11 @@
 
 using gameaf::AnimatorTool;
 using gameaf::Camera;
+using gameaf::CollisionTool;
 using gameaf::GameObject;
 using gameaf::ImageTool;
 using gameaf::InputManager;
+using gameaf::Layer;
 using gameaf::ResourceManager;
 using gameaf::Scene;
 using gameaf::SceneManager;
@@ -38,14 +40,19 @@ public:
     {
         setName("Player");
         setZOrder(ZOrderLevel::z_player);
-        // newImage("player-idle1");
-        // adaptImageSize();
         AnimatorTool::newAnimationForAtlas(*this, "idle-right", "player-idle-right", 0.15f, true);
         AnimatorTool::newAnimationForAtlas(*this, "idle-left", "player-idle-left", 0.15f, true);
         AnimatorTool::newAnimationForAtlas(*this, "run-right", "player-run-right", 0.15f, true);
         AnimatorTool::newAnimationForAtlas(*this, "run-left", "player-run-left", 0.15f, true);
-
         AnimatorTool::setInitialAnimation(*this, "run-right");
+
+        CollisionTool::modCollisionBox(*this);
+        CollisionTool::setSrcLayer(*this, Layer::player);
+        CollisionTool::addDstLayer(*this, Layer::wall);
+        CollisionTool::setOnCollide(*this, [this]() {
+            gameaf::log("触发碰撞检测回调");
+            // this->velocity = {0.0f, 0.0f};
+        });
     }
 
     void onUpdate() override
@@ -235,8 +242,14 @@ int main()
     // 玩家游戏对象
     auto player = std::make_shared<Player>();
     main_scene->setCenterAnchorPoint("scene-main", player);
+
+    // 添加空气墙
+    auto air_wall = std::make_shared<GameObject>();
+    if (!CollisionTool::setCollisionBoxSize(*air_wall, {500.0f, 500.0f})) return -1;
+    CollisionTool::setSrcLayer(*air_wall, Layer::wall);
+
     // 主场景添加游戏对象
-    main_scene->addGameObjects({background2, background, player});
+    main_scene->addGameObjects({background2, background, player, air_wall});
     auto main_camera = main_scene->getCamera("scene-main");
     // 主摄像机聚焦player
     main_camera->setFollowTarget(player);
@@ -245,4 +258,6 @@ int main()
 
     gameaf::log("{}", "游戏开始运行...");
     my_game.run();
+
+    return 0;
 }
