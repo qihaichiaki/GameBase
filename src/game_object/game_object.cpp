@@ -1,5 +1,4 @@
-#include "../include/game_object.h"
-
+#include <game_object.h>
 #include <module/animator.h>
 #include <resource_manager.h>
 #include <scene.h>
@@ -10,6 +9,7 @@
 #include <module/collision_component.hpp>
 #include <module/collision_manager.hpp>
 #include <module/image.hpp>
+#include <module/rigidbody_manager.hpp>
 
 namespace gameaf {
 
@@ -19,6 +19,7 @@ GameObject::GameObject(int z_order, const std::string& name) : m_name(name), m_z
 GameObject::~GameObject()
 {
     CollisionManager::getInstance().deleteCollisionComponent(m_collision_component);
+    RigidbodyManager::getInstance().deleteRigidbody2D(m_rigidbody2D);
 }
 
 GameObject::GameObject(const GameObject& obj)
@@ -46,8 +47,7 @@ GameObject::GameObject(const GameObject& obj)
     m_parent = obj.m_parent;
     m_collision_component =
         CollisionManager::getInstance().copyCollisionComponent(obj.m_collision_component);
-    m_collision_component_delta = obj.m_collision_component_delta;
-
+    m_rigidbody2D = RigidbodyManager::getInstance().copyRigidbody2D(obj.m_rigidbody2D);
     gameaf::log("[debug] 对象{}复制成功......", m_name);
 }
 
@@ -72,7 +72,8 @@ void GameObject::swap(GameObject& mv_obj)
     m_parent = mv_obj.m_parent;
     m_collision_component = mv_obj.m_collision_component;
     mv_obj.m_collision_component = nullptr;
-    m_collision_component_delta = mv_obj.m_collision_component_delta;
+    m_rigidbody2D = mv_obj.m_rigidbody2D;
+    mv_obj.m_rigidbody2D = nullptr;
 }
 
 GameObject::GameObject(GameObject&& mv_obj)
@@ -154,11 +155,6 @@ void GameObject::onUpdate(float delta)
             game_object->onUpdate();
             game_object->onUpdate(delta);
         }
-    }
-
-    // 更新碰撞组件位置
-    if (m_collision_component) {
-        m_collision_component->position() = m_position + m_collision_component_delta;
     }
 }
 

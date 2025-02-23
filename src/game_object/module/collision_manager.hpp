@@ -20,13 +20,13 @@ public:
         return instance;
     }
 
-    void processCollide()
+    void processCollide(float delta)
     {
         for (auto src_collide : m_collide_components) {
             if (!src_collide->enabled()) continue;
             for (auto dst_collide : m_collide_components) {
                 if (src_collide == dst_collide) continue;
-                src_collide->processCollide(dst_collide);
+                src_collide->processCollide(dst_collide, delta);
             }
         }
     }
@@ -38,13 +38,14 @@ public:
         m_collide_components.erase(std::remove(m_collide_components.begin(),
                                                m_collide_components.end(), del_coll_component),
                                    m_collide_components.end());
+        delete del_coll_component;
     }
 
     CollisionComponent* copyCollisionComponent(CollisionComponent* copy_coll_component)
     {
         if (copy_coll_component == nullptr) return nullptr;
         if (copy_coll_component->type() == CollisionComponentType::Box) {
-            CollisionBox* new_collision_box = createCollisionBox();
+            CollisionBox* new_collision_box = createCollisionBox(copy_coll_component->getObject());
             *new_collision_box = *(static_cast<CollisionBox*>(copy_coll_component));
             return new_collision_box;
         }
@@ -52,9 +53,9 @@ public:
         return nullptr;
     }
 
-    CollisionBox* createCollisionBox()
+    CollisionBox* createCollisionBox(GameObject* game_object)
     {
-        CollisionBox* collision_box = new CollisionBox();
+        CollisionBox* collision_box = new CollisionBox(game_object);
         m_collide_components.emplace_back(collision_box);
         return collision_box;
     }

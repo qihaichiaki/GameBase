@@ -15,6 +15,7 @@ using gameaf::ImageTool;
 using gameaf::InputManager;
 using gameaf::Layer;
 using gameaf::ResourceManager;
+using gameaf::RigidbodyTool;
 using gameaf::Scene;
 using gameaf::SceneManager;
 using gameaf::Vector2;
@@ -46,12 +47,14 @@ public:
         AnimatorTool::newAnimationForAtlas(*this, "run-left", "player-run-left", 0.15f, true);
         AnimatorTool::setInitialAnimation(*this, "run-right");
 
-        CollisionTool::modCollisionBox(*this);
+        CollisionTool::createCollisionBox(*this);
         CollisionTool::setSrcLayer(*this, Layer::player);
         CollisionTool::addDstLayer(*this, Layer::wall);
         CollisionTool::setOnCollide(*this, [this](GameObject& object) {
             // gameaf::log("{}触发碰撞检测回调, 目标对象{}", getName(), object.getName());
         });
+        RigidbodyTool::createRigidbody2D(*this);
+        // RigidbodyTool::setGravityScale(*this, 10.5f);
     }
 
     void onUpdate() override
@@ -62,15 +65,14 @@ public:
 
         if (input_manager.isKeyDown(KeyValue::A)) {
             is_left = true;
+            is_dir_left = true;
         }
         if (input_manager.isKeyDown(KeyValue::D)) {
             is_right = true;
+            is_dir_left = false;
         }
-        if (input_manager.isKeyDown(KeyValue::W)) {
-            is_up = true;
-        }
-        if (input_manager.isKeyDown(KeyValue::S)) {
-            is_down = true;
+        if (input_manager.isKeyDown(KeyValue::Space)) {
+            is_jump = true;
         }
 
         if (input_manager.isKeyUp(KeyValue::A)) {
@@ -79,50 +81,14 @@ public:
         if (input_manager.isKeyUp(KeyValue::D)) {
             is_right = false;
         }
-        if (input_manager.isKeyUp(KeyValue::W)) {
-            is_up = false;
-        }
-        if (input_manager.isKeyUp(KeyValue::S)) {
-            is_down = false;
+        if (input_manager.isKeyUp(KeyValue::Space)) {
+            is_jump = false;
         }
 
-        if (is_left && is_up)
-            velocity = {-(float)std::sqrt(1.0 / 2), -(float)std::sqrt(1.0 / 2)};
-        else if (is_left && is_down)
-            velocity = {-(float)std::sqrt(1.0 / 2), (float)std::sqrt(1.0 / 2)};
-        else if (is_right && is_up)
-            velocity = {(float)std::sqrt(1.0 / 2), -(float)std::sqrt(1.0 / 2)};
-        else if (is_right && is_down)
-            velocity = {(float)std::sqrt(1.0 / 2), (float)std::sqrt(1.0 / 2)};
-        else if (is_left)
-            velocity = {-1.0f, 0.0f};
-        else if (is_right)
-            velocity = {1.0f, 0.0f};
-        else if (is_up)
-            velocity = {0.0f, -1.0f};
-        else if (is_down)
-            velocity = {0.0f, 1.0f};
-        else
-            velocity = {};
+        dir = is_left ? -1.0f : is_right ? 1.0f : 0.0f;
 
-        // if (is_left || is_right || is_up || is_down) {
-        //     gameaf::log("当前玩家位置{}", getPosition());
-        // }
-
-        auto d_x = velocity * speed * game_af.getDeltaTime();
-        // if (d_x.X != 0.0f || d_x.Y != 0.0f) gameaf::log("移动距离为: {}", d_x);
-        translate(d_x);
-        // auto [s_x, s_y] = game_af.getScreenSize();
-        // if (getPosition().X > s_x) setPosition({(float)s_x, getPosition().Y});
-        // if (getPosition().X < 0) setPosition({0, getPosition().Y});
-        // if (getPosition().Y > s_y) setPosition({getPosition().X, (float)s_y});
-        // if (getPosition().Y < 0) setPosition({getPosition().X, 0});
-
-        if (is_dir_left && is_right) {
-            is_dir_left = false;
-        } else if (!is_dir_left && is_left) {
-            is_dir_left = true;
-        }
+        RigidbodyTool::setVelocity(
+            *this, {dir * speed, is_jump ? -600.0f : RigidbodyTool::velocity(*this).Y});
 
         if (is_right) AnimatorTool::switchToAnimation(*this, "run-right");
 
@@ -132,15 +98,12 @@ public:
         if (!is_dir_left && !is_right) AnimatorTool::switchToAnimation(*this, "idle-right");
     }
 
-    Vector2 getVelocity() const { return velocity; }
-
 private:
-    Vector2 velocity;
-    float speed = 1000.0f;
+    float speed = 500.0f;
     bool is_left = false;
     bool is_right = false;
-    bool is_up = false;
-    bool is_down = false;
+    bool is_jump = false;
+    float dir = -1;
     bool is_dir_left = false;
 };
 
@@ -195,6 +158,7 @@ int main()
     main_scene->addCamera("scene-ui", ui_camera);
     main_scene->setCenterAnchorPoint("scene-ui", background);
     ui_camera->addRenderObj("background-1");
+    // 每个场景存在一个默认的主相机scene-main
     main_scene->setCenterAnchorPoint("scene-main", background2_1);
 
     ImageTool::scale(*background2_1, {3.4f, 3.4f});
@@ -242,49 +206,33 @@ int main()
 
     // 玩家游戏对象
     auto player = std::make_shared<Player>();
+    // 设置玩家对象在当前场景的主相机的中心位置
     main_scene->setCenterAnchorPoint("scene-main", player);
 
     // 添加空气墙
     auto air_wall = std::make_shared<GameObject>();
     air_wall->setName("air_wall");
+    air_wall->setZOrder(ZOrderLevel::z_player);
+    air_wall->translate({0.0f, 400.0f});
     if (!CollisionTool::setCollisionBoxSize(*air_wall, {500.0f, 500.0f})) return -1;
     CollisionTool::setSrcLayer(*air_wall, Layer::wall);
     CollisionTool::addDstLayer(*air_wall, Layer::player);
-    CollisionTool::setOnCollide(*air_wall, [&air_wall](GameObject& dst_object) {
-        Player& player = static_cast<Player&>(dst_object);
-        auto player_box_size = CollisionTool::getCollisionBoxSize(player);
-        static auto air_box_size = CollisionTool::getCollisionBoxSize(*air_wall);
 
-        float player_left = player.getPosition().X - player_box_size.X / 2;
-        float player_right = player.getPosition().X + player_box_size.X / 2;
-        float player_top = player.getPosition().Y - player_box_size.Y / 2;
-        float player_bottom = player.getPosition().Y + player_box_size.Y / 2;
-
-        float wall_left = air_wall->getPosition().X - air_box_size.X / 2;
-        float wall_right = air_wall->getPosition().X + air_box_size.X / 2;
-        float wall_top = air_wall->getPosition().Y - air_box_size.Y / 2;
-        float wall_bottom = air_wall->getPosition().Y + air_box_size.Y / 2;
-
-        if (player.getVelocity().X < 0 && player_left < wall_right && player_right > wall_right) {
-            player.translate({wall_right - player_left, 0});
-        } else if (player.getVelocity().X > 0 && player_right > wall_left &&
-                   player_left < wall_left) {
-            player.translate({wall_left - player_right, 0});
-        } else if (player.getVelocity().Y < 0 && player_top < wall_bottom &&
-                   player_bottom > wall_bottom) {
-            player.translate({0, wall_bottom - player_top});
-        } else if (player.getVelocity().Y >= 0 && player_bottom > wall_top &&
-                   player_top < wall_top) {
-            player.translate({0, wall_top - player_bottom});
-        }
-    });
-    // CollisionTool::setCollisionEnabled(*air_wall, false);
+    // 添加地板砖
+    auto ground = std::make_shared<GameObject>();
+    ground->setName("ground");
+    ground->setZOrder(ZOrderLevel::z_player);
+    main_scene->setCenterAnchorPoint("scene-main", ground);
+    ground->translate({0.0, 300.0f});
+    CollisionTool::setCollisionBoxSize(*ground, {1500.0f, 50.0f});
+    CollisionTool::setSrcLayer(*ground, Layer::wall);
+    CollisionTool::addDstLayer(*ground, Layer::player);
 
     // 主场景添加游戏对象
-    main_scene->addGameObjects({background2, background, player, air_wall});
+    main_scene->addGameObjects({background2, background, player, air_wall, ground});
     auto main_camera = main_scene->getCamera("scene-main");
     // 主摄像机聚焦player
-    main_camera->setFollowTarget(player);
+    main_camera->setFollowTarget(player, Camera::FollowMode::None);
     // main_camera->addRenderObj("GameObject");
     // main_camera->addRenderObj("Player");
 

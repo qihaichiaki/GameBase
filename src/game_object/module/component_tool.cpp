@@ -4,6 +4,7 @@
 
 #include "animator.h"
 #include "collision_manager.hpp"
+#include "rigidbody_manager.hpp"
 
 namespace gameaf {
 
@@ -51,7 +52,8 @@ bool ImageTool::create(GameObject& game_obj, const std::string& img_id)
 {
     GameObject::ImagePtr new_img = ResourceManager::getInstance().getImage(img_id);
     if (new_img == nullptr) {
-        gameaf::log("[warring][create] \"{}\" image组件加载失败", img_id);
+        gameaf::log("[warring][ImageTool::create]{} \"{}\" image组件加载失败", game_obj.getName(),
+                    img_id);
         return false;
     }
     game_obj.m_image = new_img;
@@ -107,15 +109,17 @@ bool CollisionTool::addDstLayer(GameObject& game_obj, Collisionlayer dst_layer)
     return true;
 }
 
-bool CollisionTool::modCollisionBox(GameObject& game_obj)
+bool CollisionTool::createCollisionBox(GameObject& game_obj)
 {
     CollisionBox* collision_box = nullptr;
     if (game_obj.m_collision_component &&
-        game_obj.m_collision_component->type() != CollisionComponentType::Box)
+        game_obj.m_collision_component->type() != CollisionComponentType::Box) {
+        gameaf::log("[warring][CollisionTool::createCollisionBox]{} 已经存在不为box类型的碰撞器",
+                    game_obj.getName());
         return false;
+    }
     if (game_obj.m_collision_component == nullptr) {
-        collision_box = CollisionManager::getInstance().createCollisionBox();
-        collision_box->setGameObject(&game_obj);
+        collision_box = CollisionManager::getInstance().createCollisionBox(&game_obj);
         game_obj.m_collision_component = collision_box;
     } else {
         collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
@@ -126,13 +130,12 @@ bool CollisionTool::modCollisionBox(GameObject& game_obj)
     } else if (game_obj.m_animator) {
         collision_box->size() = game_obj.m_animator->initialAnimation().size();
     }
-    collision_box->position() = game_obj.m_position;
     return true;
 }
 
 bool CollisionTool::modCollisionBox(GameObject& game_obj, float factor_x, float factor_y)
 {
-    if (!modCollisionBox(game_obj)) return false;
+    if (!createCollisionBox(game_obj)) return false;
 
     auto collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
     collision_box->size() *= Vector2{factor_x, factor_y};
@@ -141,15 +144,15 @@ bool CollisionTool::modCollisionBox(GameObject& game_obj, float factor_x, float 
 
 bool CollisionTool::modCollisionBox(GameObject& game_obj, Vector2 delta)
 {
-    if (!modCollisionBox(game_obj)) return false;
+    if (!createCollisionBox(game_obj)) return false;
     auto collision_box = game_obj.m_collision_component;
-    game_obj.m_collision_component_delta = delta;
+    collision_box->setOffset(delta);
     return true;
 }
 
 bool CollisionTool::setCollisionBoxSize(GameObject& game_obj, Vector2 size)
 {
-    if (!modCollisionBox(game_obj)) return false;
+    if (!createCollisionBox(game_obj)) return false;
 
     auto collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
     collision_box->size() = size;
@@ -158,7 +161,7 @@ bool CollisionTool::setCollisionBoxSize(GameObject& game_obj, Vector2 size)
 
 Vector2 CollisionTool::getCollisionBoxSize(GameObject& game_obj)
 {
-    if (!modCollisionBox(game_obj)) return {};
+    if (!createCollisionBox(game_obj)) return {};
 
     auto collision_box = static_cast<CollisionBox*>(game_obj.m_collision_component);
     return collision_box->size();
@@ -166,9 +169,57 @@ Vector2 CollisionTool::getCollisionBoxSize(GameObject& game_obj)
 
 Vector2 CollisionTool::getCollisionPostion(GameObject& game_obj)
 {
-    if (!modCollisionBox(game_obj)) return {};
+    if (!createCollisionBox(game_obj)) return {};
 
-    return game_obj.m_collision_component->position();
+    return game_obj.m_collision_component->getPosition();
+}
+
+// ====== RigidbodyTool ======
+bool RigidbodyTool::createRigidbody2D(GameObject& game_obj)
+{
+    if (game_obj.m_rigidbody2D != nullptr) {
+        gameaf::log("[warring][RigidbodyTool::createRigidbody2D]{} 已经存在2d刚体组件",
+                    game_obj.getName());
+        return false;
+    }
+    game_obj.m_rigidbody2D = RigidbodyManager::getInstance().CreateRigidbody2D(&game_obj);
+    return true;
+}
+
+Vector2 RigidbodyTool::velocity(GameObject& game_obj)
+{
+    if (game_obj.m_rigidbody2D == nullptr) {
+        gameaf::log("[error][RigidbodyTool::velocity]{} 不存在2d刚体组件", game_obj.getName());
+        return {};
+    }
+    return game_obj.m_rigidbody2D->velocity();
+}
+
+void RigidbodyTool::setVelocity(GameObject& game_obj, const Vector2& velocity)
+{
+    if (game_obj.m_rigidbody2D == nullptr) {
+        gameaf::log("[error][RigidbodyTool::velocity]{} 不存在2d刚体组件", game_obj.getName());
+        return;
+    }
+    game_obj.m_rigidbody2D->velocity() = velocity;
+}
+
+void RigidbodyTool::setGravityScale(GameObject& game_obj, float gravity_scale)
+{
+    if (game_obj.m_rigidbody2D == nullptr) {
+        gameaf::log("[error][RigidbodyTool::velocity]{} 不存在2d刚体组件", game_obj.getName());
+        return;
+    }
+    game_obj.m_rigidbody2D->gravityScale() = gravity_scale;
+}
+
+float RigidbodyTool::gravityScale(GameObject& game_obj)
+{
+    if (game_obj.m_rigidbody2D == nullptr) {
+        gameaf::log("[error][RigidbodyTool::velocity]{} 不存在2d刚体组件", game_obj.getName());
+        return 0.0f;
+    }
+    return game_obj.m_rigidbody2D->gravityScale();
 }
 
 }  // namespace gameaf

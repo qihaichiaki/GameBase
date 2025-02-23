@@ -3,6 +3,7 @@
 /**
  * gameobject component tool
  * 工具头文件
+ * note: 后续得改造一下, 预先传入对象, 后续调用一些方法的时候不用消耗额外的性能进行检查
  */
 
 #include <functional>
@@ -93,8 +94,8 @@ struct CollisionTool
     /// @brief 获取游戏对象碰撞组件的位置
     static Vector2 getCollisionPostion(GameObject& game_obj);
 
-    /// @brief 操作游戏对象的碰撞box
-    static bool modCollisionBox(GameObject& game_obj);
+    /// @brief 创建游戏对象的碰撞box
+    static bool createCollisionBox(GameObject& game_obj);
 
     /// @brief 操作游戏对象的碰撞box
     /// @param delta 和游戏对象之间的位移
@@ -111,6 +112,24 @@ struct CollisionTool
 
     /// @brief 获取游戏对象的碰撞box的大小
     static Vector2 getCollisionBoxSize(GameObject& game_obj);
+};
+
+struct RigidbodyTool
+{
+    /// @brief 创建2d刚体组件
+    static bool createRigidbody2D(GameObject& game_obj);
+
+    /// @brief 获取刚体组件速度
+    static Vector2 velocity(GameObject& game_obj);
+
+    /// @brief 设置刚体组件速度
+    static void setVelocity(GameObject& game_obj, const Vector2& velocity);
+
+    /// @brief 设置刚体组件重力加速度
+    static void setGravityScale(GameObject& game_obj, float gravity_scale);
+
+    /// @brief 获取刚体组件重力加速度
+    static float gravityScale(GameObject& game_obj);
 };
 
 }  // namespace gameaf

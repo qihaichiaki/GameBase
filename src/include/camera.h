@@ -53,13 +53,13 @@ public:
     void onUpdate(float delta);
 
 private:
-    Vector2 m_position;                      // 相机的左上角的世界坐标
-    Vector2 m_size;                          // 相机的大小(宽高)
-    Vector2 m_target_position;               // 目标位置
-    std::weak_ptr<GameObject> m_target_obj;  // 目标对象
-    Vector2 m_diff;                          // 不一定是中心位置, 可能存在一定视察
-    float m_smooth_factor = 8.0f;            // 平滑因子系数, 控制跟随效果
-    FollowMode m_follow_mode;
+    Vector2 m_position;                             // 相机的左上角的世界坐标
+    Vector2 m_size;                                 // 相机的大小(宽高)
+    Vector2 m_target_position;                      // 目标位置
+    std::weak_ptr<GameObject> m_target_obj;         // 目标对象
+    Vector2 m_diff;                                 // 不一定是中心位置, 可能存在一定视察
+    float m_smooth_factor = 0.1f;                   // 平滑因子系数, 控制跟随效果
+    FollowMode m_follow_mode;                       // 追随模式
     bool is_all_render = true;                      // 渲染当前场景下的所有游戏对象
     std::unordered_set<std::string> m_render_objs;  // 渲染目标游戏对象
     // TODO: 摄像机之间的优先级?

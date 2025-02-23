@@ -14,6 +14,7 @@ class Animator;
 class Scene;
 class Camera;
 class CollisionComponent;
+class Rigidbody2D;
 
 class GameObject : public std::enable_shared_from_this<GameObject>
 {
@@ -26,12 +27,15 @@ public:
     using SceneWeakPtr = std::weak_ptr<Scene>;
     using ChildGameObjects = std::unique_ptr<std::vector<GameObjectPtr>>;
     using CollisionComponentPtr = CollisionComponent*;  // 碰撞组件的生命周期由碰撞管理器管理
+    using Rigidbody2DPtr = Rigidbody2D*;                // 2d刚体组件的生命周期由碰撞管理器管理
 
 public:
     friend class Scene;
     friend class ImageTool;
     friend class AnimatorTool;
     friend class CollisionTool;
+    friend class RigidbodyTool;
+    friend class CollisionBox;  // TODO: 临时, 后面想解决方案
     enum class AnchorMode { Centered, BottomCentered, TopCentered, Customized };
 
 public:
@@ -101,9 +105,9 @@ public:
     /// @brief 锚点位置进行位移
     /// @param offset 位移大小
     void translate(const Vector2& offset) { m_position += offset; }
-    /// @brief 设置渲染层级
+    /// @brief 设置渲染层级,越大渲染级别越高,越后被渲染
     void setZOrder(int z_order);
-    /// @brief 获得渲染层级
+    /// @brief 获得渲染层级,越大渲染级别越高,越后被渲染
     int getZOrder() const { return m_zOrder; }
     /// @brief 添加子对象
     /// @note - 父对象会添加为当前对象, 并且如果之前存在父对象, 则会遍历删除一遍
@@ -155,7 +159,7 @@ private:
     ChildGameObjects m_child_gameObjects = nullptr;         // 子游戏对象容器
     GameObjectWeakPtr m_parent;                             // 父对象
     CollisionComponentPtr m_collision_component = nullptr;  // 碰撞组件
-    Vector2 m_collision_component_delta;                    // 碰撞组件位置和游戏对象位置的差距
+    Rigidbody2DPtr m_rigidbody2D = nullptr;                 // 刚体组件
     // ...
 };
 }  // namespace gameaf

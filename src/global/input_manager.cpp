@@ -21,8 +21,7 @@ void InputManager::processInput()
         {(BYTE)0x57, (size_t)KeyValue::W},     {(BYTE)0x53, (size_t)KeyValue::S},
         {(BYTE)0x41, (size_t)KeyValue::A},     {(BYTE)0x44, (size_t)KeyValue::D},
         {(BYTE)0x20, (size_t)KeyValue::Space}, {(BYTE)0x10, (size_t)KeyValue::Shift},
-        {(BYTE)0x4a, (size_t)KeyValue::J},
-    };
+        {(BYTE)0x4a, (size_t)KeyValue::J},     {(BYTE)0x52, (size_t)KeyValue::R}};
 
     static ExMessage msg;
 

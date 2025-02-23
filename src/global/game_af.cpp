@@ -7,6 +7,7 @@
 #include <chrono>
 #include <codecvt>
 #include <module/collision_manager.hpp>
+#include <module/rigidbody_manager.hpp>
 #include <thread>
 
 using namespace gameaf;
@@ -42,6 +43,9 @@ void GameAF::run()
     // 记录当前时刻
     steady_clock::time_point last_tick = steady_clock::now();
     steady_clock::time_point start_tick;
+    // 物理固定帧
+    float fixed_timestep = 1.0f / 60.0f;  // 60hz
+    float accumulate_time = 0.0f;         // 时间累积器
 
 #ifdef GAMEAF_USE_EASYX
     BeginBatchDraw();
@@ -58,12 +62,17 @@ void GameAF::run()
         m_delta_time = delta.count();
         last_tick = start_tick;
 
+        // 物理更新
+        accumulate_time += m_delta_time;
+        if (accumulate_time >= fixed_timestep) {
+            RigidbodyManager::getInstance().onFixedUpdate(fixed_timestep);
+            CollisionManager::getInstance().processCollide(fixed_timestep);  // 碰撞检测 + 物理修正
+            accumulate_time -= fixed_timestep;
+        }
+
         // 场景数据更新
         SceneManager::getInstance().onUpdate(m_delta_time);
         // TODO: 全局游戏对象数据更新
-
-        // 碰撞管理器更新
-        CollisionManager::getInstance().processCollide();
 
 #ifdef GAMEAF_USE_EASYX
         setbkcolor(RGB(0, 0, 0));

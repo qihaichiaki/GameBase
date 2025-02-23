@@ -36,6 +36,16 @@ public:
         X *= vec.X;
         Y *= vec.Y;
     }
+
+    float length() const { return std::sqrt(X * X + Y * Y); }
+
+public:
+    static Vector2 lerp(const Vector2& v_start, const Vector2& v_end, float smoothing)
+    {
+        if (smoothing < 0.0f) smoothing = 0.0f;
+        if (smoothing > 1.0f) smoothing = 1.0f;
+        return v_start + (v_end - v_start) * smoothing;
+    }
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Vector2& vec)
