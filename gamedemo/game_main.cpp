@@ -232,7 +232,7 @@ int main()
     main_scene->addGameObjects({background2, background, player, air_wall, ground});
     auto main_camera = main_scene->getCamera("scene-main");
     // 主摄像机聚焦player
-    main_camera->setFollowTarget(player, Camera::FollowMode::None);
+    main_camera->setFollowTarget(player, Camera::FollowMode::Smooth);
     // main_camera->addRenderObj("GameObject");
     // main_camera->addRenderObj("Player");
 

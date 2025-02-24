@@ -36,6 +36,8 @@ public:
         X *= vec.X;
         Y *= vec.Y;
     }
+    bool operator==(const Vector2& vec) const { return X == vec.X && Y == vec.Y; }
+    bool operator!=(const Vector2& vec) const { return !(*this == vec); }
 
     float length() const { return std::sqrt(X * X + Y * Y); }
 
