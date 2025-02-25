@@ -1,12 +1,15 @@
 #pragma once
 
-#include "../game_object/module/image.hpp"
-#include "../include/camera.h"
-#include "../include/log.hpp"
+#include <camera.h>
+
+#include <log.hpp>
+#include <module/image.hpp>
+
 #include "macros.h"
 
 #ifdef _MSC_VER
 #pragma comment(lib, "MSIMG32.lib")  // AlphaBlend
+#pragma comment(lib, "WINMM.lib")    // 音频播放
 #else
 #endif
 
@@ -50,8 +53,55 @@ inline void putImageEx(const Camera& camera, Image& img, const Rect& dst, const 
 inline void putImageEx(const Camera& camera, Image& img, const Rect& dst)
 {
     putImageEx(camera, img, dst, {0.0f, 0.0f, img.getWidth(), img.getHeight()});
-    // gameaf::log("渲染[{}]图片目标位置[{}, {}] - 宽度:{}, 高度:{}", &img, dst.x, dst.y, dst.w,
-    //             dst.h);
+}
+
+/// @brief 加载音频
+/// @param path 资源路径
+/// @param id 资源id
+inline void loadAudio(LPCTSTR path, LPCTSTR id)
+{
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    static TCHAR strCmd[512];
+    _stprintf_s(strCmd, _T("open %s alias %s"), path, id);
+    mciSendString(strCmd, NULL, 0, NULL);
+#else
+#endif
+}
+
+/// @brief 播放音频
+/// @param id 音频id
+/// @param isLoop 是否循环
+inline void playAudio(LPCTSTR id, bool isLoop = false)
+{
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    static TCHAR strCmd[512];
+    _stprintf_s(strCmd, _T("play %s %s from 0"), id, isLoop ? _T("repeat") : _T(""));
+    mciSendString(strCmd, NULL, 0, NULL);
+#else
+#endif
+}
+
+/// @brief 停止音频
+/// @param id 音频id
+inline void stopAudio(LPCTSTR id)
+{
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    static TCHAR strCmd[512];
+    _stprintf_s(strCmd, _T("stop %s"), id);
+    mciSendString(strCmd, NULL, 0, NULL);
+#else
+#endif
+}
+
+/// @brief 加载字体
+/// @param path 字体路径
+/// @note 注意后续字体的名字就是后缀.ttf前面的name
+inline void loadFont(LPCSTR path)
+{
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    AddFontResourceEx(path, FR_PRIVATE, nullptr);
+#else
+#endif
 }
 
 }  // namespace gameaf

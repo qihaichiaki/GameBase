@@ -2,8 +2,8 @@
 
 #include <unordered_set>
 
-#include "../include/game_object.h"
-#include "../include/vector2.hpp"
+#include "game_object.h"
+#include "vector2.hpp"
 
 // TODO: 摄像机对象放出来, 不单独为场景所拥有
 // TODO: 做成游戏对象进行加载 ?
@@ -62,7 +62,6 @@ private:
     FollowMode m_follow_mode;                       // 追随模式
     bool is_all_render = true;                      // 渲染当前场景下的所有游戏对象
     std::unordered_set<std::string> m_render_objs;  // 渲染目标游戏对象
-    Vector2 m_pre_target_position;
     // TODO: 摄像机之间的优先级?
 };
 

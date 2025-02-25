@@ -128,7 +128,7 @@ bool CollisionTool::createCollisionBox(GameObject& game_obj)
     if (game_obj.m_image) {
         collision_box->size() = game_obj.m_img_size;
     } else if (game_obj.m_animator) {
-        collision_box->size() = game_obj.m_animator->initialAnimation().size();
+        collision_box->size() = game_obj.m_animator->initialAnimation().currentFrameSize();
     }
     return true;
 }

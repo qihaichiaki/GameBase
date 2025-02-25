@@ -26,7 +26,10 @@ public:
     void onUpdate(float delta);
     void onRender(const Camera&, const Rect&);
 
-    Vector2 currentAnimationSize() const { return m_animations.at(m_current_animation_id).size(); }
+    Vector2 currentAnimationSize() const
+    {
+        return m_animations.at(m_current_animation_id).currentFrameSize();
+    }
 
 public:
     bool newAnimationForImage(const std::string& animation_id, const std::string& img_id,
@@ -46,6 +49,10 @@ public:
         if (m_animations.count(animation_id) == 0) return false;
         // 变换处理?
         m_current_animation_id = animation_id;
+        auto& animation = m_animations.at(animation_id);
+        if (!animation.isLoop() && animation.isFrameLastIndex()) {
+            animation.restart();
+        }
         return true;
     }
     const Animation& findAnimation(const std::string& animation_id) const

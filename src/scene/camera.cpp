@@ -15,10 +15,7 @@ void Camera::onUpdate(float delta)
             case FollowMode::Smooth:
                 // 模拟弹簧
                 m_target_position = obj->getPosition() - m_size / 2.0f;
-                if (m_pre_target_position != m_target_position) {
-                    m_pre_target_position = m_target_position;
-                    m_position = Vector2::lerp(m_position, m_target_position, m_smooth_factor);
-                }
+                m_position = Vector2::lerp(m_position, m_target_position, m_smooth_factor);
                 break;
             default:
                 break;

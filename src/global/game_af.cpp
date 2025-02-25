@@ -64,7 +64,7 @@ void GameAF::run()
 
         // 物理更新
         accumulate_time += m_delta_time;
-        if (accumulate_time >= fixed_timestep) {
+        while (accumulate_time >= fixed_timestep) {
             RigidbodyManager::getInstance().onFixedUpdate(fixed_timestep);
             CollisionManager::getInstance().processCollide(fixed_timestep);  // 碰撞检测 + 物理修正
             accumulate_time -= fixed_timestep;

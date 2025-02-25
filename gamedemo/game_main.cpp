@@ -45,7 +45,11 @@ public:
         AnimatorTool::newAnimationForAtlas(*this, "idle-left", "player-idle-left", 0.15f, true);
         AnimatorTool::newAnimationForAtlas(*this, "run-right", "player-run-right", 0.15f, true);
         AnimatorTool::newAnimationForAtlas(*this, "run-left", "player-run-left", 0.15f, true);
-        AnimatorTool::setInitialAnimation(*this, "run-right");
+        AnimatorTool::newAnimationForAtlas(*this, "jump-left", "player-jump-left", 0.15f, false);
+        AnimatorTool::newAnimationForAtlas(*this, "jump-right", "player-jump-right", 0.15f, false);
+        AnimatorTool::newAnimationForAtlas(*this, "fall-left", "player-fall-left", 0.15f, true);
+        AnimatorTool::newAnimationForAtlas(*this, "fall-right", "player-fall-right", 0.15f, true);
+        AnimatorTool::setInitialAnimation(*this, "idle-right");
 
         CollisionTool::createCollisionBox(*this);
         CollisionTool::setSrcLayer(*this, Layer::player);
@@ -87,15 +91,28 @@ public:
 
         dir = is_left ? -1.0f : is_right ? 1.0f : 0.0f;
 
-        RigidbodyTool::setVelocity(
-            *this, {dir * speed, is_jump ? -600.0f : RigidbodyTool::velocity(*this).Y});
+        Vector2 v = {dir * speed, is_jump ? -600.0f : RigidbodyTool::velocity(*this).Y};
+        RigidbodyTool::setVelocity(*this, v);
 
-        if (is_right) AnimatorTool::switchToAnimation(*this, "run-right");
+        if (v.Y > 0) {
+            is_dir_left ? AnimatorTool::switchToAnimation(*this, "fall-left")
+                        : AnimatorTool::switchToAnimation(*this, "fall-right");
+        }
+        if (v.Y < 0) {
+            is_dir_left ? AnimatorTool::switchToAnimation(*this, "jump-left")
+                        : AnimatorTool::switchToAnimation(*this, "jump-right");
+        }
 
-        if (is_left) AnimatorTool::switchToAnimation(*this, "run-left");
-
-        if (is_dir_left && !is_left) AnimatorTool::switchToAnimation(*this, "idle-left");
-        if (!is_dir_left && !is_right) AnimatorTool::switchToAnimation(*this, "idle-right");
+        if (v.Y == 0) {
+            if (v.X < 0.0f)
+                AnimatorTool::switchToAnimation(*this, "run-left");
+            else if (v.X > 0.0f)
+                AnimatorTool::switchToAnimation(*this, "run-right");
+            else {
+                is_dir_left ? AnimatorTool::switchToAnimation(*this, "idle-left")
+                            : AnimatorTool::switchToAnimation(*this, "idle-right");
+            }
+        }
     }
 
 private:
@@ -113,7 +130,7 @@ int main()
     auto& resource_manager = ResourceManager::getInstance();
     auto& scene_manager = SceneManager::getInstance();
 
-    // my_game.setFPS(60);
+    my_game.setFPS(240);
     my_game.setShowConsole(true);
     my_game.initWindow();
     gameaf::log("{}", "游戏开始预加载设置...");
@@ -132,6 +149,12 @@ int main()
     resource_manager.loadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\run\%d.png)", 8,
                                "player-run-left");
     resource_manager.flipAtlas("player-run-left", "player-run-right");
+    resource_manager.loadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\jump\%d.png)",
+                               8, "player-jump-left");
+    resource_manager.flipAtlas("player-jump-left", "player-jump-right");
+    resource_manager.loadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\fall\%d.png)",
+                               4, "player-fall-left");
+    resource_manager.flipAtlas("player-fall-left", "player-fall-right");
 
     gameaf::log("游戏开始加载场景资源......");
     scene_manager.registerState("main-scene", std::make_shared<Scene>());
@@ -232,7 +255,7 @@ int main()
     main_scene->addGameObjects({background2, background, player, air_wall, ground});
     auto main_camera = main_scene->getCamera("scene-main");
     // 主摄像机聚焦player
-    main_camera->setFollowTarget(player, Camera::FollowMode::Smooth);
+    main_camera->setFollowTarget(player, Camera::FollowMode::None);
     // main_camera->addRenderObj("GameObject");
     // main_camera->addRenderObj("Player");
 

@@ -44,6 +44,12 @@ public:
     /// @param isLoop 循环?
     void setLoop(bool isLoop) { m_is_loop = isLoop; }
 
+    /// @brief 查询是否循环
+    bool isLoop() const { return m_is_loop; }
+
+    /// @brief 是否为动画帧的最后一帧?
+    bool isFrameLastIndex() const { return m_frames.size() == m_frame_index + 1; }
+
     /// @brief 设置动画在多少s后播放一帧
     /// @param interval s
     void setInterval(float interval) { timer.setWaitTime(interval); }
@@ -60,12 +66,9 @@ public:
             auto src_rect = img->getSpriteRect(i);
             frame.src_rect = {(float)src_rect.x, (float)src_rect.y, src_rect.w, src_rect.h};
             frame.img = img;
+            // 初始化动画每frame的原始大小
+            frame.m_size = {src_rect.w * 1.0f, src_rect.h * 1.0f};
             m_frames.emplace_back(frame);
-            if (i == 0) {
-                // 初始化动画每frame的原始大小
-                // WARRING: 注意动画不会区分每帧的适配大小
-                m_size = {src_rect.w * 1.0f, src_rect.h * 1.0f};
-            }
         }
     }
 
@@ -75,16 +78,13 @@ public:
             Frame frame;
             frame.img = atlas->getImg(i);
             frame.src_rect = {0.f, 0.f, frame.img->getWidth(), frame.img->getHeight()};
+            frame.m_size = {frame.img->getWidth() * 1.0f, frame.img->getHeight() * 1.0f};
             m_frames.emplace_back(frame);
-            if (i == 0) {
-                // 同上
-                m_size = {frame.img->getWidth() * 1.0f, frame.img->getHeight() * 1.0f};
-            }
         }
     }
 
-    Vector2& size() { return m_size; }
-    const Vector2& size() const { return m_size; }
+    Vector2& currentFrameSize() { return m_frames.at(m_frame_index).m_size; }
+    const Vector2& currentFrameSize() const { return m_frames.at(m_frame_index).m_size; }
 
 private:
     // 描述动画里的一帧
@@ -92,10 +92,10 @@ private:
     {
         Rect src_rect;
         Image* img;
+        Vector2 m_size;  // 此动画每frame适配的大小
     };
 
     std::vector<Frame> m_frames;
-    Vector2 m_size;  // 此动画每frame适配的大小
     int m_frame_index = 0;
     Timer timer;
     bool m_is_loop = false;               // 是否是循环动画
