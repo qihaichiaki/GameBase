@@ -8,13 +8,13 @@ Using C++ language, build a general-purpose game framework that provides fundame
 - 如何使用?
   - 在知道游戏的基本单位是gameObject后, 游戏的基本运行单位是Scene场景.游戏对象分别加载入不同的scene场景，由scene统一的管理它们的输入、更新、渲染  
   - Scene存在一个管理类, 用来加载各种场景, 在主循环中便于处理当前场景的输入、更新、渲染  
-- 基础对象
+- 框架对象
   - 资源管理器
   - 输入管理器
   - 场景管理器
+  - 摄像机对象
   - 游戏对象
-    - 组件: 
-      1. 图片  
-      2. 动画控制器  
-      3. 碰撞箱
-      4. ......
+  - <a href="./doc/component/component.md">组件</a> 
+    1. 图像 / 动画控制器  
+    2. 碰撞箱
+    3. 刚体
