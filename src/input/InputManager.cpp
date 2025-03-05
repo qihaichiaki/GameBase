@@ -29,8 +29,11 @@ void InputManager::ProcessInput()
         // 消息类型映射
         switch (msg.message) {
             case WM_KEYDOWN:
-                m_key_state[INPUT_CONTINUE_INDEX].set(key_map[msg.vkcode]);
-                m_key_state[INPUT_CURRENT_INDEX].set(key_map[msg.vkcode]);
+                // 如果是没有重复按下, 那么keydown触发检测
+                if (!m_key_state[INPUT_CONTINUE_INDEX][key_map[msg.vkcode]]) {
+                    m_key_state[INPUT_CONTINUE_INDEX].set(key_map[msg.vkcode]);
+                    m_key_state[INPUT_CURRENT_INDEX].set(key_map[msg.vkcode]);
+                }
                 break;
             case WM_KEYUP:
                 m_key_state[INPUT_CONTINUE_INDEX].reset(key_map[msg.vkcode]);

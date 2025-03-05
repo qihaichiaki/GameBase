@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <ostream>
 
 namespace gameaf {
@@ -44,8 +45,9 @@ public:
 public:
     static Vector2 lerp(const Vector2& v_start, const Vector2& v_end, float smoothing)
     {
-        if (smoothing < 0.0f) smoothing = 0.0f;
-        if (smoothing > 1.0f) smoothing = 1.0f;
+        smoothing = std::clamp(smoothing, 0.0f, 1.0f);
+        smoothing =
+            smoothing * smoothing * (3 - 2 * smoothing);  // SmoothStep 插值`缓慢->加速->缓慢`的效果
         return v_start + (v_end - v_start) * smoothing;
     }
 };

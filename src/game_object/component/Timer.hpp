@@ -31,6 +31,7 @@ public:
     {
         m_current_time = 0;
         m_shotted = false;
+        m_paused = false;
     }
 
     /// @brief 设置计时器等待时间

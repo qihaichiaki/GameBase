@@ -73,6 +73,10 @@ public:
         CreateComponent<Rigidbody2D>();
         rigidbody2D = GetComponent<Rigidbody2D>();
         // rigidbody2D->gravityScale() = 10.5f;
+
+        // 获取主相机
+        mainCamera =
+            SceneManager::GetInstance().GetScene("main-scene")->GetCamera("scene-main").get();
     }
 
     void OnUpdate() override
@@ -80,6 +84,10 @@ public:
         using KeyValue = InputManager::KeyValue;
         auto& input_manager = InputManager::GetInstance();
         auto& game_af = GameAF::GetInstance();
+
+        if (input_manager.IsKeyDown(KeyValue::R)) {
+            mainCamera->Shake(0.15f, 15.0f);
+        }
 
         if (input_manager.IsKeyDown(KeyValue::A)) {
             is_left = true;
@@ -133,6 +141,7 @@ private:
     Animator* animator;
     CollisionBox* collisionBox;
     Rigidbody2D* rigidbody2D;
+    Camera* mainCamera;
     float speed = 500.0f;
     bool is_left = false;
     bool is_right = false;
@@ -147,11 +156,13 @@ int main()
     auto& resource_manager = ResourceManager::GetInstance();
     auto& scene_manager = SceneManager::GetInstance();
 
-    my_game.SetFPS(240);
+    // my_game.SetFPS(240);
     my_game.SetShowConsole(true);
     my_game.InitWindow();
     gameaf::log("{}", "游戏开始预加载设置...");
     gameaf::log("{}", "游戏开始加载图像资源...");
+
+    // <=======资源加载======>
     resource_manager.LoadImage(
         R"(D:\project\GameBase\gamedemo\Assets\Graphics\Surroundings\Medieval_Castle\Background\layer_1.png)",
         "background-1");
@@ -172,6 +183,7 @@ int main()
     resource_manager.LoadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\fall\%d.png)",
                                4, "player-fall-left");
     resource_manager.FlipAtlas("player-fall-left", "player-fall-right");
+    // <=======资源加载======>
 
     gameaf::log("游戏开始加载场景资源......");
     scene_manager.registerState("main-scene", std::make_shared<Scene>());
@@ -267,7 +279,7 @@ int main()
     ground->SetName("ground");
     ground->SetZOrder(ZOrderLevel::z_player);
     main_scene->SetCenterAnchorPoint("scene-main", ground);
-    ground->Translate({0.0, 300.0f});
+    ground->SetPositionY(background2_1->GetPosition().Y - 25.0f);
     ground->CreateComponent<CollisionBox>();
     auto ground_collision = ground->GetComponent<CollisionBox>();
     ground_collision->SetSize({1500.0f, 50.0f});
@@ -277,10 +289,11 @@ int main()
     // 主场景添加游戏对象
     main_scene->AddGameObjects({background2, background, player, air_wall, ground});
     auto main_camera = main_scene->GetCamera("scene-main");
+    main_camera->SetPosition({0.0, -200.0f});  // 目的, 隐藏图片背景下的空隙
     // 主摄像机聚焦player
-    main_camera->SetFollowTarget(player, Camera::FollowMode::None);
-    // main_camera->AddRenderObj("GameObject");
-    // main_camera->AddRenderObj("Player");
+    main_camera->SetFollowTarget(player, Camera::FollowMode::Smooth);
+    // 设置摄像机死区
+    main_camera->SetCameraDeadZone({200.0f, 500.0f});
 
     gameaf::log("{}", "游戏开始运行...");
     my_game.Run();

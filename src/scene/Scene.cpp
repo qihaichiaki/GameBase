@@ -32,6 +32,14 @@ void Scene::OnUpdate(float delta)
         camera->OnUpdate(delta);
     }
 }
+
+void Scene::OnFixUpdate(float alpha)
+{
+    for (auto& [_, camera] : m_cameras) {
+        camera->OnFixUpdate(alpha);
+    }
+}
+
 void Scene::OnRender()
 {
     if (m_gameObjects == nullptr) return;
@@ -47,6 +55,10 @@ void Scene::OnRender()
             else if (camera->HasRender(object->GetName()))
                 object->OnRender(*camera);
         }
+    }
+
+    for (auto& [_, camera] : m_cameras) {
+        camera->OnDebugRender();
     }
 }
 

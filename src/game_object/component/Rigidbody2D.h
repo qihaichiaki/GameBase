@@ -22,7 +22,10 @@ public:
     // 物理循环更新
     void OnUpdate(float delta);
 
+    /// @brief 刚体的速度
     Vector2& Velocity() { return m_velocity; }
+
+    /// @brief 刚体的物理强度
     float& GravityScale() { return m_gravity_scale; }
 
 private:

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <random>
 #include <string>
 
 class GameAF
@@ -46,11 +47,35 @@ public:
     /// @brief 获取当前帧和上一帧的相隔时间, 单位为s
     float GetDeltaTime() { return m_delta_time; }
 
+    /// @brief 生成[start, end]之间的随机数
+    /// @warning 如果gameaf没有run, 则生成出来的随机数每次都是固定的
+    template <typename T>
+    std::enable_if_t<std::is_same_v<T, int> || std::is_same_v<T, float>, T> Random(T start, T end)
+    {
+    }
+
+    template <>
+    int Random<int>(int start, int end)
+    {
+        std::uniform_int_distribution<int> dist(start, end);
+        return dist(gen);
+    }
+
+    template <>
+    float Random<float>(float start, float end)
+    {
+        std::uniform_real_distribution<float> dist(start, end);
+        return dist(gen);
+    }
+
 private:
     GameAF() = default;
     ~GameAF() = default;
     GameAF(const GameAF&) = delete;
     GameAF& operator=(const GameAF&) = delete;
+
+private:
+    std::mt19937 gen;
 
 private:
     // 屏幕的长度和宽度 是否显示控制台 窗口名字

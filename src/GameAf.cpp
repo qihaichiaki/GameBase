@@ -38,6 +38,9 @@ void GameAF::Run()
     using std::chrono::nanoseconds;
     using std::chrono::steady_clock;
 
+    // 初始化随机数种子
+    gen.seed(std::random_device{}());
+
     // 计算每帧运行的时间
     nanoseconds frame_duration((int)1e9 / m_fps);
     // 记录当前时刻
@@ -52,9 +55,14 @@ void GameAF::Run()
 #else
 #endif
 
+    auto& input = InputManager::GetInstance();
+    auto& rigidbody = RigidbodyManager::GetInstance();
+    auto& collision = CollisionManager::GetInstance();
+    auto& scene = SceneManager::GetInstance();
+
     while (!m_exit) {
         // 处理消息
-        InputManager::GetInstance().ProcessInput();
+        input.ProcessInput();
 
         // 计算当前帧经过时间
         start_tick = steady_clock::now();
@@ -65,13 +73,15 @@ void GameAF::Run()
         // 物理更新
         accumulate_time += m_delta_time;
         while (accumulate_time >= fixed_timestep) {
-            RigidbodyManager::GetInstance().OnFixedUpdate(fixed_timestep);
-            CollisionManager::GetInstance().ProcessCollide(fixed_timestep);  // 碰撞检测 + 物理修正
+            rigidbody.OnFixedUpdate(fixed_timestep);
+            collision.ProcessCollide(fixed_timestep);  // 碰撞检测 + 物理修正
             accumulate_time -= fixed_timestep;
+            // 场景资源物理更新
+            scene.OnFixUpdate(fixed_timestep);
         }
 
         // 场景数据更新
-        SceneManager::GetInstance().OnUpdate(m_delta_time);
+        scene.OnUpdate(m_delta_time);
         // TODO: 全局游戏对象数据更新
 
 #ifdef GAMEAF_USE_EASYX
@@ -81,7 +91,7 @@ void GameAF::Run()
 #endif
 
         // 渲染更新
-        SceneManager::GetInstance().OnRender();
+        scene.OnRender();
         // TODO: 全局游戏对象渲染更新
 
 #ifdef GAMEAF_USE_EASYX

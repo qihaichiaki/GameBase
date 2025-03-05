@@ -16,6 +16,7 @@ public:
     ScenePtr GetScene(const std::string& id);
 
 public:
+    void OnFixUpdate(float alpha);
     void OnUpdate(float delta);
     void OnRender();
 

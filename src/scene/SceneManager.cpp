@@ -21,6 +21,11 @@ void SceneManager::OnUpdate(float delta)
     std::static_pointer_cast<Scene>(m_currentState)->OnUpdate(delta);
 }
 
+void SceneManager::OnFixUpdate(float alpha)
+{
+    std::static_pointer_cast<Scene>(m_currentState)->OnFixUpdate(alpha);
+}
+
 void SceneManager::OnRender() { std::static_pointer_cast<Scene>(m_currentState)->OnRender(); }
 
 }  // namespace gameaf

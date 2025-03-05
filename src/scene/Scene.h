@@ -27,7 +27,13 @@ public:
     ~Scene();
 
 public:
+    /// @brief 物理循环更新
+    void OnFixUpdate(float alpha);
+
+    /// @brief 帧率更新
     void OnUpdate(float delta);
+
+    /// @brief 渲染
     void OnRender();
 
 public:
