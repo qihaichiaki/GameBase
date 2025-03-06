@@ -1,8 +1,10 @@
 #include "ResourceManager.h"
 
+#include <game_object/component/AudioManager.h>
 #include <game_object/component/Image.h>
 
 #include <common/Log.hpp>
+#include <common/MediaUtils.hpp>
 #include <game_object/component/Atlas.hpp>
 
 namespace gameaf {
@@ -16,8 +18,8 @@ ResourceManager& ResourceManager::GetInstance()
     return instance;
 }
 
-bool ResourceManager::LoadImage(const std::string& image_path, const std::string& image_name,
-                                int rows, int cols, size_t spriteN)
+bool ResourceManager::NewImage(const std::string& image_path, const std::string& image_name,
+                               int rows, int cols, size_t spriteN)
 {
     if (m_images.count(image_name) != 0) {
         gameaf::log("[error][LoadImage] 图像名字:{}, 图像id重名惹......", image_name);
@@ -34,7 +36,11 @@ bool ResourceManager::LoadImage(const std::string& image_path, const std::string
     m_images.emplace(image_name, load_img);
     return true;
 }
-bool ResourceManager::LoadFont(const std::string& font_path) { return false; }
+bool ResourceManager::LoadFont(const std::string& font_path)
+{
+    gameaf::LoadFont(font_path);
+    return true;
+}
 bool ResourceManager::LoadAtlas(const std::string& atlas_path, size_t n_images,
                                 const std::string& atlas_name)
 {
@@ -55,6 +61,7 @@ bool ResourceManager::LoadAtlas(const std::string& atlas_path, size_t n_images,
 }
 bool ResourceManager::LoadAudio(const std::string& audio_path, const std::string& audio_name)
 {
+    AudioManager::GetInstance().OpenAudio(audio_path, audio_name);
     return false;
 }
 
@@ -77,9 +84,15 @@ bool ResourceManager::FlipAtlas(const std::string& atlas_name, const std::string
 }
 
 void ResourceManager::UnloadImage(const std::string& image_name) { m_images.erase(image_name); }
-void ResourceManager::UnloadFont() {}
+
+void ResourceManager::UnloadFont(const std::string& font_path) { gameaf::UnLoadFont(font_path); }
+
 void ResourceManager::UnloadAtlas(const std::string& atlas_name) { m_atlases.erase(atlas_name); }
-void ResourceManager::UnloadAudio(const std::string& audio_name) {}
+
+void ResourceManager::UnloadAudio(const std::string& audio_name)
+{
+    AudioManager::GetInstance().CloseAudio(audio_name);
+}
 
 Image* ResourceManager::GetImage(const std::string& image_name) const
 {

@@ -79,7 +79,7 @@ public:
     /// @brief 相机震动
     /// @param duration 持续时间
     /// @param shakeIntensity 震动强度
-    void Shake(float duration, float shakeIntensity = 0.98);
+    void Shake(float duration, float shakeIntensity = 19.8);
 
 public:
     /// @brief 相机物理更新

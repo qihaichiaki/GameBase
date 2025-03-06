@@ -8,10 +8,8 @@
 #include "Common.h"
 #include "macros.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
 #pragma comment(lib, "MSIMG32.lib")  // AlphaBlend
-#pragma comment(lib, "WINMM.lib")    // 音频播放
-#else
 #endif
 
 /**
@@ -49,51 +47,21 @@ inline void PutImageEx(const Camera& camera, TImage& img, const Rect& dst)
     PutImageEx(camera, img, dst, {0.0f, 0.0f, img.GetWidth(), img.GetHeight()});
 }
 
-/// @brief 加载音频
-/// @param path 资源路径
-/// @param id 资源id
-inline void LoadAudio(LPCTSTR path, LPCTSTR id)
-{
-#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-    static TCHAR strCmd[512];
-    _stprintf_s(strCmd, _T("open %s alias %s"), path, id);
-    mciSendString(strCmd, NULL, 0, NULL);
-#else
-#endif
-}
-
-/// @brief 播放音频
-/// @param id 音频id
-/// @param isLoop 是否循环
-inline void PlayAudio(LPCTSTR id, bool isLoop = false)
-{
-#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-    static TCHAR strCmd[512];
-    _stprintf_s(strCmd, _T("play %s %s from 0"), id, isLoop ? _T("repeat") : _T(""));
-    mciSendString(strCmd, NULL, 0, NULL);
-#else
-#endif
-}
-
-/// @brief 停止音频
-/// @param id 音频id
-inline void StopAudio(LPCTSTR id)
-{
-#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-    static TCHAR strCmd[512];
-    _stprintf_s(strCmd, _T("stop %s"), id);
-    mciSendString(strCmd, NULL, 0, NULL);
-#else
-#endif
-}
-
 /// @brief 加载字体
 /// @param path 字体路径
 /// @note 注意后续字体的名字就是后缀.ttf前面的name
-inline void LoadFont(LPCSTR path)
+inline void LoadFont(const std::string& path)
 {
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-    AddFontResourceEx(path, FR_PRIVATE, nullptr);
+    AddFontResourceEx(path.c_str(), FR_PRIVATE, nullptr);
+#else
+#endif
+}
+
+inline void UnLoadFont(const std::string& path)
+{
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    RemoveFontResourceEx(path.c_str(), FR_PRIVATE, nullptr);
 #else
 #endif
 }

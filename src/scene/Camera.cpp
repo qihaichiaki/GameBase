@@ -116,6 +116,11 @@ void Camera::OnFixUpdate(float alpha)
             __onNormalFollow(alpha, current_position);
         }
     }
+}
+
+void Camera::OnUpdate(float delta)
+{
+    m_shakeTimer.OnUpdate(delta);
 
     if (is_shaking) {
         static auto& gameAF = GameAF::GetInstance();
@@ -125,8 +130,6 @@ void Camera::OnFixUpdate(float alpha)
             (-50 + gameAF.Random<int>(0, 100)) / 50.0f * m_shakeIntensity + m_position.Y;
     }
 }
-
-void Camera::OnUpdate(float delta) { m_shakeTimer.OnUpdate(delta); }
 
 void Camera::OnDebugRender()
 {

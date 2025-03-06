@@ -6,8 +6,6 @@
 
 #include <bitset>
 
-// 第一个比特位预留, 表示事件检测到的key并没有出现在KeyValue列表中
-#define KEY_LEN 30 + 1
 // 持续检测
 #define INPUT_CONTINUE_INDEX 0
 // 当前帧检测 按钮是否触发
@@ -24,6 +22,16 @@ public:
     // 键鼠
     enum class KeyValue {
         None,  // 位置key值出现
+        _0,
+        _1,
+        _2,
+        _3,
+        _4,
+        _5,
+        _6,
+        _7,
+        _8,
+        _9,
         A,
         B,
         C,
@@ -53,7 +61,10 @@ public:
         LButton,
         RButton,
         Space,
-        Shift
+        Shift,
+        OEM_MINUS,  // 主键盘上的-
+        OEM_PLUS,   // 主键盘上的+
+        Count
     };
 
 public:
@@ -85,8 +96,9 @@ public:
     void ClearFrameInput() { m_key_state[INPUT_CURRENT_INDEX].reset(); }
 
 private:
+    constexpr static size_t KEY_VALUE_LENS = static_cast<size_t>(KeyValue::Count);
     // 双缓冲区, 第一个缓冲区持续检测按键的按下和抬起状态, 第二个缓冲区检测按键是否在当前帧发生
-    std::bitset<KEY_LEN> m_key_state[2] = {};
+    std::bitset<KEY_VALUE_LENS> m_key_state[2] = {};
     // TODO: 事件队列?
 };
 }  // namespace gameaf

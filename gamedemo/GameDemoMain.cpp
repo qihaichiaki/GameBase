@@ -1,6 +1,7 @@
 #include <GameAf.h>
 #include <game_object/GameObject.h>
 #include <game_object/component/Animator.h>
+#include <game_object/component/AudioManager.h>
 #include <game_object/component/CollisionBox.h>
 #include <game_object/component/Image.h>
 #include <game_object/component/Rigidbody2D.h>
@@ -12,6 +13,7 @@
 
 using gameaf::Animation;
 using gameaf::Animator;
+using gameaf::AudioManager;
 using gameaf::Camera;
 using gameaf::CollisionBox;
 using gameaf::CollisionLayerTool;
@@ -65,6 +67,7 @@ public:
 
         CreateComponent<CollisionBox>();
         collisionBox = GetComponent<CollisionBox>();
+        collisionBox->SetSize({50.0f, collisionBox->GetSize().Y});
         collisionBox->SetSrcLayer(CollisionLayerTool::player);
         collisionBox->AddDstLayer(CollisionLayerTool::wall);
         collisionBox->SetOnCollide([this](GameObject& object) {
@@ -84,9 +87,51 @@ public:
         using KeyValue = InputManager::KeyValue;
         auto& input_manager = InputManager::GetInstance();
         auto& game_af = GameAF::GetInstance();
+        auto& audioManager = AudioManager::GetInstance();
 
+        // 测试音量
+        if (input_manager.GetKey(KeyValue::_1)) {
+            if (input_manager.IsKeyDown(KeyValue::OEM_PLUS)) {
+                // 1 +
+                audioManager.ChangeAudioVolume(10, "bgm-start");
+                gameaf::log("增加了bgm-start的音量, 音量为:{}",
+                            audioManager.GetAudioVolume("bgm-start"));
+            }
+            if (input_manager.IsKeyDown(KeyValue::OEM_MINUS)) {
+                // 1 -
+                audioManager.ChangeAudioVolume(-10, "bgm-start");
+                gameaf::log("减少了bgm-start的音量, 音量为:{}",
+                            audioManager.GetAudioVolume("bgm-start"));
+            }
+        } else if (input_manager.GetKey(KeyValue::_2)) {
+            if (input_manager.IsKeyDown(KeyValue::OEM_PLUS)) {
+                // 1 +
+                audioManager.ChangeAudioVolume(10, "bullet_time");
+                gameaf::log("增加了bullet_time的音量, 音量为:{}",
+                            audioManager.GetAudioVolume("bullet_time"));
+            }
+            if (input_manager.IsKeyDown(KeyValue::OEM_MINUS)) {
+                // 1 -
+                audioManager.ChangeAudioVolume(-10, "bullet_time");
+                gameaf::log("减少了bullet_time的音量, 音量为:{}",
+                            audioManager.GetAudioVolume("bullet_time"));
+            }
+        } else if (input_manager.IsKeyDown(KeyValue::OEM_PLUS)) {
+            audioManager.ChangeAudioVolume(10);
+            gameaf::log("增加了全局的音量, 音量为:{}\nbgm-start的音量:{}\nbullet_time的音量:{}",
+                        audioManager.GetAudioVolume(), audioManager.GetAudioVolume("bgm-start"),
+                        audioManager.GetAudioVolume("bullet_time"));
+        } else if (input_manager.IsKeyDown(KeyValue::OEM_MINUS)) {
+            audioManager.ChangeAudioVolume(-10);
+            gameaf::log("减少了全局的音量, 音量为:{}\nbgm-start的音量:{}\nbullet_time的音量:{}",
+                        audioManager.GetAudioVolume(), audioManager.GetAudioVolume("bgm-start"),
+                        audioManager.GetAudioVolume("bullet_time"));
+        }
+
+        // 测试shake
         if (input_manager.IsKeyDown(KeyValue::R)) {
             mainCamera->Shake(0.15f, 15.0f);
+            audioManager.PlayAudio("bullet_time");
         }
 
         if (input_manager.IsKeyDown(KeyValue::A)) {
@@ -155,6 +200,7 @@ int main()
     auto& my_game = GameAF::GetInstance();
     auto& resource_manager = ResourceManager::GetInstance();
     auto& scene_manager = SceneManager::GetInstance();
+    auto& audioManager = AudioManager::GetInstance();
 
     // my_game.SetFPS(240);
     my_game.SetShowConsole(true);
@@ -163,26 +209,27 @@ int main()
     gameaf::log("{}", "游戏开始加载图像资源...");
 
     // <=======资源加载======>
-    resource_manager.LoadImage(
-        R"(D:\project\GameBase\gamedemo\Assets\Graphics\Surroundings\Medieval_Castle\Background\layer_1.png)",
-        "background-1");
-    resource_manager.LoadImage(
-        R"(D:\project\GameBase\gamedemo\Assets\Graphics\Surroundings\Medieval_Castle\Background\layer_2.png)",
-        "background-2");
+    resource_manager.NewImage(
+        ASSETS_PATH "other/Surroundings/Medieval_Castle/Background/layer_1.png", "background-1");
+    resource_manager.NewImage(
+        ASSETS_PATH "other/Surroundings/Medieval_Castle/Background/layer_2.png", "background-2");
 
     // 加载idle图集
-    resource_manager.LoadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\idle\%d.png)",
-                               6, "player-idle-left");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/idle/%d.png", 6,
+                               "player-idle-left");
     resource_manager.FlipAtlas("player-idle-left", "player-idle-right");
-    resource_manager.LoadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\run\%d.png)", 8,
-                               "player-run-left");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/run/%d.png", 8, "player-run-left");
     resource_manager.FlipAtlas("player-run-left", "player-run-right");
-    resource_manager.LoadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\jump\%d.png)",
-                               8, "player-jump-left");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/jump/%d.png", 8,
+                               "player-jump-left");
     resource_manager.FlipAtlas("player-jump-left", "player-jump-right");
-    resource_manager.LoadAtlas(R"(D:\project\gamedemo\KongDongWuShi\resources\enemy\fall\%d.png)",
-                               4, "player-fall-left");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/fall/%d.png", 4,
+                               "player-fall-left");
     resource_manager.FlipAtlas("player-fall-left", "player-fall-right");
+
+    // 加载音频资源
+    resource_manager.LoadAudio(ASSETS_PATH "kongdongwushi/audio/bgm_start.mp3", "bgm-start");
+    resource_manager.LoadAudio(ASSETS_PATH "kongdongwushi/audio/bullet_time.mp3", "bullet_time");
     // <=======资源加载======>
 
     gameaf::log("游戏开始加载场景资源......");
@@ -296,7 +343,9 @@ int main()
     main_camera->SetCameraDeadZone({200.0f, 500.0f});
 
     gameaf::log("{}", "游戏开始运行...");
-    my_game.Run();
+    audioManager.PlayAudio("bgm-start", true);
+    gameaf::log("bgm-start的音量: {}", audioManager.GetAudioVolume("bgm-start"));
+    my_game.Run();  // 阻塞死循环
 
     return 0;
 }

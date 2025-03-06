@@ -18,3 +18,5 @@ Using C++ language, build a general-purpose game framework that provides fundame
     1. 图像 / 动画控制器  
     2. 碰撞箱
     3. 刚体
+    4. 字体
+    5. 音频

@@ -18,8 +18,8 @@ public:
     static ResourceManager& GetInstance();
 
     /// @brief 加载图像资源
-    bool LoadImage(const std::string& image_path, const std::string& image_name, int rows = 1,
-                   int cols = 1, size_t spriteN = 1);
+    bool NewImage(const std::string& image_path, const std::string& image_name, int rows = 1,
+                  int cols = 1, size_t spriteN = 1);
     /// @brief 加载字体资源
     bool LoadFont(const std::string& font_path);
     /// @brief 加载图集资源
@@ -35,7 +35,7 @@ public:
     /// @brief 卸载图像资源
     void UnloadImage(const std::string& image_name);
     /// @brief 卸载字体资源
-    void UnloadFont();
+    void UnloadFont(const std::string& font_path);
     /// @brief 卸载图集资源
     void UnloadAtlas(const std::string& atlas_name);
     /// @brief 卸载音频资源
