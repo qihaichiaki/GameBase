@@ -42,20 +42,52 @@ public:
     /// @brief 恢复播放音频
     bool ResumeAudio(const std::string& id);
 
-    /// @brief 设置音频大小
-    /// @param volume [0, 100] 超出范围者取最大或者最小值
-    /// @param id 指定音频调节, 如果为空字符串表示设置全局音频大小
-    bool SetAudioVolume(int volume, const std::string& id = "");
+    /// @brief 设置音频的类别强度
+    /// @param id 指定音频id
+    /// @param volume [0.0, 1.0]
+    bool SetCategoryVolume(const std::string& id, float volume);
 
-    /// @brief 改变音频大小
-    /// @param mod 修改的大小, 可负可正
-    /// @param id 指定音频调节, 如果为空字符串表示调节全局音频大小
-    bool ChangeAudioVolume(int mod, const std::string& id = "");
+    /// @brief 调整音频的类别强度
+    /// @param id 指定音频id
+    /// @param volume [-1.0, 1.0]
+    bool AdjustCategoryVolume(const std::string& id, float delta);
 
-    /// @brief 获取音频大小
-    /// @param id 指定音频获取, 如果为空字符串表示获取全局音频大小
-    /// @return [0, 100]的音量大小, 如果id不存在则返回-1
-    int GetAudioVolume(const std::string& id = "");
+    /// @brief 获取音频类别强度
+    /// @param id 指定音频id
+    /// @return [0.0, 1.0] 如果id没找到, 返回-1.0
+    float GetCategoryVolume(const std::string& id);
+
+    /// @brief 设置音频的相对自身的强度
+    /// @param id 指定音频id
+    /// @param volume [0.0, 1.0]
+    bool SetRelativeVolume(const std::string& id, float volume);
+
+    /// @brief 调整音频相对自身的强度
+    /// @param id 指定音频id
+    /// @param delta [-1.0, 1.0]
+    bool AdjustRelativeVolume(const std::string& id, float delta);
+
+    /// @brief 获取音频相对自身强度
+    /// @param id 指定音频id
+    /// @return [0.0, 1.0] 如果id没找到, 返回-1.0
+    float GetRelativeVolume(const std::string& id);
+
+    /// @brief 设置全局音频强度
+    /// @param volume [0.0, 1.0]
+    void SetGlobalVolume(float volume);
+
+    /// @brief 调节全局音频强度
+    /// @param delta [-1.0, 1.0]
+    void AdjustGlobalVolume(float delta);
+
+    /// @brief 获取全局音频强度
+    /// @return [0.0, 1.0] 如果id没找到, 返回-1.0
+    float GetGlobalVolume();
+
+    /// @brief 获取指定音频的强度
+    /// @param id 指定音频
+    /// @return [0.0, 1.0] 如果id没找到, 返回-1.0
+    float GetVolume(const std::string& id);
 
 private:
     AudioManager();
@@ -64,8 +96,13 @@ private:
     ~AudioManager();
 
 private:
-    std::unordered_map<std::string, int> m_audioVolumes;  // 音频强度表
-    int m_globalVolume = MAX_AUDIOVOLUME;                 // 全局音频强度
-    int m_minVolume = MAX_AUDIOVOLUME;                    // 最小音频强度
+    struct AudioVolume
+    {
+        float categoryVolume = 1.0f;  // 类别数值, 可以设置区分不同的音效.
+        float relativeVolume = 1.0f;  // 相对变换数值, 一般调节单个音频数值时使用它.
+    };
+
+    std::unordered_map<std::string, AudioVolume> m_audioVolumes;  // 音频强度表
+    float m_globalVolume = 1.0f;                                  // 全局音频强度
 };
 }  // namespace gameaf

@@ -3,6 +3,7 @@
 #include <common/Macros.h>
 
 #include <algorithm>
+#include <common/Log.hpp>
 
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
 #pragma comment(lib, "WINMM.lib")  // 音频播放
@@ -29,7 +30,7 @@ bool AudioManager::OpenAudio(const std::string& path, const std::string& id)
     mciSendString(strCmd, NULL, 0, NULL);
 #else
 #endif
-    m_audioVolumes.emplace(id, 100);
+    m_audioVolumes.emplace(id, AudioVolume{});
     return true;
 }
 
@@ -94,65 +95,76 @@ bool AudioManager::ResumeAudio(const std::string& id)
     return true;
 }
 
-bool AudioManager::SetAudioVolume(int volume, const std::string& id)
+inline static void SetAudioVolume(const std::string& id, float scale)
 {
-    volume = std::clamp(volume, 0, 100);
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
     static TCHAR strCmd[512];
-#endif
-    if (id != "") {
-        if (m_audioVolumes.count(id) == 0) return false;
-#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-        _stprintf_s(strCmd, _T("setaudio %s volume to %d"), id.c_str(), volume * 10);
-        mciSendString(strCmd, NULL, 0, NULL);
+    _stprintf_s(strCmd, _T("setaudio %s volume to %d"), id.c_str(), static_cast<int>(1000 * scale));
+    mciSendString(strCmd, NULL, 0, NULL);
 #else
 #endif
-        m_audioVolumes[id] = volume;
-    } else {
-        // 全局音频操控
-        float scaleFactor = volume * 1.0f / MAX_AUDIOVOLUME;
-        for (const auto [id, maxVolume] : m_audioVolumes) {
-#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-            _stprintf_s(strCmd, _T("setaudio %s volume to %d"), id.c_str(),
-                        static_cast<int>(maxVolume * scaleFactor) * 10);
-            mciSendString(strCmd, NULL, 0, NULL);
-#else
-#endif
-        }
-        m_globalVolume = volume;
-    }
+}
+
+bool AudioManager::SetCategoryVolume(const std::string& id, float volume)
+{
+    if (m_audioVolumes.count(id) == 0) return false;
+    volume = std::clamp(volume, 0.0f, 1.0f);
+    m_audioVolumes[id].categoryVolume = volume;
+    SetAudioVolume(id, m_globalVolume * m_audioVolumes[id].relativeVolume * volume);
     return true;
 }
 
-bool AudioManager::ChangeAudioVolume(int mod, const std::string& id)
+bool AudioManager::AdjustCategoryVolume(const std::string& id, float delta)
 {
-    if (id != "") {
-        if (m_audioVolumes.count(id) == 0) return false;
-        return SetAudioVolume(m_audioVolumes[id] + mod, id);
-    }
-    return SetAudioVolume(m_globalVolume + mod);
+    if (m_audioVolumes.count(id) == 0) return false;
+    return SetCategoryVolume(id, m_audioVolumes[id].categoryVolume + delta);
 }
 
-int AudioManager::GetAudioVolume(const std::string& id)
+float AudioManager::GetCategoryVolume(const std::string& id)
 {
-    int volume = 0;
-#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-    static TCHAR strCmd[512];
-#endif
+    if (m_audioVolumes.count(id) == 0) return -1.0f;
+    return m_audioVolumes[id].categoryVolume;
+}
 
-    if (id != "") {
-        if (m_audioVolumes.count(id) == 0) return -1;
-#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-        _stprintf_s(strCmd, _T("status %s volume"), id.c_str());
-        static char buffer[128];
-        mciSendString(strCmd, buffer, sizeof(buffer), NULL);
-        volume = std::stoi(buffer) / 10;
-#else
-#endif
-    } else {
-        volume = m_globalVolume;
+bool AudioManager::SetRelativeVolume(const std::string& id, float volume)
+{
+    if (m_audioVolumes.count(id) == 0) return false;
+    volume = std::clamp(volume, 0.0f, 1.0f);
+    m_audioVolumes[id].relativeVolume = volume;
+    SetAudioVolume(id, m_globalVolume * m_audioVolumes[id].categoryVolume * volume);
+    return true;
+}
+
+bool AudioManager::AdjustRelativeVolume(const std::string& id, float delta)
+{
+    if (m_audioVolumes.count(id) == 0) return false;
+    return SetRelativeVolume(id, m_audioVolumes[id].relativeVolume + delta);
+}
+
+float AudioManager::GetRelativeVolume(const std::string& id)
+{
+    if (m_audioVolumes.count(id) == 0) return -1.0f;
+    return m_audioVolumes[id].relativeVolume;
+}
+
+void AudioManager::SetGlobalVolume(float volume)
+{
+    volume = std::clamp(volume, 0.0f, 1.0f);
+    m_globalVolume = volume;
+    for (const auto& [id, audioVolume] : m_audioVolumes) {
+        SetAudioVolume(id,
+                       m_globalVolume * audioVolume.categoryVolume * audioVolume.relativeVolume);
     }
-    return volume;
+}
+
+void AudioManager::AdjustGlobalVolume(float delta) { SetGlobalVolume(m_globalVolume + delta); }
+
+float AudioManager::GetGlobalVolume() { return m_globalVolume; }
+
+float AudioManager::GetVolume(const std::string& id)
+{
+    if (m_audioVolumes.count(id) == 0) return -1.0f;
+    return m_globalVolume * m_audioVolumes[id].categoryVolume * m_audioVolumes[id].relativeVolume;
 }
 
 }  // namespace gameaf

@@ -93,39 +93,41 @@ public:
         if (input_manager.GetKey(KeyValue::_1)) {
             if (input_manager.IsKeyDown(KeyValue::OEM_PLUS)) {
                 // 1 +
-                audioManager.ChangeAudioVolume(10, "bgm-start");
-                gameaf::log("增加了bgm-start的音量, 音量为:{}",
-                            audioManager.GetAudioVolume("bgm-start"));
+                audioManager.AdjustRelativeVolume("bgm-start", 0.1f);
+                gameaf::log("增加了bgm-start的音量, 音量强度:{}",
+                            audioManager.GetVolume("bgm-start"));
             }
             if (input_manager.IsKeyDown(KeyValue::OEM_MINUS)) {
                 // 1 -
-                audioManager.ChangeAudioVolume(-10, "bgm-start");
-                gameaf::log("减少了bgm-start的音量, 音量为:{}",
-                            audioManager.GetAudioVolume("bgm-start"));
+                audioManager.AdjustRelativeVolume("bgm-start", -0.1f);
+                gameaf::log("减少了bgm-start的音量, 音量强度:{}",
+                            audioManager.GetVolume("bgm-start"));
             }
         } else if (input_manager.GetKey(KeyValue::_2)) {
             if (input_manager.IsKeyDown(KeyValue::OEM_PLUS)) {
                 // 1 +
-                audioManager.ChangeAudioVolume(10, "bullet_time");
-                gameaf::log("增加了bullet_time的音量, 音量为:{}",
-                            audioManager.GetAudioVolume("bullet_time"));
+                audioManager.AdjustRelativeVolume("bullet_time", 0.1f);
+                gameaf::log("增加了bullet_time的音量, 音量强度:{}",
+                            audioManager.GetVolume("bullet_time"));
             }
             if (input_manager.IsKeyDown(KeyValue::OEM_MINUS)) {
                 // 1 -
-                audioManager.ChangeAudioVolume(-10, "bullet_time");
-                gameaf::log("减少了bullet_time的音量, 音量为:{}",
-                            audioManager.GetAudioVolume("bullet_time"));
+                audioManager.AdjustRelativeVolume("bullet_time", -0.1f);
+                gameaf::log("减少了bullet_time的音量, 音量强度:{}",
+                            audioManager.GetVolume("bullet_time"));
             }
         } else if (input_manager.IsKeyDown(KeyValue::OEM_PLUS)) {
-            audioManager.ChangeAudioVolume(10);
-            gameaf::log("增加了全局的音量, 音量为:{}\nbgm-start的音量:{}\nbullet_time的音量:{}",
-                        audioManager.GetAudioVolume(), audioManager.GetAudioVolume("bgm-start"),
-                        audioManager.GetAudioVolume("bullet_time"));
+            audioManager.AdjustGlobalVolume(0.1f);
+            gameaf::log(
+                "增加了全局的音量, 总音量强度:{}\nbgm-start的音量强度:{}\nbullet_time的音量强度:{}",
+                audioManager.GetGlobalVolume(), audioManager.GetVolume("bgm-start"),
+                audioManager.GetVolume("bullet_time"));
         } else if (input_manager.IsKeyDown(KeyValue::OEM_MINUS)) {
-            audioManager.ChangeAudioVolume(-10);
-            gameaf::log("减少了全局的音量, 音量为:{}\nbgm-start的音量:{}\nbullet_time的音量:{}",
-                        audioManager.GetAudioVolume(), audioManager.GetAudioVolume("bgm-start"),
-                        audioManager.GetAudioVolume("bullet_time"));
+            audioManager.AdjustGlobalVolume(-0.1f);
+            gameaf::log(
+                "减少了全局的音量, 总音量强度:{}\nbgm-start的音量强度:{}\nbullet_time的音量强度:{}",
+                audioManager.GetGlobalVolume(), audioManager.GetVolume("bgm-start"),
+                audioManager.GetVolume("bullet_time"));
         }
 
         // 测试shake
@@ -344,7 +346,7 @@ int main()
 
     gameaf::log("{}", "游戏开始运行...");
     audioManager.PlayAudio("bgm-start", true);
-    gameaf::log("bgm-start的音量: {}", audioManager.GetAudioVolume("bgm-start"));
+    gameaf::log("bgm-start的音量强度:{}", audioManager.GetVolume("bgm-start"));
     my_game.Run();  // 阻塞死循环
 
     return 0;
