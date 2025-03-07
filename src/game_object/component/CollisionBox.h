@@ -11,12 +11,10 @@ namespace gameaf {
 class CollisionBox : public Collision
 {
 public:
-    CollisionBox(GameObject* object) : Collision(object) { SetType(CollisionType::Box); }
-    CollisionBox(GameObject* object, const Vector2& offset) : Collision(object, offset)
-    {
-        SetType(CollisionType::Box);
-    }
+    CollisionBox(GameObject* object, const Vector2& offset = Vector2{});
+    ~CollisionBox();
 
+public:
     const Vector2& GetSize() const { return m_size; }
     void SetSize(const Vector2& size) { m_size = size; }
 

@@ -19,10 +19,10 @@ Animation::~Animation() {}
 
 void Animation::OnUpdate(float delta) { timer.OnUpdate(delta); }
 
-void Animation::OnRender(const Camera& camera, const Rect& dst)
+void Animation::OnRender(const Camera& camera)
 {
     const auto& frame = m_frames.at(m_frame_index);
-    frame.img->OnRender(camera, dst);
+    frame.img->OnRender(camera, frame.spriteIndex);
 }
 
 void Animation::Restart()
@@ -48,10 +48,12 @@ bool Animation::AddFrame(Image* img)
         return false;
     }
 
+    // img -> gameObject ?
+    img->SetGameObject(m_gameObject);
     for (int i = 0; i < img->GetSpriteNum(); ++i) {
         Frame frame;
         auto src_rect = img->GetSpriteRect(i);
-        frame.src_rect = {(float)src_rect.x, (float)src_rect.y, src_rect.w, src_rect.h};
+        frame.spriteIndex = i;
         frame.img = img;
         m_frames.emplace_back(frame);
     }
@@ -68,8 +70,9 @@ bool Animation::AddFrame(Atlas* atlas)
 
     for (int i = 0; i < atlas->Size(); ++i) {
         Frame frame;
+        frame.spriteIndex = 0;
         frame.img = atlas->GetImg(i);
-        frame.src_rect = {0.f, 0.f, frame.img->GetWidth(), frame.img->GetHeight()};
+        frame.img->SetGameObject(m_gameObject);
         m_frames.emplace_back(frame);
     }
 

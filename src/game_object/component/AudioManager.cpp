@@ -109,7 +109,7 @@ bool AudioManager::SetCategoryVolume(const std::string& id, float volume)
 {
     if (m_audioVolumes.count(id) == 0) return false;
     volume = std::clamp(volume, 0.0f, 1.0f);
-    m_audioVolumes[id].categoryVolume = volume;
+    m_audioVolumes[id].categoryVolume = std::round(volume * 100) / 100;
     SetAudioVolume(id, m_globalVolume * m_audioVolumes[id].relativeVolume * volume);
     return true;
 }
@@ -130,7 +130,7 @@ bool AudioManager::SetRelativeVolume(const std::string& id, float volume)
 {
     if (m_audioVolumes.count(id) == 0) return false;
     volume = std::clamp(volume, 0.0f, 1.0f);
-    m_audioVolumes[id].relativeVolume = volume;
+    m_audioVolumes[id].relativeVolume = std::round(volume * 100) / 100;
     SetAudioVolume(id, m_globalVolume * m_audioVolumes[id].categoryVolume * volume);
     return true;
 }
@@ -150,7 +150,7 @@ float AudioManager::GetRelativeVolume(const std::string& id)
 void AudioManager::SetGlobalVolume(float volume)
 {
     volume = std::clamp(volume, 0.0f, 1.0f);
-    m_globalVolume = volume;
+    m_globalVolume = std::round(volume * 100) / 100;
     for (const auto& [id, audioVolume] : m_audioVolumes) {
         SetAudioVolume(id,
                        m_globalVolume * audioVolume.categoryVolume * audioVolume.relativeVolume);

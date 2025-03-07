@@ -19,6 +19,7 @@ using gameaf::CollisionBox;
 using gameaf::CollisionLayerTool;
 using gameaf::GameObject;
 using gameaf::Image;
+using gameaf::ImageAnchorMode;
 using gameaf::InputManager;
 using gameaf::ResourceManager;
 using gameaf::Rigidbody2D;
@@ -35,8 +36,7 @@ public:
     BackGround(const std::string& image_id, int z_redner = ZOrderLevel::z_background_back)
         : GameObject(z_redner)
     {
-        CreateComponent<Image>(image_id);
-        img = GetComponent<Image>();
+        img = CreateComponent<Image>(image_id);
     }
     BackGround(const BackGround&) = default;
 
@@ -51,8 +51,7 @@ public:
         SetName("Player");
         SetZOrder(ZOrderLevel::z_player);
         // 创建animator组件
-        CreateComponent<Animator>();
-        animator = GetComponent<Animator>();
+        animator = CreateComponent<Animator>();
 
         auto& resourceManager = ResourceManager::GetInstance();
 
@@ -65,16 +64,14 @@ public:
         animator->AddAnimation("fall-left", resourceManager.GetAtlas("player-fall-left"));
         animator->AddAnimation("fall-right", resourceManager.GetAtlas("player-fall-right"));
 
-        CreateComponent<CollisionBox>();
-        collisionBox = GetComponent<CollisionBox>();
+        collisionBox = CreateComponent<CollisionBox>();
         collisionBox->SetSize({50.0f, collisionBox->GetSize().Y});
         collisionBox->SetSrcLayer(CollisionLayerTool::player);
         collisionBox->AddDstLayer(CollisionLayerTool::wall);
         collisionBox->SetOnCollide([this](GameObject& object) {
             // gameaf::log("{}触发碰撞检测回调, 目标对象{}", GetName(), object.GetName());
         });
-        CreateComponent<Rigidbody2D>();
-        rigidbody2D = GetComponent<Rigidbody2D>();
+        rigidbody2D = CreateComponent<Rigidbody2D>();
         // rigidbody2D->gravityScale() = 10.5f;
 
         // 获取主相机
@@ -250,7 +247,7 @@ int main()
 
     // background2
     // 设置背景2锚点为底部中间
-    background2_1->SetAnchorMode(GameObject::AnchorMode::BottomCentered);
+    background2_1->GetComponent<Image>()->SetAnchorMode(ImageAnchorMode::BottomCentered);
 
     // 设置游戏对象在主摄像机的中央
     // 背景1始终固定在Ui中, 所以创建一个的UI摄像机
@@ -317,8 +314,7 @@ int main()
     air_wall->SetName("air_wall");
     air_wall->SetZOrder(ZOrderLevel::z_player);
     air_wall->Translate({0.0f, 400.0f});
-    air_wall->CreateComponent<CollisionBox>();
-    auto air_wall_collision = air_wall->GetComponent<CollisionBox>();
+    auto air_wall_collision = air_wall->CreateComponent<CollisionBox>();
     air_wall_collision->SetSize({500.0f, 500.0f});
     air_wall_collision->SetSrcLayer(CollisionLayerTool::wall);
     air_wall_collision->AddDstLayer(CollisionLayerTool::player);
@@ -329,8 +325,7 @@ int main()
     ground->SetZOrder(ZOrderLevel::z_player);
     main_scene->SetCenterAnchorPoint("scene-main", ground);
     ground->SetPositionY(background2_1->GetPosition().Y - 25.0f);
-    ground->CreateComponent<CollisionBox>();
-    auto ground_collision = ground->GetComponent<CollisionBox>();
+    auto ground_collision = ground->CreateComponent<CollisionBox>();
     ground_collision->SetSize({1500.0f, 50.0f});
     ground_collision->SetSrcLayer(CollisionLayerTool::wall);
     ground_collision->AddDstLayer(CollisionLayerTool::player);

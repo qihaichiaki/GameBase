@@ -8,14 +8,22 @@
 #include <cmath>
 
 namespace gameaf {
+
+CollisionBox::CollisionBox(GameObject* object, const Vector2& offset) : Collision(object, offset)
+{
+    SetType(CollisionType::Box);
+}
+
+CollisionBox::~CollisionBox() {}
+
 void CollisionBox::ProcessCollide(Collision* dst, float delta)
 {
     if (!m_enabled || !dst->Enabled()) return;
     // 实现 碰撞盒子的碰撞检测
     if (dst->Type() == CollisionType::Box) {
         CollisionBox* dst_box = static_cast<CollisionBox*>(dst);
-        Vector2 position = GetPosition();
-        Vector2 dst_position = dst_box->GetPosition();
+        Vector2 position = Position();
+        Vector2 dst_position = dst_box->Position();
 
         float right = position.X + m_size.X / 2;
         float left = position.X - m_size.X / 2;
@@ -36,22 +44,22 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
             // 碰撞回调调用
             // 将对方的游戏对象传入进去
             if (m_on_collide) {
-                m_on_collide(*(dst->MyObject()));
+                m_on_collide(*(dst->GetGameObject()));
             }
 
             // 存在刚体进行物理位置修正
             // 使用mtv(Minimum Translation Vector)最小位移矢量进行位置修正
-            if (auto rb = m_object->m_rigidbody2D) {
+            if (auto rb = m_gameObject->GetComponent<Rigidbody2D>()) {
                 float collided_delta_x = min(right - dst_left, dst_right - left);
                 float collided_delta_y = min(bottom - dst_top, dst_bottom - top);
 
                 if (collided_delta_x <= collided_delta_y) {
                     rb->Velocity().X = 0.0f;
-                    MyObject()->Translate(
+                    m_gameObject->Translate(
                         {left < dst_left ? -collided_delta_x : collided_delta_x, 0.0f});
                 } else {
                     rb->Velocity().Y = 0.0f;
-                    MyObject()->Translate(
+                    m_gameObject->Translate(
                         {0.0f, bottom < dst_bottom ? -collided_delta_y : collided_delta_y});
                 }
             }
@@ -61,7 +69,7 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
 
 void CollisionBox::OnDebugRender(const Camera& camera)
 {
-    Vector2 position = GetPosition();
+    Vector2 position = Position();
     int left = static_cast<int>(position.X - m_size.X / 2 - camera.GetPosition().X);
     int top = static_cast<int>(position.Y - m_size.Y / 2 - camera.GetPosition().Y);
     int right = static_cast<int>(position.X + m_size.X / 2 - camera.GetPosition().X);

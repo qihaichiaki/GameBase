@@ -1,5 +1,7 @@
 #pragma once
 
+#include <game_object/component/Component.h>
+
 #include <common/Log.hpp>
 #include <common/Vector2.hpp>
 
@@ -13,10 +15,10 @@ namespace gameaf {
 
 class GameObject;
 
-class Rigidbody2D
+class Rigidbody2D : public Component
 {
 public:
-    Rigidbody2D(GameObject* game_obj);
+    Rigidbody2D(GameObject* obj);
 
 public:
     // 物理循环更新
@@ -29,8 +31,7 @@ public:
     float& GravityScale() { return m_gravity_scale; }
 
 private:
-    GameObject* m_object = nullptr;  // 游戏对象弱持有状态
-    Vector2 m_velocity;              // 速率
-    float m_gravity_scale = 980.5;   // 重力加速度规模
+    Vector2 m_velocity;             // 速率
+    float m_gravity_scale = 980.5;  // 重力加速度规模
 };
 }  // namespace gameaf

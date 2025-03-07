@@ -5,14 +5,14 @@
 
 namespace gameaf {
 
-Animator::Animator() = default;
+Animator::Animator(GameObject* obj) : Component(obj, Vector2{}) {};
 Animator::~Animator() = default;
 
 void Animator::OnUpdate(float delta) { m_animations.at(m_current_animation_id).OnUpdate(delta); }
 
-void Animator::OnRender(const Camera& camera, const Rect& rect)
+void Animator::OnRender(const Camera& camera)
 {
-    m_animations.at(m_current_animation_id).OnRender(camera, rect);
+    m_animations.at(m_current_animation_id).OnRender(camera);
 }
 
 bool Animator::AddAnimation(const std::string& animation_id, Image* img, bool isLoop,
@@ -23,6 +23,7 @@ bool Animator::AddAnimation(const std::string& animation_id, Image* img, bool is
     if (m_initial_animation_id == "") {
         m_initial_animation_id = animation_id;
     }
+    m_animations[animation_id].m_gameObject = m_gameObject;
     m_animations[animation_id].AddFrame(img);
     m_animations[animation_id].SetLoop(isLoop);
     m_animations[animation_id].SetInterval(interval);
@@ -37,6 +38,7 @@ bool Animator::AddAnimation(const std::string& animation_id, Atlas* atlas, bool 
     if (m_initial_animation_id == "") {
         m_initial_animation_id = animation_id;
     }
+    m_animations[animation_id].m_gameObject = m_gameObject;
     m_animations[animation_id].AddFrame(atlas);
     m_animations[animation_id].SetLoop(isLoop);
     m_animations[animation_id].SetInterval(interval);

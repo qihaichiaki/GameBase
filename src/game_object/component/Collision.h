@@ -1,5 +1,7 @@
 #pragma once
 
+#include <game_object/component/Component.h>
+
 #include <common/Vector2.hpp>
 #include <functional>
 #include <game_object/component/CollisionLayer.hpp>
@@ -13,16 +15,13 @@ namespace gameaf {
 
 class GameObject;
 class Camera;
-class Collision
+class Collision : public Component
 {
 public:
     using ColliideCallback = std::function<void(GameObject&)>;
 
-    Collision(GameObject* game_object) : m_object(game_object) {}
-    Collision(GameObject* game_object, const Vector2& offset)
-        : m_object(game_object), m_offset(offset)
-    {
-    }
+    Collision(GameObject* game_object, const Vector2& offset);
+    ~Collision();
 
 public:
     /// @brief 设置碰撞回调
@@ -55,12 +54,6 @@ public:
     /// @brief 检查是否启动碰撞
     bool Enabled() const;
 
-    /// @brief 获取碰撞体对应的游戏对象
-    GameObject* MyObject() const;
-
-    /// @brief 获取碰撞体的中心位置
-    Vector2 GetPosition() const;
-
 public:
     /// @brief 碰撞检测和修正
     /// @param collision_component 对方的碰撞器
@@ -75,9 +68,6 @@ protected:
     void SetType(CollisionType type);
 
 protected:
-    GameObject* m_object = nullptr;  // 弱持有状态
-    Vector2 m_offset;                // 和游戏对象之间的坐标差距
-
     CollisionType m_type = CollisionType::None;
     Collisionlayer m_src_layer = CollisionLayerTool::none;  // 当前碰撞组件层级
     Collisionlayer m_dst_layer = CollisionLayerTool::none;  // 目标碰撞组件层级

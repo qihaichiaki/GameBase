@@ -1,6 +1,7 @@
 #pragma once
 
 #include <game_object/component/Animation.h>
+#include <game_object/component/Component.h>
 
 #include <string>
 #include <unordered_map>
@@ -14,15 +15,15 @@ namespace gameaf {
 
 struct Rect;
 class Camera;
-class Animator
+class Animator : public Component
 {
 public:
-    Animator();
+    Animator(GameObject* obj);
     ~Animator();
 
 public:
     void OnUpdate(float delta);
-    void OnRender(const Camera& camera, const Rect& rect);
+    void OnRender(const Camera& camera);
 
 public:
     /// @brief 添加动画对象

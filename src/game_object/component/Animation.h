@@ -10,15 +10,18 @@
 namespace gameaf {
 
 class Camera;
+class GameObject;
 class Animation
 {
+    friend class Animator;
+
 public:
     Animation();
     ~Animation();
 
 public:
     void OnUpdate(float delta);
-    void OnRender(const Camera& camera, const Rect& dst);
+    void OnRender(const Camera& camera);
 
 public:
     /// @brief 重放
@@ -57,8 +60,8 @@ private:
     // 描述动画里的一帧
     struct Frame
     {
-        Rect src_rect;
-        Image* img;
+        size_t spriteIndex;  // 精灵图中精灵图id
+        Image* img;          // 图像组件
     };
 
     std::vector<Frame> m_frames;
@@ -66,5 +69,7 @@ private:
     Timer timer;
     bool m_is_loop = false;               // 是否是循环动画
     std::function<void()> m_on_finished;  // 驱动力
+
+    GameObject* m_gameObject = nullptr;
 };
 }  // namespace gameaf

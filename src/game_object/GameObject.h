@@ -13,6 +13,7 @@ class Animator;
 class Scene;
 class Camera;
 class Collision;
+class CollisionBox;
 class Rigidbody2D;
 
 class GameObject : public std::enable_shared_from_this<GameObject>
@@ -30,8 +31,6 @@ public:
 
 public:
     friend class Scene;
-    friend class CollisionBox;  // TODO: 临时, 后面想解决方案
-    enum class AnchorMode { Centered, BottomCentered, TopCentered, Customized };
 
 public:
     GameObject();
@@ -77,35 +76,19 @@ public:
     /// @brief 设置游戏对象的名称
     void SetName(const std::string& name) { m_name = name; }
 
-    /// @brief 设置锚点模式
-    /// @param mod 锚点模式
-    /// @param anchor_position 如果自定义,
-    /// 请自由的设置锚点在x方向所占的比例和在y方向所占的比例.值的取值在[0,
-    /// 1].不在范围内的一律视为0哦~
-    void SetAnchorMode(AnchorMode mod, const Vector2& anchor_position = {0.0f, 0.0f})
-    {
-        m_anchor_mode = mod;
-        if (mod == AnchorMode::Customized) {
-            m_anchor_position.X =
-                anchor_position.X >= 0 && anchor_position.X <= 1 ? anchor_position.X : 0;
-            m_anchor_position.Y =
-                anchor_position.Y >= 0 && anchor_position.Y <= 1 ? anchor_position.Y : 0;
-        }
-    }
-
-    /// @brief 设置当前对象的锚点位置(世界坐标)
+    /// @brief 设置当前对象的世界坐标
     void SetPosition(const Vector2& position) { m_position = position; }
 
-    /// @brief 设置当前对象锚点的X坐标
+    /// @brief 设置当前对象的X坐标
     void SetPositionX(float x) { m_position.X = x; }
 
-    /// @brief 设置当前对象锚点的Y坐标
+    /// @brief 设置当前对象的Y坐标
     void SetPositionY(float y) { m_position.Y = y; }
 
-    /// @brief 获取当前对象的锚点位置(世界坐标)
+    /// @brief 获取当前对象的世界坐标
     const Vector2& GetPosition() const { return m_position; }
 
-    /// @brief 锚点位置进行位移
+    /// @brief 游戏对象位置进行位移
     /// @param offset 位移大小
     void Translate(const Vector2& offset) { m_position += offset; }
 
@@ -132,7 +115,10 @@ public:
 
     // 创建组件
     template <typename T, typename... Args>
-    bool CreateComponent(Args&&... args);
+    std::enable_if_t<std::is_same_v<T, Image> || std::is_same_v<T, Animator> ||
+                         std::is_same_v<T, CollisionBox> || std::is_same_v<T, Rigidbody2D>,
+                     T*>
+    CreateComponent(Args&&... args);
 
     // 获取组件指针
     template <typename T>
@@ -161,9 +147,7 @@ private:
     // gameobject所属的scene
     // scene的生命周期不由gameobject进行管理
     SceneWeakPtr m_myScene;
-    Vector2 m_position;                               // 位置组件
-    AnchorMode m_anchor_mode = AnchorMode::Centered;  // 锚点模式, 默认锚点在对象的中心
-    Vector2 m_anchor_position;  // 自定义锚点相对于当前对象位置 (x/y: 0.0 ~ 1.0)
+    Vector2 m_position;  // 位置组件
 
     // === 特殊属性(可有可无, 使用指针管理,延迟加载) ===
     ImagePtr m_image = nullptr;              // 图像组件

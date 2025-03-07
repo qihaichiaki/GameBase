@@ -32,8 +32,6 @@ GameObject::GameObject(const GameObject& obj)
     m_zOrder = obj.m_zOrder;
     m_myScene = obj.m_myScene;
     m_position = obj.m_position;
-    m_anchor_mode = obj.m_anchor_mode;
-    m_anchor_position = obj.m_anchor_position;
     m_image = obj.m_image;
     if (obj.m_animator != nullptr) m_animator = std::make_unique<Animator>(*(obj.m_animator));
     // 子对象全部复制一遍
@@ -59,8 +57,6 @@ void GameObject::Swap(GameObject& mv_obj)
     m_zOrder = mv_obj.m_zOrder;
     m_myScene = mv_obj.m_myScene;
     m_position = mv_obj.m_position;
-    m_anchor_mode = mv_obj.m_anchor_mode;
-    m_anchor_position = mv_obj.m_anchor_position;
     m_image = mv_obj.m_image;
     m_animator = std::move(mv_obj.m_animator);
     // 子对象全部直接转移
@@ -158,50 +154,15 @@ void GameObject::OnUpdate(float delta)
     }
 }
 
-/// @brief 辅助计算渲染目标矩形
-inline static Rect BuildRender(const Vector2& pos, const Vector2& size, GameObject::AnchorMode mode,
-                               const Vector2& anchor_pos = {0.0f, 0.0f})
-{
-    Rect dst;
-    dst.w = static_cast<int>(size.X);
-    dst.h = static_cast<int>(size.Y);
-
-    switch (mode) {
-        case GameObject::AnchorMode::Centered:
-            dst.x = pos.X - size.X / 2;
-            dst.y = pos.Y - size.Y / 2;
-            break;
-        case GameObject::AnchorMode::BottomCentered:
-            dst.x = pos.X - size.X / 2;
-            dst.y = pos.Y - size.Y;
-            break;
-        case GameObject::AnchorMode::TopCentered:
-            dst.x = pos.X - size.X / 2;
-            dst.y = pos.Y;
-            break;
-        case GameObject::AnchorMode::Customized:
-            // 注意，如果anchor_pos不符合0.0~1.0的范围,则视为0进行处理
-            dst.x = static_cast<int>(pos.X - size.X * anchor_pos.X);
-            dst.y = static_cast<int>(pos.Y - size.Y * anchor_pos.Y);
-            break;
-        default:
-            break;
-    }
-    return dst;
-}
-
 void GameObject::OnRender(const Camera& camera)
 {
     // 特殊属性处理渲染
     if (m_image) {
-        m_image->OnRender(
-            camera, BuildRender(m_position, m_image->GetSize(), m_anchor_mode, m_anchor_position));
+        m_image->OnRender(camera);
     }
 
     if (m_animator) {
-        m_animator->OnRender(
-            camera, BuildRender(m_position, m_animator->GetCurrentAnimation().CurrentFrameSize(),
-                                m_anchor_mode, m_anchor_position));
+        m_animator->OnRender(camera);
     }
 
     if (m_child_gameObjects) {
@@ -225,37 +186,53 @@ void GameObject::SetZOrder(int z_order)
 }
 
 template <typename T, typename... Args>
-bool GameObject::CreateComponent(Args&&... args)
+std::enable_if_t<std::is_same_v<T, Image> || std::is_same_v<T, Animator> ||
+                     std::is_same_v<T, CollisionBox> || std::is_same_v<T, Rigidbody2D>,
+                 T*>
+GameObject::CreateComponent(Args&&... args)
 {
     if constexpr (std::is_same_v<T, Image>) {
         // 检查类型, 使用tuple严格匹配参数类型
         // std::decay_t 方便将const、&去除
         static_assert(std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::string>>);
-        if (m_image) return false;
+        if (m_image) return nullptr;
         // img_id
         m_image = ResourceManager::GetInstance().GetImage(std::forward<Args>(args)...);
+        m_image->SetGameObject(this);
+        return m_image;
     } else if constexpr (std::is_same_v<T, Animator>) {
         // 没有参数传递
         static_assert(sizeof...(Args) == 0);
-        if (m_animator) return false;
-        m_animator = std::make_unique<Animator>();
+        if (m_animator) return nullptr;
+        m_animator = std::make_unique<Animator>(this);
+        return m_animator.get();
     } else if constexpr (std::is_same_v<T, CollisionBox>) {
-        static_assert(sizeof...(Args) == 0);
-        if (m_collision) return false;
-        auto collision_box = CollisionManager::GetInstance().CreateCollisionBox(this);
+        static_assert(sizeof...(Args) == 0 ||
+                      std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<Vector2>>);
+        if (m_collision) return nullptr;
+
+        CollisionBox* collision_box = nullptr;
+        if constexpr (sizeof...(Args) == 0) {
+            collision_box = CollisionManager::GetInstance().CreateCollisionBox(this, Vector2{});
+        } else {
+            collision_box = CollisionManager::GetInstance().CreateCollisionBox(
+                this, std::forward<Args>(args)...);
+        }
         if (m_image) {
             collision_box->SetSize(m_image->GetSize());
         } else if (m_animator) {
             collision_box->SetSize(m_animator->GetInitialAnimation().CurrentFrameSize());
         }
         m_collision = collision_box;
+        return collision_box;
     } else if constexpr (std::is_same_v<T, Rigidbody2D>) {
         static_assert(sizeof...(Args) == 0);
-        if (m_rigidbody2D) return false;
+        if (m_rigidbody2D) return nullptr;
         m_rigidbody2D = RigidbodyManager::GetInstance().CreateRigidbody2D(this);
+        return m_rigidbody2D;
     }
 
-    return true;
+    return nullptr;
 }
 
 // 获取组件指针
@@ -289,10 +266,10 @@ Rigidbody2D* GameObject::GetComponent<Rigidbody2D>()
 }
 
 // 显示实例化模板函数
-template bool GameObject::CreateComponent<Image, const std::string&>(const std::string&);
-template bool GameObject::CreateComponent<Animator>();
-template bool GameObject::CreateComponent<CollisionBox>();
-template bool GameObject::CreateComponent<Rigidbody2D>();
+template Image* GameObject::CreateComponent<Image, const std::string&>(const std::string&);
+template Animator* GameObject::CreateComponent<Animator>();
+template CollisionBox* GameObject::CreateComponent<CollisionBox>();
+template Rigidbody2D* GameObject::CreateComponent<Rigidbody2D>();
 
 template Image* GameObject::GetComponent<Image>();
 template Animator* GameObject::GetComponent<Animator>();
