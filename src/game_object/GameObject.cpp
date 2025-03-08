@@ -3,6 +3,8 @@
 #include <game_object/component/Animator.h>
 #include <game_object/component/Collision.h>
 #include <game_object/component/Image.h>
+#include <game_object/component/Rigidbody2D.h>
+#include <game_object/component/Text.h>
 #include <resource/ResourceManager.h>
 #include <scene/Scene.h>
 
@@ -10,18 +12,13 @@
 #include <common/MediaUtils.hpp>
 #include <functional>
 #include <game_object/component/CollisionManager.hpp>
-#include <game_object/component/RigidbodyManager.hpp>
 
 namespace gameaf {
 
 GameObject::GameObject() = default;
 GameObject::GameObject(const std::string& name) : m_name(name) {}
 GameObject::GameObject(int z_order, const std::string& name) : m_name(name), m_zOrder(z_order) {}
-GameObject::~GameObject()
-{
-    CollisionManager::GetInstance().DeleteCollisionComponent(m_collision);
-    RigidbodyManager::GetInstance().DeleteRigidbody2D(m_rigidbody2D);
-}
+GameObject::~GameObject() { CollisionManager::GetInstance().DeleteCollisionComponent(m_collision); }
 
 GameObject::GameObject(const GameObject& obj)
 {
@@ -32,8 +29,14 @@ GameObject::GameObject(const GameObject& obj)
     m_zOrder = obj.m_zOrder;
     m_myScene = obj.m_myScene;
     m_position = obj.m_position;
-    m_image = obj.m_image;
-    if (obj.m_animator != nullptr) m_animator = std::make_unique<Animator>(*(obj.m_animator));
+    if (obj.m_image != nullptr) {
+        m_image = std::make_unique<Image>(*(obj.m_image));
+        m_image->SetGameObject(this);
+    }
+    if (obj.m_animator != nullptr) {
+        m_animator = std::make_unique<Animator>(*(obj.m_animator));
+        m_animator->SetGameObject(this);
+    }
     // 子对象全部复制一遍
     if (obj.m_child_gameObjects) {
         m_child_gameObjects =
@@ -43,8 +46,15 @@ GameObject::GameObject(const GameObject& obj)
         }
     }
     m_parent = obj.m_parent;
-    m_collision = CollisionManager::GetInstance().CopyCollision(obj.m_collision);
-    m_rigidbody2D = RigidbodyManager::GetInstance().CopyRigidbody2D(obj.m_rigidbody2D);
+    m_collision = CollisionManager::GetInstance().CopyCollision(this, obj.m_collision);
+    if (obj.m_rigidbody2D != nullptr) {
+        m_rigidbody2D = std::make_unique<Rigidbody2D>(*(obj.m_rigidbody2D));
+        m_rigidbody2D->SetGameObject(this);
+    }
+    if (obj.m_text != nullptr) {
+        m_text = std::make_unique<Text>(*(obj.m_text));
+        m_text->SetGameObject(this);
+    }
     gameaf::log("[debug] 对象{}复制成功......", m_name);
 }
 
@@ -57,17 +67,22 @@ void GameObject::Swap(GameObject& mv_obj)
     m_zOrder = mv_obj.m_zOrder;
     m_myScene = mv_obj.m_myScene;
     m_position = mv_obj.m_position;
-    m_image = mv_obj.m_image;
+    m_image = std::move(mv_obj.m_image);
+    m_image->SetGameObject(this);
     m_animator = std::move(mv_obj.m_animator);
+    m_animator->SetGameObject(this);
     // 子对象全部直接转移
     if (mv_obj.m_child_gameObjects) {
         m_child_gameObjects = std::move(mv_obj.m_child_gameObjects);
     }
     m_parent = mv_obj.m_parent;
     m_collision = mv_obj.m_collision;
+    m_collision->SetGameObject(this);
     mv_obj.m_collision = nullptr;
-    m_rigidbody2D = mv_obj.m_rigidbody2D;
-    mv_obj.m_rigidbody2D = nullptr;
+    m_rigidbody2D = std::move(mv_obj.m_rigidbody2D);
+    m_rigidbody2D->SetGameObject(this);
+    m_text = std::move(mv_obj.m_text);
+    m_text->SetGameObject(this);
 }
 
 GameObject::GameObject(GameObject&& mv_obj)
@@ -142,6 +157,18 @@ std::vector<GameObject::GameObjectPtr> GameObject::FindChildObjects(const std::s
     return {};
 }
 
+void GameObject::OnFixUpdate(float alpha)
+{
+    // 特殊属性处理更新
+    if (m_rigidbody2D) m_rigidbody2D->OnFixedUpdate(alpha);
+    if (m_child_gameObjects) {
+        for (auto& game_object : *m_child_gameObjects) {
+            game_object->OnFixUpdate();
+            game_object->OnFixUpdate(alpha);
+        }
+    }
+}
+
 void GameObject::OnUpdate(float delta)
 {
     // 特殊属性处理更新
@@ -173,6 +200,10 @@ void GameObject::OnRender(const Camera& camera)
 
     // debug render
     if (m_collision) m_collision->OnDebugRender(camera);
+
+    if (m_text) {
+        m_text->OnRender(camera);
+    }
 }
 
 void GameObject::SetZOrder(int z_order)
@@ -187,19 +218,29 @@ void GameObject::SetZOrder(int z_order)
 
 template <typename T, typename... Args>
 std::enable_if_t<std::is_same_v<T, Image> || std::is_same_v<T, Animator> ||
-                     std::is_same_v<T, CollisionBox> || std::is_same_v<T, Rigidbody2D>,
+                     std::is_same_v<T, CollisionBox> || std::is_same_v<T, Rigidbody2D> ||
+                     std::is_same_v<T, Text>,
                  T*>
 GameObject::CreateComponent(Args&&... args)
 {
     if constexpr (std::is_same_v<T, Image>) {
+        if (m_image) return nullptr;
         // 检查类型, 使用tuple严格匹配参数类型
         // std::decay_t 方便将const、&去除
-        static_assert(std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::string>>);
-        if (m_image) return nullptr;
-        // img_id
-        m_image = ResourceManager::GetInstance().GetImage(std::forward<Args>(args)...);
-        m_image->SetGameObject(this);
-        return m_image;
+        if constexpr (std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::string>>) {
+            // img_id
+            m_image = std::make_unique<Image>(
+                this, ResourceManager::GetInstance().GetTImage(std::forward<Args>(args)...));
+        } else if constexpr (std::is_same_v<std::tuple<std::decay_t<Args>...>,
+                                            std::tuple<std::string, Vector2>>) {
+            auto argsTuple = std::forward_as_tuple(std::forward<Args>(args)...);  // 保留左右值属性
+            m_image = std::make_unique<Image>(
+                this, ResourceManager::GetInstance().GetTImage(std::get<0>(argsTuple)),
+                std::get<1>(argsTuple));
+        } else {
+            static_assert(false);
+        }
+        return m_image.get();
     } else if constexpr (std::is_same_v<T, Animator>) {
         // 没有参数传递
         static_assert(sizeof...(Args) == 0);
@@ -212,12 +253,8 @@ GameObject::CreateComponent(Args&&... args)
         if (m_collision) return nullptr;
 
         CollisionBox* collision_box = nullptr;
-        if constexpr (sizeof...(Args) == 0) {
-            collision_box = CollisionManager::GetInstance().CreateCollisionBox(this, Vector2{});
-        } else {
-            collision_box = CollisionManager::GetInstance().CreateCollisionBox(
-                this, std::forward<Args>(args)...);
-        }
+        collision_box =
+            CollisionManager::GetInstance().CreateCollisionBox(this, std::forward<Args>(args)...);
         if (m_image) {
             collision_box->SetSize(m_image->GetSize());
         } else if (m_animator) {
@@ -228,8 +265,15 @@ GameObject::CreateComponent(Args&&... args)
     } else if constexpr (std::is_same_v<T, Rigidbody2D>) {
         static_assert(sizeof...(Args) == 0);
         if (m_rigidbody2D) return nullptr;
-        m_rigidbody2D = RigidbodyManager::GetInstance().CreateRigidbody2D(this);
-        return m_rigidbody2D;
+        m_rigidbody2D = std::make_unique<Rigidbody2D>(this);
+        return m_rigidbody2D.get();
+    } else if constexpr (std::is_same_v<T, Text>) {
+        static_assert(
+            std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::string>> ||
+            std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::string, Vector2>>);
+        if (m_text) return nullptr;
+        m_text = std::make_unique<Text>(this, std::forward<Args>(args)...);
+        return m_text.get();
     }
 
     return nullptr;
@@ -244,7 +288,7 @@ T* GameObject::GetComponent()
 template <>
 Image* GameObject::GetComponent<Image>()
 {
-    return m_image;
+    return m_image.get();
 }
 template <>
 Animator* GameObject::GetComponent<Animator>()
@@ -262,14 +306,17 @@ CollisionBox* GameObject::GetComponent<CollisionBox>()
 template <>
 Rigidbody2D* GameObject::GetComponent<Rigidbody2D>()
 {
-    return m_rigidbody2D;
+    return m_rigidbody2D.get();
 }
 
 // 显示实例化模板函数
 template Image* GameObject::CreateComponent<Image, const std::string&>(const std::string&);
 template Animator* GameObject::CreateComponent<Animator>();
 template CollisionBox* GameObject::CreateComponent<CollisionBox>();
+template CollisionBox* GameObject::CreateComponent<CollisionBox>(const Vector2& offset);
 template Rigidbody2D* GameObject::CreateComponent<Rigidbody2D>();
+template Text* GameObject::CreateComponent<Text>(const std::string&);
+template Text* GameObject::CreateComponent<Text>(const std::string&, const Vector2& offset);
 
 template Image* GameObject::GetComponent<Image>();
 template Animator* GameObject::GetComponent<Animator>();

@@ -22,7 +22,14 @@ void Animation::OnUpdate(float delta) { timer.OnUpdate(delta); }
 void Animation::OnRender(const Camera& camera)
 {
     const auto& frame = m_frames.at(m_frame_index);
-    frame.img->OnRender(camera, frame.spriteIndex);
+    frame.img.OnRender(camera, frame.spriteIndex);
+}
+
+void Animation::SetImgGameObject(GameObject* obj)
+{
+    for (auto& frame : m_frames) {
+        frame.img.SetGameObject(obj);
+    }
 }
 
 void Animation::Restart()
@@ -41,39 +48,10 @@ void Animation::SetInterval(float interval) { timer.SetWaitTime(interval); }
 
 void Animation::SetOnFinished(std::function<void()> onFinished) { m_on_finished = onFinished; }
 
-bool Animation::AddFrame(Image* img)
+bool Animation::AddFrame(const Image& img)
 {
-    if (img == nullptr) {
-        gameaf::log("[error][Animation::AddFrame] 添加帧失败...");
-        return false;
-    }
-
-    // img -> gameObject ?
-    img->SetGameObject(m_gameObject);
-    for (int i = 0; i < img->GetSpriteNum(); ++i) {
-        Frame frame;
-        auto src_rect = img->GetSpriteRect(i);
-        frame.spriteIndex = i;
-        frame.img = img;
-        m_frames.emplace_back(frame);
-    }
-
-    return true;
-}
-
-bool Animation::AddFrame(Atlas* atlas)
-{
-    if (atlas == nullptr) {
-        gameaf::log("[error][Animation::AddFrame] 添加帧失败...");
-        return false;
-    }
-
-    for (int i = 0; i < atlas->Size(); ++i) {
-        Frame frame;
-        frame.spriteIndex = 0;
-        frame.img = atlas->GetImg(i);
-        frame.img->SetGameObject(m_gameObject);
-        m_frames.emplace_back(frame);
+    for (size_t i = 0; i < img.GetSpriteNum(); ++i) {
+        m_frames.emplace_back(Frame{i, img});
     }
 
     return true;
@@ -81,7 +59,14 @@ bool Animation::AddFrame(Atlas* atlas)
 
 const Vector2& Animation::CurrentFrameSize() const
 {
-    return m_frames.at(m_frame_index).img->GetSize();
+    return m_frames.at(m_frame_index).img.GetSize();
+}
+
+void Animation::Flip()
+{
+    for (auto& frame : m_frames) {
+        frame.img.Flip();
+    }
 }
 
 }  // namespace gameaf

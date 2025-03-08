@@ -7,7 +7,6 @@
 #include <chrono>
 #include <codecvt>
 #include <game_object/component/CollisionManager.hpp>
-#include <game_object/component/RigidbodyManager.hpp>
 #include <thread>
 
 using namespace gameaf;
@@ -56,7 +55,6 @@ void GameAF::Run()
 #endif
 
     auto& input = InputManager::GetInstance();
-    auto& rigidbody = RigidbodyManager::GetInstance();
     auto& collision = CollisionManager::GetInstance();
     auto& scene = SceneManager::GetInstance();
 
@@ -73,11 +71,10 @@ void GameAF::Run()
         // 物理更新
         accumulate_time += m_delta_time;
         while (accumulate_time >= fixed_timestep) {
-            rigidbody.OnFixedUpdate(fixed_timestep);
-            collision.ProcessCollide(fixed_timestep);  // 碰撞检测 + 物理修正
-            accumulate_time -= fixed_timestep;
             // 场景资源物理更新
             scene.OnFixUpdate(fixed_timestep);
+            collision.ProcessCollide(fixed_timestep);  // 碰撞检测 + 物理修正
+            accumulate_time -= fixed_timestep;
         }
 
         // 场景数据更新

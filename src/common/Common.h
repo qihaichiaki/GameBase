@@ -13,4 +13,10 @@ struct Rect
     int w, h;
 };
 
+using byte = unsigned char;
+struct ColorRGB
+{
+    byte r = 255, g = 255, b = 255;
+};
+
 }  // namespace gameaf

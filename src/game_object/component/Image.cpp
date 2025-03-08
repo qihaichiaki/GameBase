@@ -7,38 +7,15 @@
 
 namespace gameaf {
 
-Image::Image() : Component(nullptr, Vector2{}) { m_img = new TImage{}; }
-Image::Image(const Image& img) : Component(img.m_gameObject, img.m_offset)
+Image::Image(GameObject* obj, TImage* timg, Vector2 offset)
+    : Component{obj, offset},
+      m_img(timg),
+      m_size(timg->GetWidth(), timg->GetHeight()),
+      m_currentImg(timg)
 {
-    m_img = new TImage(*img.m_img);
-    m_size = img.m_size;
-    m_spriteN = img.m_spriteN;
-    m_spriteRegion = img.m_spriteRegion;
-    m_width = img.m_width;
-    m_height = img.m_height;
 }
-Image::Image(Image&& img) : Component(img.m_gameObject, img.m_offset)
-{
-    m_img = img.m_img;
-    img.m_img = nullptr;
-    m_size = img.m_size;
-    m_spriteN = img.m_spriteN;
-    m_spriteRegion = img.m_spriteRegion;
-    m_width = img.m_width;
-    m_height = img.m_height;
-}
-Image::~Image() { delete m_img; }
 
-bool Image::Load(const std::string& imgPath, int rows, int cols, size_t spriteN)
-{
-    if (!m_img->Load(imgPath)) return false;
-    m_spriteN = spriteN;
-    m_width = m_img->GetWidth();
-    m_height = m_img->GetHeight();
-    m_size = {m_width * 1.0f, m_height * 1.0f};
-    m_spriteRegion = {0.0f, 0.0f, m_width / rows, m_height / cols};
-    return true;
-}
+Image::~Image() {}
 
 /// @brief 辅助计算渲染目标矩形
 /// @param pos 世界坐标
@@ -50,36 +27,38 @@ inline static Rect BuildRender(const Vector2& pos, const Vector2& size, const Ve
     Rect dst;
     dst.w = static_cast<int>(size.X);
     dst.h = static_cast<int>(size.Y);
-    dst.x = static_cast<int>(pos.X - size.X * anchor_pos.X);
-    dst.y = static_cast<int>(pos.Y - size.Y * anchor_pos.Y);
+    dst.x = pos.X - size.X * anchor_pos.X;
+    dst.y = pos.Y - size.Y * anchor_pos.Y;
     return dst;
 }
 
-void Image::OnRender(const Camera& camera, size_t spriteIndex)
+void Image::OnRender(const Camera& camera, size_t spriteIndex) const
 {
-    PutImageEx(camera, *m_img, BuildRender(m_gameObject->GetPosition(), m_size, m_anchorPosition),
-               GetSpriteRect(spriteIndex));
+    PutImageEx(camera, m_img,
+               BuildRender(m_gameObject->GetPosition() + m_offset, m_size, m_anchorPosition),
+               m_img->GetSpriteRect(spriteIndex));
 }
 
-void Image::Flip() { m_img->Flip(m_spriteN, m_spriteRegion.w, m_spriteRegion.h); }
+void Image::Flip()
+{
+    if (m_currentImg == m_img) {
+        if (m_flipImg == nullptr) {
+            m_flipImg = std::make_shared<TImage>(*m_img);
+            m_flipImg->Flip();
+        }
+        m_currentImg = m_flipImg.get();
+    } else {
+        m_currentImg = m_img;
+    }
+}
 
 const Vector2& Image::GetSize() const { return m_size; }
 
 void Image::SetSize(Vector2 size) { m_size = size; }
 
-int Image::GetWidth() const { return m_width; }
+size_t Image::GetSpriteNum() const { return m_img->GetSpriteNum(); }
 
-int Image::GetHeight() const { return m_height; }
-
-int Image::GetSpriteNum() const { return m_spriteN; }
-
-Rect Image::GetSpriteRect(size_t index) const
-{
-    if (index > m_spriteN) return {};
-    int x = (index * m_spriteRegion.w) % m_width;
-    int y = ((index * m_spriteRegion.w) / m_width) * m_spriteRegion.h;
-    return {x * 1.0f, y * 1.0f, m_spriteRegion.w, m_spriteRegion.h};
-}
+Rect Image::GetSpriteRect(size_t index) const { return m_img->GetSpriteRect(index); }
 
 void Image::SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position)
 {

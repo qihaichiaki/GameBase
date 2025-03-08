@@ -35,6 +35,13 @@ void Scene::OnUpdate(float delta)
 
 void Scene::OnFixUpdate(float alpha)
 {
+    if (m_gameObjects) {
+        for (auto& object : *m_gameObjects) {
+            object->OnFixUpdate();
+            object->OnFixUpdate(alpha);
+        }
+    }
+
     for (auto& [_, camera] : m_cameras) {
         camera->OnFixUpdate(alpha);
     }

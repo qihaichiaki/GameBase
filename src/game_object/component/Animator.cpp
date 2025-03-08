@@ -1,7 +1,11 @@
 #include "Animator.h"
 
 #include <common/Common.h>
+#include <game_object/component/Image.h>
 #include <resource/ResourceManager.h>
+
+#include <common/Log.hpp>
+#include <game_object/component/Atlas.hpp>
 
 namespace gameaf {
 
@@ -15,16 +19,30 @@ void Animator::OnRender(const Camera& camera)
     m_animations.at(m_current_animation_id).OnRender(camera);
 }
 
-bool Animator::AddAnimation(const std::string& animation_id, Image* img, bool isLoop,
+void Animator::SetGameObject(GameObject* obj)
+{
+    m_gameObject = obj;
+    for (auto& [_, animation] : m_animations) {
+        animation.SetImgGameObject(obj);
+    }
+}
+
+bool Animator::AddAnimation(const std::string& animation_id, TImage* timg, bool isLoop,
                             float interval)
 {
-    if (m_animations.count(animation_id) != 0) return false;
+    if (m_animations.count(animation_id) != 0) {
+        gameaf::log("[warring][AddAnimation] animation重名了...");
+        return false;
+    }
+    if (timg == nullptr) {
+        gameaf::log("[error][AddAnimation] 图像元空空如也...");
+        return false;
+    }
 
     if (m_initial_animation_id == "") {
         m_initial_animation_id = animation_id;
     }
-    m_animations[animation_id].m_gameObject = m_gameObject;
-    m_animations[animation_id].AddFrame(img);
+    m_animations[animation_id].AddFrame(Image{m_gameObject, timg, m_offset});
     m_animations[animation_id].SetLoop(isLoop);
     m_animations[animation_id].SetInterval(interval);
     return true;
@@ -33,13 +51,21 @@ bool Animator::AddAnimation(const std::string& animation_id, Image* img, bool is
 bool Animator::AddAnimation(const std::string& animation_id, Atlas* atlas, bool isLoop,
                             float interval)
 {
-    if (m_animations.count(animation_id) != 0) return false;
+    if (m_animations.count(animation_id) != 0) {
+        gameaf::log("[warring][AddAnimation] animation重名了...");
+        return false;
+    }
+    if (atlas == nullptr) {
+        gameaf::log("[error][AddAnimation] 图集空空如也...");
+        return false;
+    }
 
     if (m_initial_animation_id == "") {
         m_initial_animation_id = animation_id;
     }
-    m_animations[animation_id].m_gameObject = m_gameObject;
-    m_animations[animation_id].AddFrame(atlas);
+    for (int i = 0; i < atlas->Size(); ++i) {
+        m_animations[animation_id].AddFrame(Image{m_gameObject, atlas->GetTImg(i), m_offset});
+    }
     m_animations[animation_id].SetLoop(isLoop);
     m_animations[animation_id].SetInterval(interval);
     return true;

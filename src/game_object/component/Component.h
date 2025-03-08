@@ -26,7 +26,7 @@ public:
     GameObject* GetGameObject() const { return m_gameObject; }
 
     /// @brief 设置组件的游戏对象
-    void SetGameObject(GameObject* obj) { m_gameObject = obj; }
+    virtual void SetGameObject(GameObject* obj) { m_gameObject = obj; }
 
     /// @brief 组件的世界坐标
     Vector2 Position() const;

@@ -13,8 +13,8 @@
 
 namespace gameaf {
 
-struct Rect;
 class Camera;
+class Atlas;
 class Animator : public Component
 {
 public:
@@ -24,15 +24,16 @@ public:
 public:
     void OnUpdate(float delta);
     void OnRender(const Camera& camera);
+    void SetGameObject(GameObject* obj) override;
 
 public:
     /// @brief 添加动画对象
     /// @param animation_id 动画对象在当前动画管理器中的唯一id
-    /// @param img 图像对象
+    /// @param img 图元对象
     /// @param isLoop 是否循环
     /// @param interval 帧之间的间隔
     /// @return 是否添加成功
-    bool AddAnimation(const std::string& animation_id, Image* img, bool isLoop = true,
+    bool AddAnimation(const std::string& animation_id, TImage* timg, bool isLoop = true,
                       float interval = 0.15f);
 
     /// @brief 添加动画对象

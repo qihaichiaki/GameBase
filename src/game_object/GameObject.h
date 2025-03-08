@@ -15,6 +15,7 @@ class Camera;
 class Collision;
 class CollisionBox;
 class Rigidbody2D;
+class Text;
 
 class GameObject : public std::enable_shared_from_this<GameObject>
 {
@@ -24,10 +25,11 @@ public:
     using GameObjectWeakPtr = std::weak_ptr<GameObject>;
     using SceneWeakPtr = std::weak_ptr<Scene>;
     using ChildGameObjects = std::unique_ptr<std::vector<GameObjectPtr>>;
-    using ImagePtr = Image*;  // image的生命周期由资源管理器管理
+    using ImagePtr = std::unique_ptr<Image>;  // image的生命周期由资源管理器管理
     using AnimatorPtr = std::unique_ptr<Animator>;
-    using CollisionPtr = Collision*;      // 碰撞组件的生命周期由碰撞管理器管理
-    using Rigidbody2DPtr = Rigidbody2D*;  // 2d刚体组件的生命周期由碰撞管理器管理
+    using CollisionPtr = Collision*;  // 碰撞组件的生命周期由碰撞管理器管理
+    using Rigidbody2DPtr = std::unique_ptr<Rigidbody2D>;
+    using TextPtr = std::unique_ptr<Text>;
 
 public:
     friend class Scene;
@@ -47,7 +49,12 @@ public:
 public:
     /// @brief 游戏对象加载入scene会进行调用
     virtual void OnEnter() { m_enterCallback ? m_enterCallback(this) : 0; }
+
+    /// @brief 每个游戏帧都会调用一次
     virtual void OnUpdate() { m_updateCallback ? m_updateCallback(this) : 0; }
+
+    /// @brief 每个物理帧都会调用一次
+    virtual void OnFixUpdate() {}
 
     /// 注入回调式更新游戏对象
     using EnterCallback = void (*)(GameObject*);
@@ -116,7 +123,8 @@ public:
     // 创建组件
     template <typename T, typename... Args>
     std::enable_if_t<std::is_same_v<T, Image> || std::is_same_v<T, Animator> ||
-                         std::is_same_v<T, CollisionBox> || std::is_same_v<T, Rigidbody2D>,
+                         std::is_same_v<T, CollisionBox> || std::is_same_v<T, Rigidbody2D> ||
+                         std::is_same_v<T, Text>,
                      T*>
     CreateComponent(Args&&... args);
 
@@ -125,6 +133,9 @@ public:
     T* GetComponent();
 
 public:
+    /// @brief 游戏框架内置物理更新
+    /// @param alpha 物理固定更新频率
+    void OnFixUpdate(float alpha);
     /// @brief 游戏框架内置更新
     /// @param delta 当前帧和上一帧相差时间间隔
     void OnUpdate(float delta);
@@ -154,9 +165,25 @@ private:
     AnimatorPtr m_animator = nullptr;        // 动画管理器组件
     CollisionPtr m_collision = nullptr;      // 碰撞组件
     Rigidbody2DPtr m_rigidbody2D = nullptr;  // 刚体组件
+    TextPtr m_text = nullptr;                // 文本组件
     // ...
 
     ChildGameObjects m_child_gameObjects = nullptr;  // 子游戏对象容器
     GameObjectWeakPtr m_parent;                      // 父对象
 };
+
+// 创建/获取组件 函数实例化声明
+extern template Image* GameObject::CreateComponent<Image, const std::string&>(const std::string&);
+extern template Animator* GameObject::CreateComponent<Animator>();
+extern template CollisionBox* GameObject::CreateComponent<CollisionBox>();
+extern template CollisionBox* GameObject::CreateComponent<CollisionBox, const Vector2&>(
+    const Vector2& offset);
+extern template Rigidbody2D* GameObject::CreateComponent<Rigidbody2D>();
+extern template Text* GameObject::CreateComponent<Text, const std::string&>(const std::string&);
+extern template Text* GameObject::CreateComponent<Text>(const std::string&, const Vector2& offset);
+
+extern template Image* GameObject::GetComponent<Image>();
+extern template Animator* GameObject::GetComponent<Animator>();
+extern template CollisionBox* GameObject::GetComponent<CollisionBox>();
+extern template Rigidbody2D* GameObject::GetComponent<Rigidbody2D>();
 }  // namespace gameaf

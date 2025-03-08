@@ -5,6 +5,7 @@
 #include <game_object/component/CollisionBox.h>
 #include <game_object/component/Image.h>
 #include <game_object/component/Rigidbody2D.h>
+#include <game_object/component/Text.h>
 #include <input/InputManager.h>
 #include <resource/ResourceManager.h>
 #include <scene/Camera.h>
@@ -25,6 +26,8 @@ using gameaf::ResourceManager;
 using gameaf::Rigidbody2D;
 using gameaf::Scene;
 using gameaf::SceneManager;
+using gameaf::Text;
+using gameaf::TextAlignMode;
 using gameaf::Vector2;
 
 enum ZOrderLevel { z_background_back, z_background_front, z_player };
@@ -229,6 +232,10 @@ int main()
     // 加载音频资源
     resource_manager.LoadAudio(ASSETS_PATH "kongdongwushi/audio/bgm_start.mp3", "bgm-start");
     resource_manager.LoadAudio(ASSETS_PATH "kongdongwushi/audio/bullet_time.mp3", "bullet_time");
+
+    // 加载字体资源
+    resource_manager.LoadFont(ASSETS_PATH "kongdongwushi/font/zpix.ttf");
+
     // <=======资源加载======>
 
     gameaf::log("游戏开始加载场景资源......");
@@ -318,6 +325,22 @@ int main()
     air_wall_collision->SetSize({500.0f, 500.0f});
     air_wall_collision->SetSrcLayer(CollisionLayerTool::wall);
     air_wall_collision->AddDstLayer(CollisionLayerTool::player);
+    // 空气墙上添加文本组件
+    const std::string& fontId = "zpix";
+    auto air_wall_text = air_wall->CreateComponent<Text>(fontId);
+    air_wall_text->SetAlignMode(TextAlignMode::LeftTop);
+    air_wall_text->SetTextBoxSize({500.0f, 500.0f});
+    air_wall_text->SetStr(
+        "This game framework is created by qihai, currently in the testing phase of the text "
+        "component. If you're lucky enough to see this text, please feel free to give me more "
+        "suggestions. Thank you very much! Love from China~\nI am currently testing my text "
+        "widget. As you can see, the text component has a black border, and the effects/parameters "
+        "when creating components are not very good, feeling quite messy. In the future, the text "
+        "component will need to fix these bugs, complete a few modes, and optimize the component "
+        "creation process.\nI am now testing extreme cases, specifically how the text box behaves "
+        "if the text exceeds its bounds. If you have a better implementation or would like to "
+        "share suggestions, please feel free to contact me. You can email me or submit suggestions "
+        "on GitHub! I would greatly appreciate it if you could!");
 
     // 添加地板砖
     auto ground = std::make_shared<GameObject>();

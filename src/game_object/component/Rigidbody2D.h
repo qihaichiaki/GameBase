@@ -22,8 +22,9 @@ public:
 
 public:
     // 物理循环更新
-    void OnUpdate(float delta);
+    void OnFixedUpdate(float alpha);
 
+public:
     /// @brief 刚体的速度
     Vector2& Velocity() { return m_velocity; }
 

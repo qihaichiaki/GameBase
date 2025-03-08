@@ -4,7 +4,6 @@
 
 #include <common/Vector2.hpp>
 #include <functional>
-#include <game_object/component/Atlas.hpp>
 #include <game_object/component/Timer.hpp>
 
 namespace gameaf {
@@ -22,6 +21,7 @@ public:
 public:
     void OnUpdate(float delta);
     void OnRender(const Camera& camera);
+    void SetImgGameObject(GameObject* obj);
 
 public:
     /// @brief 重放
@@ -45,23 +45,22 @@ public:
     /// @param onFinished 执行回调逻辑
     void SetOnFinished(std::function<void()> onFinished);
 
-    /// @brief 将切分好的img精灵图加载到动画的帧内
+    /// @brief 将动画的每帧的图像添加
     /// @return 添加帧是否成功
-    bool AddFrame(Image* img);
-
-    /// @brief 将图集中的每个图元加载到动画的帧内
-    /// @return 添加帧是否成功
-    bool AddFrame(Atlas* atlas);
+    bool AddFrame(const Image& img);
 
     /// @brief 当前帧的大小
     const Vector2& CurrentFrameSize() const;
+
+    /// @brief x方向上垂直旋转自身
+    void Flip();
 
 private:
     // 描述动画里的一帧
     struct Frame
     {
         size_t spriteIndex;  // 精灵图中精灵图id
-        Image* img;          // 图像组件
+        Image img;           // 图像组件
     };
 
     std::vector<Frame> m_frames;
@@ -69,7 +68,5 @@ private:
     Timer timer;
     bool m_is_loop = false;               // 是否是循环动画
     std::function<void()> m_on_finished;  // 驱动力
-
-    GameObject* m_gameObject = nullptr;
 };
 }  // namespace gameaf

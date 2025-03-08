@@ -1,11 +1,11 @@
 #include "ResourceManager.h"
 
 #include <game_object/component/AudioManager.h>
-#include <game_object/component/Image.h>
 
 #include <common/Log.hpp>
 #include <common/MediaUtils.hpp>
 #include <game_object/component/Atlas.hpp>
+#include <game_object/component/TImage.hpp>
 
 namespace gameaf {
 
@@ -26,7 +26,7 @@ bool ResourceManager::NewImage(const std::string& image_path, const std::string&
         return false;
     }
 
-    Image* load_img = new Image();
+    TImage* load_img = new TImage();
     if (!load_img->Load(image_path, rows, cols, spriteN)) {
         gameaf::log("[error][loadImage] 位置: \"{}\", 图像加载失败惹......", image_path);
         delete load_img;
@@ -69,15 +69,13 @@ bool ResourceManager::FlipImage(const std::string& image_name, const std::string
 {
     if (m_images.count(image_name) == 0 || m_images.count(flip_image_name) != 0) return false;
 
-    auto flipImage = std::make_unique<Image>(*m_images.at(image_name));  // 拷贝构造
-    flipImage->Flip();
-    m_images.emplace(flip_image_name, std::move(flipImage));
+    m_images.emplace(flip_image_name, m_images.at(image_name)->Fliped());
     return true;
 }
 bool ResourceManager::FlipAtlas(const std::string& atlas_name, const std::string& flip_atlas_name)
 {
     if (m_atlases.count(atlas_name) == 0 || m_atlases.count(flip_atlas_name) != 0) return false;
-    auto flipAtlas = std::make_unique<Atlas>(*m_atlases.at(atlas_name));  // 拷贝构造
+    auto flipAtlas = std::make_unique<Atlas>(*(m_atlases.at(atlas_name)));  // 拷贝构造
     flipAtlas->Flip();
     m_atlases.emplace(flip_atlas_name, std::move(flipAtlas));
     return true;
@@ -94,7 +92,7 @@ void ResourceManager::UnloadAudio(const std::string& audio_name)
     AudioManager::GetInstance().CloseAudio(audio_name);
 }
 
-Image* ResourceManager::GetImage(const std::string& image_name) const
+TImage* ResourceManager::GetTImage(const std::string& image_name) const
 {
     if (m_images.count(image_name) == 0) return nullptr;
     return m_images.at(image_name).get();

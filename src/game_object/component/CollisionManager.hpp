@@ -41,12 +41,12 @@ public:
         delete del_coll_component;
     }
 
-    Collision* CopyCollision(Collision* copy_coll_component)
+    Collision* CopyCollision(GameObject* game_object, Collision* copy_coll_component)
     {
         if (copy_coll_component == nullptr) return nullptr;
         if (copy_coll_component->Type() == CollisionType::Box) {
-            CollisionBox* new_collision_box = CreateCollisionBox(
-                copy_coll_component->GetGameObject(), copy_coll_component->GetOffset());
+            CollisionBox* new_collision_box =
+                CreateCollisionBox(game_object, copy_coll_component->GetOffset());
             *new_collision_box = *(static_cast<CollisionBox*>(copy_coll_component));
             return new_collision_box;
         }
@@ -54,7 +54,7 @@ public:
         return nullptr;
     }
 
-    CollisionBox* CreateCollisionBox(GameObject* game_object, const Vector2& offset)
+    CollisionBox* CreateCollisionBox(GameObject* game_object, const Vector2& offset = Vector2{})
     {
         CollisionBox* collision_box = new CollisionBox(game_object, offset);
         m_collide_components.emplace_back(collision_box);

@@ -5,13 +5,13 @@
 #include <unordered_map>
 
 namespace gameaf {
-class Image;
+class TImage;
 class Atlas;
 
 class ResourceManager
 {
 public:
-    using ImagePtr = std::unique_ptr<Image>;
+    using TImagePtr = std::unique_ptr<TImage>;
     using AtlasPtr = std::unique_ptr<Atlas>;
 
 public:
@@ -42,7 +42,7 @@ public:
     void UnloadAudio(const std::string& audio_name);
 
     // 获取图像资源
-    Image* GetImage(const std::string& image_path) const;
+    TImage* GetTImage(const std::string& image_path) const;
 
     // 获取图集资源
     Atlas* GetAtlas(const std::string& atlas_path) const;
@@ -54,7 +54,7 @@ private:
     ResourceManager& operator=(const ResourceManager&) = delete;
 
 private:
-    std::unordered_map<std::string, ImagePtr> m_images;
+    std::unordered_map<std::string, TImagePtr> m_images;
     std::unordered_map<std::string, AtlasPtr> m_atlases;
 };
 }  // namespace gameaf

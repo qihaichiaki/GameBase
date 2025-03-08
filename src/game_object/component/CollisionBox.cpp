@@ -22,8 +22,8 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
     // 实现 碰撞盒子的碰撞检测
     if (dst->Type() == CollisionType::Box) {
         CollisionBox* dst_box = static_cast<CollisionBox*>(dst);
-        Vector2 position = Position();
-        Vector2 dst_position = dst_box->Position();
+        Vector2 position = Position() + m_offset;
+        Vector2 dst_position = dst_box->Position() + dst_box->GetOffset();
 
         float right = position.X + m_size.X / 2;
         float left = position.X - m_size.X / 2;
@@ -69,7 +69,7 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
 
 void CollisionBox::OnDebugRender(const Camera& camera)
 {
-    Vector2 position = Position();
+    Vector2 position = Position() + m_offset;
     int left = static_cast<int>(position.X - m_size.X / 2 - camera.GetPosition().X);
     int top = static_cast<int>(position.Y - m_size.Y / 2 - camera.GetPosition().Y);
     int right = static_cast<int>(position.X + m_size.X / 2 - camera.GetPosition().X);

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <game_object/component/Image.h>
-
+#include <game_object/component/TImage.hpp>
 #include <string>
 #include <vector>
 
@@ -19,38 +18,38 @@ public:
     /// @param num 图集的图片个数(%d从1开始)
     bool Load(const std::string& atlas_path, int num)
     {
-        images.clear();
-        images.reserve(num);
+        timages.clear();
+        timages.reserve(num);
 
         char img_path[256];
         for (int i = 1; i <= num; ++i) {
-            Image img;
+            TImage timg;
             sprintf_s(img_path, atlas_path.c_str(), i);
-            if (!img.Load(img_path)) return false;
-            images.emplace_back(img);
+            if (!timg.Load(img_path)) return false;
+            timages.emplace_back(timg);
         }
 
         return true;
     }
 
-    void Clear() { images.clear(); }
+    void Clear() { timages.clear(); }
 
-    size_t Size() const { return images.size(); }
+    size_t Size() const { return timages.size(); }
 
-    Image* GetImg(int index)
+    TImage* GetTImg(int index)
     {
-        if (index < 0 || index >= images.size()) return nullptr;
-        return &images.at(index);
+        if (index < 0 || index >= timages.size()) return nullptr;
+        return &timages.at(index);
     }
 
     void Flip()
     {
-        for (auto& img : images) {
-            img.Flip();
+        for (auto& timg : timages) {
+            timg.Flip();
         }
     }
 
 private:
-    std::vector<Image> images;
+    std::vector<TImage> timages;
 };
 }  // namespace gameaf
