@@ -4,6 +4,7 @@
 #include <common/Macros.h>
 
 #include <cmath>
+#include <common/Utils.hpp>
 #include <string>
 
 namespace gameaf {
@@ -25,7 +26,7 @@ public:
     bool Load(const std::string& img_path, int rows = 1, int cols = 1, size_t spriteN = 1)
     {
 #ifdef GAMEAF_USE_EASYX
-        loadimage(&m_image, _T(img_path.c_str()));
+        loadimage(&m_image, UTF8StrToWStr(img_path).c_str());
         m_width = m_image.getwidth();
         m_height = m_image.getheight();
         if (m_width == 0 || m_height == 0) return false;

@@ -46,8 +46,10 @@ public:
     static Vector2 lerp(const Vector2& v_start, const Vector2& v_end, float smoothing)
     {
         smoothing = std::clamp(smoothing, 0.0f, 1.0f);
-        smoothing =
-            smoothing * smoothing * (3 - 2 * smoothing);  // SmoothStep 插值`缓慢->加速->缓慢`的效果
+        // 插值`缓慢->加速->缓慢`的效果
+        smoothing = smoothing * smoothing * (3 - 2 * smoothing);  // SmoothStep
+        // smoothing = smoothing * smoothing * smoothing *
+        //             (smoothing * (smoothing * 6 - 15) + 10);  // SmootherStep
         return v_start + (v_end - v_start) * smoothing;
     }
 };

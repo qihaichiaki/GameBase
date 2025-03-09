@@ -1,12 +1,13 @@
 #include "Text.h"
 
 #include <game_object/GameObject.h>
+#include <resource/ResourceCache.h>
 
 #include <common/MediaUtils.hpp>
 
 namespace gameaf {
 
-Text::Text(GameObject* obj, const std::string& fontName, const Vector2& offset, int fontSize,
+Text::Text(GameObject* obj, const std::wstring& fontName, const Vector2& offset, int fontSize,
            TextAlignMode alignMode)
     : Component(obj, offset), m_fontName(fontName), m_fontSize(fontSize), m_alignMode(alignMode)
 {
@@ -15,59 +16,43 @@ Text::Text(GameObject* obj, const std::string& fontName, const Vector2& offset, 
 Text::~Text() {}
 
 inline static void RenderLeftTop(const Camera& camera, Vector2 pos, const Vector2& textBoxSize,
-                                 int fontSize, const std::string& text)
+                                 int fontSize, std::unordered_map<wchar_t, int>& fontWidthCache,
+                                 const std::wstring& text)
 {
     int lineWidth = 0;
     int lineHeight = 0;
     int subStart = 0;
+    std::wostringstream lineBuffer;
     // 计算左上角位置
-    pos.X = pos.X - textBoxSize.X / 2;
-    pos.Y = pos.Y - textBoxSize.Y / 2;
+    pos.X -= textBoxSize.X / 2;
+    pos.Y -= textBoxSize.Y / 2;
 
-    if (textBoxSize == Vector2{}) {
-        // 自适应
-        for (int i = 0; i < text.size(); ++i) {
-            if (text[i] == '\n') {
-                PutTextShaded(camera, text.substr(subStart, i - subStart),
-                              Vector2{pos.X, pos.Y + lineHeight});
-                subStart = i + 1;
-                lineHeight += fontSize;
-            }
-
-            if (i + 1 == text.size()) {
-                PutTextShaded(camera, text.substr(subStart), Vector2{pos.X, pos.Y + lineHeight});
-            }
+    // 预计算字符宽度，避免 `GetTextWidth()` 频繁调用
+    for (char ch : text) {
+        if (fontWidthCache.find(ch) == fontWidthCache.end()) {
+            fontWidthCache[ch] = GetTextWidth(ch);
         }
-    } else if (textBoxSize.X != 0) {
-        // 存在文本框限制
-        for (int i = 0; i < text.size(); ++i) {
-            // 当前列
-            if (lineHeight >= textBoxSize.Y) {
-                break;
-            }
+    }
 
-            if (text[i] != '\n') {
-                lineWidth += GetTextWidth(text[i]);
-                // 如果当前行超出范围
-                if (lineWidth > textBoxSize.X) {
-                    PutTextShaded(camera, text.substr(subStart, i - subStart),
-                                  Vector2{pos.X, pos.Y + lineHeight});
-                    subStart = i;
-                    lineWidth = GetTextWidth(text[i]);
-                    lineHeight += fontSize;
-                }
-            } else {
-                PutTextShaded(camera, text.substr(subStart, i - subStart),
-                              Vector2{pos.X, pos.Y + lineHeight});
-                subStart = i + 1;
-                lineWidth = 0;
-                lineHeight += fontSize;
-            }
+    for (int i = 0; i < text.size(); ++i) {
+        wchar_t ch = text[i];
+        if (ch == '\n' || (textBoxSize.X > 0 && lineWidth + fontWidthCache[ch] > textBoxSize.X)) {
+            PutTextShaded(camera, lineBuffer.str(), Vector2{pos.X, pos.Y + lineHeight});
+            lineBuffer.str(L"");
+            lineWidth = 0;
+            lineHeight += fontSize;
 
-            if (i + 1 == text.size()) {
-                PutTextShaded(camera, text.substr(subStart), Vector2{pos.X, pos.Y + lineHeight});
-            }
+            if (ch == '\n') continue;
         }
+
+        if (textBoxSize.Y != 0 && lineHeight >= textBoxSize.Y) break;
+
+        lineBuffer << ch;
+        lineWidth += fontWidthCache[ch];
+    }
+
+    if (!lineBuffer.str().empty()) {
+        PutTextShaded(camera, lineBuffer.str(), Vector2{pos.X, pos.Y + lineHeight});
     }
 }
 
@@ -75,10 +60,11 @@ void Text::OnRender(const Camera& camera)
 {
     gameaf::SetFontSize(m_fontName, m_fontSize);
 
+    auto& fontWidthCache = ResourceCacheTool::FontWidthCache(m_fontName, m_fontSize);
     switch (m_alignMode) {
         case TextAlignMode::LeftTop:  // 左上
             RenderLeftTop(camera, m_gameObject->GetPosition() + m_offset, m_textBoxSize, m_fontSize,
-                          m_text);
+                          fontWidthCache, m_text);
             break;
         case TextAlignMode::CenterTop:  // 中上
             break;

@@ -29,7 +29,7 @@ enum class TextAlignMode {
 class Text : public Component
 {
 public:
-    Text(GameObject* obj, const std::string& fontName, const Vector2& offset = Vector2{},
+    Text(GameObject* obj, const std::wstring& fontName, const Vector2& offset = Vector2{},
          int fontSize = 25, TextAlignMode alignMode = TextAlignMode::LeftTop);
     ~Text();
 
@@ -38,7 +38,7 @@ public:
 
 public:
     /// @brief 设置文本的字体名字
-    void SetFontName(const std::string& fontName) { m_fontName = fontName; }
+    void SetFontName(const std::wstring& fontName) { m_fontName = fontName; }
 
     /// @brief 设置文本的字体大小
     /// @param fontSize 文字像素大小
@@ -48,20 +48,20 @@ public:
     void SetAlignMode(TextAlignMode alignMode) { m_alignMode = alignMode; }
 
     /// @brief 获取文本
-    const std::string& GetStr() const { return m_text; }
+    const std::wstring& GetText() const { return m_text; }
 
     /// @brief 设置文本
-    void SetStr(const std::string& str) { m_text = str; }
+    void SetText(const std::wstring& wstr) { m_text = wstr; }
 
     /// @brief 设置文本框大小
     /// @param textBoxSize
     void SetTextBoxSize(const Vector2& textBoxSize) { m_textBoxSize = textBoxSize; }
 
 private:
-    std::string m_fontName;     // 字体名字
+    std::wstring m_fontName;    // 字体名字
     int m_fontSize;             // 字体像素大小
     TextAlignMode m_alignMode;  // 对齐方式
-    std::string m_text;         // 文本内容
+    std::wstring m_text;        // 文本内容
     Vector2 m_textBoxSize;      // 文本框大小
 };
 }  // namespace gameaf

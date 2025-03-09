@@ -269,8 +269,8 @@ GameObject::CreateComponent(Args&&... args)
         return m_rigidbody2D.get();
     } else if constexpr (std::is_same_v<T, Text>) {
         static_assert(
-            std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::string>> ||
-            std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::string, Vector2>>);
+            std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::wstring>> ||
+            std::is_same_v<std::tuple<std::decay_t<Args>...>, std::tuple<std::wstring, Vector2>>);
         if (m_text) return nullptr;
         m_text = std::make_unique<Text>(this, std::forward<Args>(args)...);
         return m_text.get();
@@ -315,8 +315,8 @@ template Animator* GameObject::CreateComponent<Animator>();
 template CollisionBox* GameObject::CreateComponent<CollisionBox>();
 template CollisionBox* GameObject::CreateComponent<CollisionBox>(const Vector2& offset);
 template Rigidbody2D* GameObject::CreateComponent<Rigidbody2D>();
-template Text* GameObject::CreateComponent<Text>(const std::string&);
-template Text* GameObject::CreateComponent<Text>(const std::string&, const Vector2& offset);
+template Text* GameObject::CreateComponent<Text>(const std::wstring&);
+template Text* GameObject::CreateComponent<Text>(const std::wstring&, const Vector2& offset);
 
 template Image* GameObject::GetComponent<Image>();
 template Animator* GameObject::GetComponent<Animator>();

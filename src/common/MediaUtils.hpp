@@ -28,8 +28,8 @@ inline void PutImageEx(const Camera& camera, TImage* img, const Rect& dst, const
 {
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
     static BLENDFUNCTION blendFunc = {AC_SRC_OVER, 0, 255, AC_SRC_ALPHA};
-    int dst_x = static_cast<int>(dst.x - camera.GetPosition().X);
-    int dst_y = static_cast<int>(dst.y - camera.GetPosition().Y);
+    int dst_x = std::round(dst.x - camera.GetPosition().X);
+    int dst_y = std::round(dst.y - camera.GetPosition().Y);
     // gameaf::log("渲染位置:{},{}", dst_x, dst_y);
     AlphaBlend(GetImageHDC(GetWorkingImage()), dst_x, dst_y, dst.w, dst.h,
                GetImageHDC(img->GetSrc()), src.x, src.y, src.w, src.h, blendFunc);
@@ -41,15 +41,16 @@ inline void PutImageEx(const Camera& camera, TImage* img, const Rect& dst, const
 /// @brief 加载字体
 /// @param path 字体路径
 /// @note 注意后续字体的名字就是后缀.ttf前面的name
-inline void LoadFont(const std::string& path)
+inline void LoadFont(const std::wstring& path)
 {
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
     AddFontResourceEx(path.c_str(), FR_PRIVATE, nullptr);
+    setbkmode(TRANSPARENT);
 #else
 #endif
 }
 
-inline void UnLoadFont(const std::string& path)
+inline void UnLoadFont(const std::wstring& path)
 {
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
     RemoveFontResourceEx(path.c_str(), FR_PRIVATE, nullptr);
@@ -60,7 +61,7 @@ inline void UnLoadFont(const std::string& path)
 /// @brief 设置字体大小
 /// @param fontName 字体名
 /// @param size 像素大小
-inline void SetFontSize(const std::string& fontName, int size)
+inline void SetFontSize(const std::wstring& fontName, int size)
 {
 #ifdef GAMEAF_USE_EASYX
     settextstyle(size, 0, fontName.c_str());
@@ -68,6 +69,7 @@ inline void SetFontSize(const std::string& fontName, int size)
 #endif
 }
 
+// 字体宽度增加全局缓存
 inline int GetTextWidth(char c)
 {
 #ifdef GAMEAF_USE_EASYX
@@ -84,33 +86,19 @@ inline int GetTextHeight(char c)
 #endif
 }
 
-// 字体缓存
-// static std::unordered_map<std::string, std::wstring> textCache;
-
 /// @brief 绘制字体及其阴影
 /// @param camera 摄像机对象
 /// @param text 文本内容
 /// @param position 左上角坐标
 /// @param textRGB 文本的颜色(默认白色)
 /// @param textShaded 文本阴影的颜色(默认灰色)
-inline void PutTextShaded(const Camera& camera, const std::string& text, const Vector2& position,
+inline void PutTextShaded(const Camera& camera, const std::wstring& text, const Vector2& position,
                           const ColorRGB& textRGB = ColorRGB{},
                           const ColorRGB& textShadedRGB = ColorRGB{45, 45, 45})
 {
 #ifdef GAMEAF_USE_EASYX
-    int dst_x = static_cast<int>(position.X - camera.GetPosition().X);
-    int dst_y = static_cast<int>(position.Y - camera.GetPosition().Y);
-
-    //     // 将string 转换为 wstring, 拟增加text 缓存, 切换场景时清除缓存?
-    //     if (textCache.count(text) == 0) {
-    // #ifdef _MSC_VER
-    //         int size_needed = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), (int)text.size(),
-    //         NULL, 0); std::wstring wtext(size_needed, 0); MultiByteToWideChar(CP_UTF8, 0,
-    //         text.c_str(), (int)text.size(), &wtext[0], size_needed); textCache.emplace(text,
-    //         wtext);
-    // #else
-    // #endif
-    //     }
+    int dst_x = std::round(position.X - camera.GetPosition().X);
+    int dst_y = std::round(position.Y - camera.GetPosition().Y);
 
     // 绘制文本阴影
     settextcolor(RGB(textShadedRGB.r, textShadedRGB.g, textShadedRGB.b));

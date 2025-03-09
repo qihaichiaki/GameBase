@@ -179,8 +179,8 @@ extern template CollisionBox* GameObject::CreateComponent<CollisionBox>();
 extern template CollisionBox* GameObject::CreateComponent<CollisionBox, const Vector2&>(
     const Vector2& offset);
 extern template Rigidbody2D* GameObject::CreateComponent<Rigidbody2D>();
-extern template Text* GameObject::CreateComponent<Text, const std::string&>(const std::string&);
-extern template Text* GameObject::CreateComponent<Text>(const std::string&, const Vector2& offset);
+extern template Text* GameObject::CreateComponent<Text, const std::wstring&>(const std::wstring&);
+extern template Text* GameObject::CreateComponent<Text>(const std::wstring&, const Vector2& offset);
 
 extern template Image* GameObject::GetComponent<Image>();
 extern template Animator* GameObject::GetComponent<Animator>();

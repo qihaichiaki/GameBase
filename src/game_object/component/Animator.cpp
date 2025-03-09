@@ -62,6 +62,7 @@ bool Animator::AddAnimation(const std::string& animation_id, Atlas* atlas, bool 
 
     if (m_initial_animation_id == "") {
         m_initial_animation_id = animation_id;
+        m_current_animation_id = m_initial_animation_id;
     }
     for (int i = 0; i < atlas->Size(); ++i) {
         m_animations[animation_id].AddFrame(Image{m_gameObject, atlas->GetTImg(i), m_offset});

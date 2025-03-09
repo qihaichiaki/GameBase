@@ -77,6 +77,13 @@ public:
         rigidbody2D = CreateComponent<Rigidbody2D>();
         // rigidbody2D->gravityScale() = 10.5f;
 
+        // 创建文本组件
+        const std::wstring& fontId = L"zpix";
+        auto text = CreateComponent<Text>(fontId);
+        text->SetOffset({-collisionBox->GetSize().X, -collisionBox->GetSize().Y / 2});
+        text->SetFontSize(20);
+        text->SetText(L"技术宅拯救世界");
+
         // 获取主相机
         mainCamera =
             SceneManager::GetInstance().GetScene("main-scene")->GetCamera("scene-main").get();
@@ -319,22 +326,23 @@ int main()
     // 添加空气墙
     auto air_wall = std::make_shared<GameObject>();
     air_wall->SetName("air_wall");
-    air_wall->SetZOrder(ZOrderLevel::z_player);
+    air_wall->SetZOrder(ZOrderLevel::z_background_front);
     air_wall->Translate({0.0f, 400.0f});
     auto air_wall_collision = air_wall->CreateComponent<CollisionBox>();
     air_wall_collision->SetSize({500.0f, 500.0f});
     air_wall_collision->SetSrcLayer(CollisionLayerTool::wall);
     air_wall_collision->AddDstLayer(CollisionLayerTool::player);
     // 空气墙上添加文本组件
-    const std::string& fontId = "zpix";
+    const std::wstring& fontId = L"zpix";
     auto air_wall_text = air_wall->CreateComponent<Text>(fontId);
-    air_wall_text->SetAlignMode(TextAlignMode::LeftTop);
+    // air_wall_text->SetAlignMode(TextAlignMode::LeftTop);
     air_wall_text->SetTextBoxSize({500.0f, 500.0f});
-    air_wall_text->SetStr(
-        "This game framework is created by qihai, currently in the testing phase of the text "
+    // air_wall_text->SetText(L"你好世界\n");
+    air_wall_text->SetText(
+        L"This game framework is created by qihai, currently in the testing phase of the text "
         "component. If you're lucky enough to see this text, please feel free to give me more "
         "suggestions. Thank you very much! Love from China~\nI am currently testing my text "
-        "widget. As you can see, the text component has a black border, and the effects/parameters "
+        "widget. As you can see, the text component has a black border, and the effects parameters "
         "when creating components are not very good, feeling quite messy. In the future, the text "
         "component will need to fix these bugs, complete a few modes, and optimize the component "
         "creation process.\nI am now testing extreme cases, specifically how the text box behaves "
@@ -363,7 +371,7 @@ int main()
     main_camera->SetCameraDeadZone({200.0f, 500.0f});
 
     gameaf::log("{}", "游戏开始运行...");
-    audioManager.PlayAudio("bgm-start", true);
+    // audioManager.PlayAudio("bgm-start", true);
     gameaf::log("bgm-start的音量强度:{}", audioManager.GetVolume("bgm-start"));
     my_game.Run();  // 阻塞死循环
 

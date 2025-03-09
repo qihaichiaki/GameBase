@@ -2,6 +2,7 @@
 #define __MACRO_H__
 
 #if defined(GAMEAF_USE_EASYX)
+#define UNICODE
 #include <easyx.h>
 #include <graphics.h>
 #else

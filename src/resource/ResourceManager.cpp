@@ -38,7 +38,7 @@ bool ResourceManager::NewImage(const std::string& image_path, const std::string&
 }
 bool ResourceManager::LoadFont(const std::string& font_path)
 {
-    gameaf::LoadFont(font_path);
+    gameaf::LoadFont(UTF8StrToWStr(font_path).c_str());
     return true;
 }
 bool ResourceManager::LoadAtlas(const std::string& atlas_path, size_t n_images,
@@ -83,7 +83,10 @@ bool ResourceManager::FlipAtlas(const std::string& atlas_name, const std::string
 
 void ResourceManager::UnloadImage(const std::string& image_name) { m_images.erase(image_name); }
 
-void ResourceManager::UnloadFont(const std::string& font_path) { gameaf::UnLoadFont(font_path); }
+void ResourceManager::UnloadFont(const std::string& font_path)
+{
+    gameaf::UnLoadFont(UTF8StrToWStr(font_path));
+}
 
 void ResourceManager::UnloadAtlas(const std::string& atlas_name) { m_atlases.erase(atlas_name); }
 
