@@ -6,7 +6,7 @@
 #include <game_object/component/TImage.hpp>
 
 #include "Common.h"
-#include "macros.h"
+#include "Macros.h"
 
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
 #pragma comment(lib, "MSIMG32.lib")  // AlphaBlend
@@ -69,8 +69,8 @@ inline void SetFontSize(const std::wstring& fontName, int size)
 #endif
 }
 
-// 字体宽度增加全局缓存
-inline int GetTextWidth(char c)
+// 字体宽度
+inline int GetTextWidth(wchar_t c)
 {
 #ifdef GAMEAF_USE_EASYX
     return textwidth(c);
@@ -78,10 +78,29 @@ inline int GetTextWidth(char c)
 #endif
 }
 
-inline int GetTextHeight(char c)
+inline int GetTextHeight(wchar_t c)
 {
 #ifdef GAMEAF_USE_EASYX
     return textheight(c);
+#else
+#endif
+}
+
+/// @brief 绘制字体
+/// @param camera 摄像机对象
+/// @param text 文本内容
+/// @param position 左上角坐标
+/// @param textRGB 文本的颜色(默认白色)
+inline void PutText(const Camera& camera, const std::wstring& text, const Vector2& position,
+                    const ColorRGB& textRGB = ColorRGB{})
+{
+#ifdef GAMEAF_USE_EASYX
+    int dst_x = std::round(position.X - camera.GetPosition().X);
+    int dst_y = std::round(position.Y - camera.GetPosition().Y);
+
+    // 绘制主文本
+    settextcolor(RGB(textRGB.r, textRGB.g, textRGB.b));
+    outtextxy(dst_x, dst_y, text.c_str());
 #else
 #endif
 }
@@ -92,9 +111,11 @@ inline int GetTextHeight(char c)
 /// @param position 左上角坐标
 /// @param textRGB 文本的颜色(默认白色)
 /// @param textShaded 文本阴影的颜色(默认灰色)
+/// @param textShadedOffset 文本阴影的偏移(默认向右向下各自偏移3像素)
 inline void PutTextShaded(const Camera& camera, const std::wstring& text, const Vector2& position,
                           const ColorRGB& textRGB = ColorRGB{},
-                          const ColorRGB& textShadedRGB = ColorRGB{45, 45, 45})
+                          const ColorRGB& textShadedRGB = ColorRGB{45, 45, 45},
+                          const Vector2& textShadedOffset = {3.0f, 3.0f})
 {
 #ifdef GAMEAF_USE_EASYX
     int dst_x = std::round(position.X - camera.GetPosition().X);
@@ -102,7 +123,7 @@ inline void PutTextShaded(const Camera& camera, const std::wstring& text, const 
 
     // 绘制文本阴影
     settextcolor(RGB(textShadedRGB.r, textShadedRGB.g, textShadedRGB.b));
-    outtextxy(dst_x + 3, dst_y + 3, text.c_str());
+    outtextxy(dst_x + textShadedOffset.X, dst_y + textShadedOffset.Y, text.c_str());
     // 绘制主文本
     settextcolor(RGB(textRGB.r, textRGB.g, textRGB.b));
     outtextxy(dst_x, dst_y, text.c_str());

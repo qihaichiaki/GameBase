@@ -4,6 +4,7 @@ UseTab: Never # 使用空格而不是制表符。
 IndentWidth: 4 # 缩进宽度为4个空格。
 TabWidth: 4 # Tab长度
 ColumnLimit: 100 # 单行的长度不超过80字符
+ReflowComments: false # 注释不受到换行影响
 AccessModifierOffset: -4 # 访问修饰符 -4 public...
 BraceWrapping: 
     AfterFunction: true # 函数后换行

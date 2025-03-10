@@ -18,6 +18,7 @@ using gameaf::AudioManager;
 using gameaf::Camera;
 using gameaf::CollisionBox;
 using gameaf::CollisionLayerTool;
+using gameaf::ColorRGB;
 using gameaf::GameObject;
 using gameaf::Image;
 using gameaf::ImageAnchorMode;
@@ -80,9 +81,12 @@ public:
         // 创建文本组件
         const std::wstring& fontId = L"zpix";
         auto text = CreateComponent<Text>(fontId);
-        text->SetOffset({-collisionBox->GetSize().X, -collisionBox->GetSize().Y / 2});
+        // text->SetOffset({-collisionBox->GetSize().X, -collisionBox->GetSize().Y / 2});
+        text->SetTextBoxSize({0.0f, collisionBox->GetSize().Y});
+        text->SetAlignMode(TextAlignMode::CenterTop);
         text->SetFontSize(20);
         text->SetText(L"技术宅拯救世界");
+        text->SetTextColor(ColorRGB{229, 164, 100});
 
         // 获取主相机
         mainCamera =
@@ -335,7 +339,7 @@ int main()
     // 空气墙上添加文本组件
     const std::wstring& fontId = L"zpix";
     auto air_wall_text = air_wall->CreateComponent<Text>(fontId);
-    // air_wall_text->SetAlignMode(TextAlignMode::LeftTop);
+    // air_wall_text->SetAlignMode(TextAlignMode::CenterTop);
     air_wall_text->SetTextBoxSize({500.0f, 500.0f});
     // air_wall_text->SetText(L"你好世界\n");
     air_wall_text->SetText(
@@ -360,6 +364,11 @@ int main()
     ground_collision->SetSize({1500.0f, 50.0f});
     ground_collision->SetSrcLayer(CollisionLayerTool::wall);
     ground_collision->AddDstLayer(CollisionLayerTool::player);
+    auto groundText = ground->CreateComponent<Text>(fontId);
+    groundText->EnableShadow(true);
+    groundText->SetTextBoxSize({1500.0f, 50.0f});
+    groundText->SetAlignMode(TextAlignMode::RightMiddle);
+    groundText->SetText(L"作者: 柒海啦 项目还请多支持哦~");
 
     // 主场景添加游戏对象
     main_scene->AddGameObjects({background2, background, player, air_wall, ground});
@@ -373,6 +382,7 @@ int main()
     gameaf::log("{}", "游戏开始运行...");
     // audioManager.PlayAudio("bgm-start", true);
     gameaf::log("bgm-start的音量强度:{}", audioManager.GetVolume("bgm-start"));
+
     my_game.Run();  // 阻塞死循环
 
     return 0;

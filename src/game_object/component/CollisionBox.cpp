@@ -69,7 +69,7 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
 
 void CollisionBox::OnDebugRender(const Camera& camera)
 {
-    Vector2 position = Position() + m_offset;
+    Vector2 position = Position();
     int left = static_cast<int>(position.X - m_size.X / 2 - camera.GetPosition().X);
     int top = static_cast<int>(position.Y - m_size.Y / 2 - camera.GetPosition().Y);
     int right = static_cast<int>(position.X + m_size.X / 2 - camera.GetPosition().X);
