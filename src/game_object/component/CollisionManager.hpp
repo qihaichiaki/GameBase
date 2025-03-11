@@ -1,6 +1,7 @@
 #pragma once
 
 #include <game_object/component/CollisionBox.h>
+#include <game_object/component/CollisionRaycaster.h>
 
 #include <vector>
 
@@ -31,6 +32,13 @@ public:
         }
     }
 
+    void ClearCollided()
+    {
+        for (auto collide : m_collide_components) {
+            collide->ClearCollided();
+        }
+    }
+
 public:
     void DeleteCollisionComponent(Collision* del_coll_component)
     {
@@ -46,7 +54,7 @@ public:
         if (copy_coll_component == nullptr) return nullptr;
         if (copy_coll_component->Type() == CollisionType::Box) {
             CollisionBox* new_collision_box =
-                CreateCollisionBox(game_object, copy_coll_component->GetOffset());
+                CreateCollision<CollisionBox>(game_object, copy_coll_component->GetOffset());
             *new_collision_box = *(static_cast<CollisionBox*>(copy_coll_component));
             return new_collision_box;
         }
@@ -54,11 +62,13 @@ public:
         return nullptr;
     }
 
-    CollisionBox* CreateCollisionBox(GameObject* game_object, const Vector2& offset = Vector2{})
+    template <typename T>
+    std::enable_if_t<std::is_base_of_v<Collision, T>, T*> CreateCollision(
+        GameObject* game_object, const Vector2& offset = Vector2{})
     {
-        CollisionBox* collision_box = new CollisionBox(game_object, offset);
-        m_collide_components.emplace_back(collision_box);
-        return collision_box;
+        T* collision = new T(game_object, offset);
+        m_collide_components.emplace_back(collision);
+        return collision;
     }
 
 private:

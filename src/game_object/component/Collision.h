@@ -18,7 +18,7 @@ class Camera;
 class Collision : public Component
 {
 public:
-    using ColliideCallback = std::function<void(GameObject&)>;
+    using ColliideCallback = std::function<void(Collision*)>;
 
     Collision(GameObject* game_object, const Vector2& offset);
     ~Collision();
@@ -44,15 +44,17 @@ public:
     /// @brief 获取碰撞体类型
     CollisionType Type() const;
 
-    /// @brief 设置碰撞体对象相对于游戏对象的偏移
-    /// @param offset 偏移量
-    void SetOffset(const Vector2& offset);
-
     /// @brief 设置是否启动碰撞
     void SetEnabled(bool flag);
 
     /// @brief 检查是否启动碰撞
     bool Enabled() const;
+
+    /// @brief 是否触发碰撞
+    bool IsCollided() const { return m_isCollided; }
+
+    /// @brief 清除碰撞状态
+    void ClearCollided() { m_isCollided = false; }
 
 public:
     /// @brief 碰撞检测和修正
@@ -73,5 +75,6 @@ protected:
     Collisionlayer m_dst_layer = CollisionLayerTool::none;  // 目标碰撞组件层级
     ColliideCallback m_on_collide;                          // 发生碰撞后触发回调
     bool m_enabled = true;
+    bool m_isCollided = false;  // 是否触发碰撞
 };
 }  // namespace gameaf

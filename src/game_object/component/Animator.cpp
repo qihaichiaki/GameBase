@@ -27,6 +27,13 @@ void Animator::SetGameObject(GameObject* obj)
     }
 }
 
+void Animator::Flip()
+{
+    for (auto& [_, animation] : m_animations) {
+        animation.Flip();
+    }
+}
+
 bool Animator::AddAnimation(const std::string& animation_id, TImage* timg, bool isLoop,
                             float interval)
 {

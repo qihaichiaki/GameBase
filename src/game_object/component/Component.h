@@ -31,6 +31,9 @@ public:
     /// @brief 组件的世界坐标
     Vector2 Position() const;
 
+    /// @brief 翻转组件
+    virtual void Flip() {};
+
 protected:
     GameObject* m_gameObject = nullptr;  // 弱引用
     Vector2 m_offset;

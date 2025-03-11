@@ -23,13 +23,13 @@ public:
 
 public:
     /// @brief 获取相机的左上角位置
-    Vector2 GetPosition() const;
+    const Vector2& GetPosition() const;
 
     /// @brief 设置相机的左上角位置
     void SetPosition(Vector2 position) { m_position = position; }
 
     /// @brief 获取相机的大小
-    Vector2 GetSize() const { return m_size; }
+    const Vector2& GetSize() const { return m_size; }
 
     /// @brief 设置相机的大小
     void SetSize(Vector2 size) { m_size = size; }

@@ -8,7 +8,7 @@ namespace gameaf {
 
 using Collisionlayer = int;
 
-enum class CollisionType { None, Box };
+enum class CollisionType { None, Box, Ray };
 
 struct CollisionLayerTool
 {

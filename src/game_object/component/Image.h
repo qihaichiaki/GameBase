@@ -26,7 +26,7 @@ public:
 
 public:
     /// @brief 水平方向翻转自身
-    void Flip();
+    void Flip() override;
 
     /// @brief 获取图像大小
     const Vector2& GetSize() const;

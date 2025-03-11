@@ -25,6 +25,7 @@ public:
     void OnUpdate(float delta);
     void OnRender(const Camera& camera);
     void SetGameObject(GameObject* obj) override;
+    void Flip() override;
 
 public:
     /// @brief 添加动画对象

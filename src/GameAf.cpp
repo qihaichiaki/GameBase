@@ -96,7 +96,9 @@ void GameAF::Run()
 #else
 #endif
         // 清除帧间消息缓存
-        InputManager::GetInstance().ClearFrameInput();
+        input.ClearFrameInput();
+        // 清除碰撞状态
+        collision.ClearCollided();
 
         // 计算当前帧多余的时间进行sleep
         auto sleep_delta = frame_duration - (steady_clock::now() - last_tick);

@@ -172,10 +172,10 @@ void Text::OnRender(const Camera& camera)
         linePos.X = pos.X + m_alignArgument.a_X * lineWidth + m_alignArgument.b_X;
         linePos.Y = pos.Y + m_alignArgument.b_Y + lineHeight;
         if (m_isShaded)
-            PutTextShaded(camera, line, linePos, m_textColor, m_textShadedColor,
-                          m_textShadedOffset);
+            PutTextShaded(camera, line, linePos, lineWidth, m_fontSize, m_textColor,
+                          m_textShadedColor, m_textShadedOffset);
         else
-            PutText(camera, line, linePos, m_textColor);
+            PutText(camera, line, linePos, lineWidth, m_fontSize, m_textColor);
         lineHeight += m_fontSize;
         if (m_textBoxSize.Y > 0 && lineHeight >= m_textBoxSize.Y) break;
     }

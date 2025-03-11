@@ -8,6 +8,7 @@
 namespace gameaf {
 
 // 前置声明
+class Component;
 class Image;
 class Animator;
 class Scene;
@@ -28,6 +29,7 @@ public:
     using ImagePtr = std::unique_ptr<Image>;  // image的生命周期由资源管理器管理
     using AnimatorPtr = std::unique_ptr<Animator>;
     using CollisionPtr = Collision*;  // 碰撞组件的生命周期由碰撞管理器管理
+    using CollisionList = std::unique_ptr<std::vector<CollisionPtr>>;
     using Rigidbody2DPtr = std::unique_ptr<Rigidbody2D>;
     using TextPtr = std::unique_ptr<Text>;
 
@@ -120,17 +122,16 @@ public:
     std::vector<GameObjectPtr> FindChildObjects(const std::string& child_id);
     // TODO: 删除子游戏对象
 
+    // 水平翻转组件
+    void Flip();
+
     // 创建组件
     template <typename T, typename... Args>
-    std::enable_if_t<std::is_same_v<T, Image> || std::is_same_v<T, Animator> ||
-                         std::is_same_v<T, CollisionBox> || std::is_same_v<T, Rigidbody2D> ||
-                         std::is_same_v<T, Text>,
-                     T*>
-    CreateComponent(Args&&... args);
+    std::enable_if_t<std::is_base_of_v<Component, T>, T*> CreateComponent(Args&&... args);
 
     // 获取组件指针
     template <typename T>
-    T* GetComponent();
+    std::enable_if_t<std::is_base_of_v<Component, T>, T*> GetComponent();
 
 public:
     /// @brief 游戏框架内置物理更新
@@ -163,7 +164,7 @@ private:
     // === 特殊属性(可有可无, 使用指针管理,延迟加载) ===
     ImagePtr m_image = nullptr;              // 图像组件
     AnimatorPtr m_animator = nullptr;        // 动画管理器组件
-    CollisionPtr m_collision = nullptr;      // 碰撞组件
+    CollisionList m_collisions = nullptr;    // 碰撞组件
     Rigidbody2DPtr m_rigidbody2D = nullptr;  // 刚体组件
     TextPtr m_text = nullptr;                // 文本组件
     // ...
@@ -171,19 +172,4 @@ private:
     ChildGameObjects m_child_gameObjects = nullptr;  // 子游戏对象容器
     GameObjectWeakPtr m_parent;                      // 父对象
 };
-
-// 创建/获取组件 函数实例化声明
-extern template Image* GameObject::CreateComponent<Image, const std::string&>(const std::string&);
-extern template Animator* GameObject::CreateComponent<Animator>();
-extern template CollisionBox* GameObject::CreateComponent<CollisionBox>();
-extern template CollisionBox* GameObject::CreateComponent<CollisionBox, const Vector2&>(
-    const Vector2& offset);
-extern template Rigidbody2D* GameObject::CreateComponent<Rigidbody2D>();
-extern template Text* GameObject::CreateComponent<Text, const std::wstring&>(const std::wstring&);
-extern template Text* GameObject::CreateComponent<Text>(const std::wstring&, const Vector2& offset);
-
-extern template Image* GameObject::GetComponent<Image>();
-extern template Animator* GameObject::GetComponent<Animator>();
-extern template CollisionBox* GameObject::GetComponent<CollisionBox>();
-extern template Rigidbody2D* GameObject::GetComponent<Rigidbody2D>();
 }  // namespace gameaf

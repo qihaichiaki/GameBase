@@ -28,7 +28,7 @@ Camera::Camera(Vector2 size) : m_size(size)
 }
 Camera::~Camera() {}
 
-Vector2 Camera::GetPosition() const
+const Vector2& Camera::GetPosition() const
 {
     // 震动时使用震动坐标
     if (is_shaking) return m_shakePosition;
@@ -72,7 +72,7 @@ inline void Camera::__onNormalFollow(float alpha, const Vector2& current_positio
         case FollowMode::Smooth:
             // 平滑跟随
             m_target_position = current_position - m_size / 2.0f;
-            m_position = Vector2::lerp(m_position, m_target_position, m_smooth_factor * alpha);
+            m_position = Vector2::Lerp(m_position, m_target_position, m_smooth_factor * alpha);
             break;
         default:
             break;
@@ -98,7 +98,7 @@ inline void Camera::__onDeadZoneFollow(float alpha, const Vector2& current_posit
         case FollowMode::Smooth:
             // 平滑跟随
             m_target_position = m_position + mvDelta;
-            m_position = Vector2::lerp(m_position, m_target_position, m_smooth_factor * alpha);
+            m_position = Vector2::Lerp(m_position, m_target_position, m_smooth_factor * alpha);
             break;
         default:
             break;

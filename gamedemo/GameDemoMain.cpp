@@ -3,6 +3,7 @@
 #include <game_object/component/Animator.h>
 #include <game_object/component/AudioManager.h>
 #include <game_object/component/CollisionBox.h>
+#include <game_object/component/CollisionRaycaster.h>
 #include <game_object/component/Image.h>
 #include <game_object/component/Rigidbody2D.h>
 #include <game_object/component/Text.h>
@@ -16,13 +17,16 @@ using gameaf::Animation;
 using gameaf::Animator;
 using gameaf::AudioManager;
 using gameaf::Camera;
+using gameaf::Collision;
 using gameaf::CollisionBox;
 using gameaf::CollisionLayerTool;
+using gameaf::CollisionRaycaster;
 using gameaf::ColorRGB;
 using gameaf::GameObject;
 using gameaf::Image;
 using gameaf::ImageAnchorMode;
 using gameaf::InputManager;
+using gameaf::RaycasterDir;
 using gameaf::ResourceManager;
 using gameaf::Rigidbody2D;
 using gameaf::Scene;
@@ -72,9 +76,7 @@ public:
         collisionBox->SetSize({50.0f, collisionBox->GetSize().Y});
         collisionBox->SetSrcLayer(CollisionLayerTool::player);
         collisionBox->AddDstLayer(CollisionLayerTool::wall);
-        collisionBox->SetOnCollide([this](GameObject& object) {
-            // gameaf::log("{}触发碰撞检测回调, 目标对象{}", GetName(), object.GetName());
-        });
+        collisionBox->SetOnCollide([this](Collision*) {});
         rigidbody2D = CreateComponent<Rigidbody2D>();
         // rigidbody2D->gravityScale() = 10.5f;
 
@@ -87,6 +89,13 @@ public:
         text->SetFontSize(20);
         text->SetText(L"技术宅拯救世界");
         text->SetTextColor(ColorRGB{229, 164, 100});
+
+        // 创建射线检测组件
+        ray = CreateComponent<CollisionRaycaster>();
+        ray->SetSrcLayer(CollisionLayerTool::player);
+        ray->AddDstLayer(CollisionLayerTool::wall);
+        ray->SetDir(RaycasterDir::Down);
+        ray->SetLength(80.0f);
 
         // 获取主相机
         mainCamera =
@@ -147,52 +156,57 @@ public:
             audioManager.PlayAudio("bullet_time");
         }
 
-        if (input_manager.IsKeyDown(KeyValue::A)) {
-            is_left = true;
+        // 开发者模式
+        if (input_manager.IsKeyDown(KeyValue::K)) {
+            // 无限跳
+            isK = !isK;
+            if (isK) {
+                gameaf::log("开发者模式已开: 1. 无限跳跃");
+            } else {
+                gameaf::log("开发者模式关闭");
+            }
+        }
+
+        if (input_manager.GetKey(KeyValue::A)) {
+            dir = -1.0f;
+            if (!is_dir_left) Flip();
             is_dir_left = true;
-        }
-        if (input_manager.IsKeyDown(KeyValue::D)) {
-            is_right = true;
+        } else if (input_manager.GetKey(KeyValue::D)) {
+            dir = 1.0f;
+            if (is_dir_left) Flip();
             is_dir_left = false;
+        } else {
+            dir = 0.0f;
         }
+
         if (input_manager.IsKeyDown(KeyValue::Space)) {
-            is_jump = true;
+            if (isK || ray->IsCollided() || jumpNum > 0) {
+                is_jump = true;
+                --jumpNum;
+            }
+        } else if (ray->IsCollided()) {
+            jumpNum = 2;
         }
 
-        if (input_manager.IsKeyUp(KeyValue::A)) {
-            is_left = false;
-        }
-        if (input_manager.IsKeyUp(KeyValue::D)) {
-            is_right = false;
-        }
-        if (input_manager.IsKeyUp(KeyValue::Space)) {
-            is_jump = false;
-        }
-
-        dir = is_left ? -1.0f : is_right ? 1.0f : 0.0f;
-
-        Vector2 v = {dir * speed, is_jump ? -600.0f : rigidbody2D->Velocity().Y};
-        rigidbody2D->Velocity() = v;
+        rigidbody2D->Velocity() = {dir * speed, is_jump ? -600.0f : rigidbody2D->Velocity().Y};
+        const Vector2& v = rigidbody2D->Velocity();
 
         if (v.Y > 0) {
-            is_dir_left ? animator->SwitchToAnimation("fall-left")
-                        : animator->SwitchToAnimation("fall-right");
+            animator->SwitchToAnimation("fall-right");
         }
         if (v.Y < 0) {
-            is_dir_left ? animator->SwitchToAnimation("jump-left")
-                        : animator->SwitchToAnimation("jump-right");
+            animator->SwitchToAnimation("jump-right");
         }
 
         if (v.Y == 0) {
-            if (v.X < 0.0f)
-                animator->SwitchToAnimation("run-left");
-            else if (v.X > 0.0f)
+            if (std::abs(v.X) < 1e-5) {
+                animator->SwitchToAnimation("idle-right");
+            } else {
                 animator->SwitchToAnimation("run-right");
-            else {
-                is_dir_left ? animator->SwitchToAnimation("idle-left")
-                            : animator->SwitchToAnimation("idle-right");
             }
         }
+
+        is_jump = false;
     }
 
 private:
@@ -200,12 +214,15 @@ private:
     CollisionBox* collisionBox;
     Rigidbody2D* rigidbody2D;
     Camera* mainCamera;
+    CollisionRaycaster* ray;
     float speed = 500.0f;
     bool is_left = false;
     bool is_right = false;
     bool is_jump = false;
     float dir = -1;
     bool is_dir_left = false;
+    int jumpNum = 2;
+    bool isK = false;
 };
 
 int main()
@@ -336,6 +353,12 @@ int main()
     air_wall_collision->SetSize({500.0f, 500.0f});
     air_wall_collision->SetSrcLayer(CollisionLayerTool::wall);
     air_wall_collision->AddDstLayer(CollisionLayerTool::player);
+    auto air_wall_collision2 = air_wall->CreateComponent<CollisionBox>();
+    air_wall_collision2->SetSize({20.0f, 500.0f});
+    air_wall_collision2->SetSrcLayer(CollisionLayerTool::wall);
+    air_wall_collision2->AddDstLayer(CollisionLayerTool::player);
+    air_wall_collision2->SetOffset({1400.0f, 0.0f});
+
     // 空气墙上添加文本组件
     const std::wstring& fontId = L"zpix";
     auto air_wall_text = air_wall->CreateComponent<Text>(fontId);

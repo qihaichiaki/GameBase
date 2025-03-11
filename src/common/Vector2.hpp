@@ -17,6 +17,10 @@ public:
     Vector2(float x, float y) : X(x), Y(y) {}
 
 public:
+    bool IsEquals(const Vector2& other, float epsilon = 1e-5f) const
+    {
+        return std::abs(X - other.X) < epsilon && std::abs(Y - other.Y) < epsilon;
+    }
     Vector2 operator+(const Vector2& vec) const { return Vector2(X + vec.X, Y + vec.Y); }
     void operator+=(const Vector2& vec)
     {
@@ -37,13 +41,13 @@ public:
         X *= vec.X;
         Y *= vec.Y;
     }
-    bool operator==(const Vector2& vec) const { return X == vec.X && Y == vec.Y; }
+    bool operator==(const Vector2& vec) const { return IsEquals(vec); }
     bool operator!=(const Vector2& vec) const { return !(*this == vec); }
 
-    float length() const { return std::sqrt(X * X + Y * Y); }
+    float Length() const { return std::sqrt(X * X + Y * Y); }
 
 public:
-    static Vector2 lerp(const Vector2& v_start, const Vector2& v_end, float smoothing)
+    static Vector2 Lerp(const Vector2& v_start, const Vector2& v_end, float smoothing)
     {
         smoothing = std::clamp(smoothing, 0.0f, 1.0f);
         // 插值`缓慢->加速->缓慢`的效果

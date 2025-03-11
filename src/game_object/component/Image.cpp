@@ -34,7 +34,7 @@ inline static Rect BuildRender(const Vector2& pos, const Vector2& size, const Ve
 
 void Image::OnRender(const Camera& camera, size_t spriteIndex) const
 {
-    PutImageEx(camera, m_img,
+    PutImageEx(camera, m_currentImg,
                BuildRender(m_gameObject->GetPosition() + m_offset, m_size, m_anchorPosition),
                m_img->GetSpriteRect(spriteIndex));
 }
