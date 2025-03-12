@@ -34,30 +34,38 @@ public:
     /// @brief 设置相机的大小
     void SetSize(Vector2 size) { m_size = size; }
 
-    /// @brief 添加相机渲染的游戏对象
-    /// @note 添加后会设置is_all_render为false
-    void AddRenderObj(const std::string& obj)
-    {
-        m_render_objs.insert(obj);
-        if (is_all_render) is_all_render = false;
-    }
+    /// @brief 指定添加相机渲染的游戏对象
+    /// @warning 只在非全局渲染模式下可用
+    void AddRenderObj(const std::string& obj) { m_render_objs.insert(obj); }
+
+    /// @brief 指定不渲染的游戏对象
+    /// @warning 只在全局渲染模式下可用, 指定游戏对象渲染不可用
+    void DisableRenderObj(const std::string& obj) { m_unrender_objs.insert(obj); }
 
     /// @brief 删除要渲染的游戏对象
     void DelRenderObj(const std::string& obj) { m_render_objs.erase(obj); }
 
-    /// @brief 设置渲染全部游戏对象
-    void SetAllRender()
-    {
-        is_all_render = true;
-        m_render_objs.clear();
-    }
-
-    /// @brief 查询是否渲染全部游戏对象
-    bool IsAllRender() { return is_all_render; }
+    /// @brief 设置渲染模式
+    /// @param globalRender 全局渲染模式?
+    void SetRenderMod(bool globalRender) { m_isGlobalRender = globalRender; }
 
     /// @brief 当前相机是否渲染对应的游戏对象
     /// @param obj 游戏对象名字
-    bool HasRender(const std::string& obj) { return m_render_objs.count(obj); }
+    bool HasRender(const std::string& obj)
+    {
+        if (m_isGlobalRender) {
+            return !m_unrender_objs.count(obj);
+        } else {
+            return m_render_objs.count(obj);
+        }
+    }
+
+    /// @brief 清除渲染对象缓存
+    void ClearRender()
+    {
+        m_render_objs.clear();
+        m_unrender_objs.clear();
+    }
 
     /// @brief 摄像机锁定中心位置
     void LookAt(Vector2 position) { m_position = position - m_size / 2.0f; }
@@ -100,20 +108,21 @@ private:
     void __onDeadZoneFollow(float alpha, const Vector2& current_position);
 
 private:
-    Vector2 m_position;                             // 相机的左上角的世界坐标
-    Vector2 m_size;                                 // 相机的大小(宽高)
-    Vector2 m_target_position;                      // 目标位置
-    std::weak_ptr<GameObject> m_target_obj;         // 目标对象
-    Vector2 m_deadZoneOffset;                       // 死区偏移
-    Vector2 m_deadZoneSize;                         // 死区大小
-    float m_smooth_factor = 9.8f;                   // 平滑因子系数, 控制跟随效果
-    FollowMode m_follow_mode;                       // 追随模式
-    bool is_all_render = true;                      // 渲染当前场景下的所有游戏对象
-    std::unordered_set<std::string> m_render_objs;  // 渲染目标游戏对象
-    Timer m_shakeTimer;                             // shake 定时器, 用于控制是否shake
-    Vector2 m_shakePosition;                        // 当前震动位置, 方便使用
-    float m_shakeIntensity;                         // 震动强度
-    bool is_shaking = false;                        // 控制是否执行shake行为
+    Vector2 m_position;                               // 相机的左上角的世界坐标
+    Vector2 m_size;                                   // 相机的大小(宽高)
+    Vector2 m_target_position;                        // 目标位置
+    std::weak_ptr<GameObject> m_target_obj;           // 目标对象
+    Vector2 m_deadZoneOffset;                         // 死区偏移
+    Vector2 m_deadZoneSize;                           // 死区大小
+    float m_smooth_factor = 9.8f;                     // 平滑因子系数, 控制跟随效果
+    FollowMode m_follow_mode;                         // 追随模式
+    bool m_isGlobalRender = true;                     // 默认全局渲染模式
+    std::unordered_set<std::string> m_render_objs;    // 指定渲染目标游戏对象
+    std::unordered_set<std::string> m_unrender_objs;  // 指定非渲染游戏对象
+    Timer m_shakeTimer;                               // shake 定时器, 用于控制是否shake
+    Vector2 m_shakePosition;                          // 当前震动位置, 方便使用
+    float m_shakeIntensity;                           // 震动强度
+    bool is_shaking = false;                          // 控制是否执行shake行为
     // TODO: 摄像机之间的优先级?
 };
 

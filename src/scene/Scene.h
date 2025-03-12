@@ -63,6 +63,8 @@ public:
         if (m_cameras.count(camera_id) == 0) return nullptr;
         return m_cameras.at(camera_id);
     }
+    /// @brief 设置是否debug渲染相机辅助区域
+    void SetDebugRenderCamera(bool renderCamera) { m_renderCamera = renderCamera; }
 
 private:
     // 场景下的所有游戏对象
@@ -72,5 +74,8 @@ private:
 
     // 是否需要排序 在渲染对象的时候, 判断当前是否需要排序
     bool m_needRenderLayerUpdate = false;
+
+    // 是否渲染相机辅助划线
+    bool m_renderCamera = false;
 };
 }  // namespace gameaf

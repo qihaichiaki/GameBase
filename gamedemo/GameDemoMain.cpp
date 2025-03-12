@@ -63,14 +63,10 @@ public:
 
         auto& resourceManager = ResourceManager::GetInstance();
 
-        animator->AddAnimation("idle-right", resourceManager.GetAtlas("player-idle-right"));
-        animator->AddAnimation("idle-left", resourceManager.GetAtlas("player-idle-left"));
-        animator->AddAnimation("run-right", resourceManager.GetAtlas("player-run-right"));
-        animator->AddAnimation("run-left", resourceManager.GetAtlas("player-run-left"));
-        animator->AddAnimation("jump-left", resourceManager.GetAtlas("player-jump-left"), false);
-        animator->AddAnimation("jump-right", resourceManager.GetAtlas("player-jump-right"), false);
-        animator->AddAnimation("fall-left", resourceManager.GetAtlas("player-fall-left"));
-        animator->AddAnimation("fall-right", resourceManager.GetAtlas("player-fall-right"));
+        animator->AddAnimation("idle", resourceManager.GetAtlas("player-idle"));
+        animator->AddAnimation("run", resourceManager.GetAtlas("player-run"));
+        animator->AddAnimation("jump", resourceManager.GetAtlas("player-jump"), false);
+        animator->AddAnimation("fall", resourceManager.GetAtlas("player-fall"));
 
         collisionBox = CreateComponent<CollisionBox>();
         collisionBox->SetSize({50.0f, collisionBox->GetSize().Y});
@@ -81,8 +77,7 @@ public:
         // rigidbody2D->gravityScale() = 10.5f;
 
         // 创建文本组件
-        const std::wstring& fontId = L"zpix";
-        auto text = CreateComponent<Text>(fontId);
+        auto text = CreateComponent<Text>(std::wstring{L"zpix"});
         // text->SetOffset({-collisionBox->GetSize().X, -collisionBox->GetSize().Y / 2});
         text->SetTextBoxSize({0.0f, collisionBox->GetSize().Y});
         text->SetAlignMode(TextAlignMode::CenterTop);
@@ -192,22 +187,24 @@ public:
         const Vector2& v = rigidbody2D->Velocity();
 
         if (v.Y > 0) {
-            animator->SwitchToAnimation("fall-right");
+            animator->SwitchToAnimation("fall");
         }
         if (v.Y < 0) {
-            animator->SwitchToAnimation("jump-right");
+            animator->SwitchToAnimation("jump");
         }
 
         if (v.Y == 0) {
             if (std::abs(v.X) < 1e-5) {
-                animator->SwitchToAnimation("idle-right");
+                animator->SwitchToAnimation("idle");
             } else {
-                animator->SwitchToAnimation("run-right");
+                animator->SwitchToAnimation("run");
             }
         }
 
         is_jump = false;
     }
+
+    void OnDraw(const Camera& camera) override { collisionBox->OnDebugRender(camera); }
 
 private:
     Animator* animator;
@@ -220,7 +217,7 @@ private:
     bool is_right = false;
     bool is_jump = false;
     float dir = -1;
-    bool is_dir_left = false;
+    bool is_dir_left = true;
     int jumpNum = 2;
     bool isK = false;
 };
@@ -245,17 +242,10 @@ int main()
         ASSETS_PATH "other/Surroundings/Medieval_Castle/Background/layer_2.png", "background-2");
 
     // 加载idle图集
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/idle/%d.png", 6,
-                               "player-idle-left");
-    resource_manager.FlipAtlas("player-idle-left", "player-idle-right");
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/run/%d.png", 8, "player-run-left");
-    resource_manager.FlipAtlas("player-run-left", "player-run-right");
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/jump/%d.png", 8,
-                               "player-jump-left");
-    resource_manager.FlipAtlas("player-jump-left", "player-jump-right");
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/fall/%d.png", 4,
-                               "player-fall-left");
-    resource_manager.FlipAtlas("player-fall-left", "player-fall-right");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/idle/%d.png", 6, "player-idle");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/run/%d.png", 8, "player-run");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/jump/%d.png", 8, "player-jump");
+    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/fall/%d.png", 4, "player-fall");
 
     // 加载音频资源
     resource_manager.LoadAudio(ASSETS_PATH "kongdongwushi/audio/bgm_start.mp3", "bgm-start");
@@ -288,6 +278,7 @@ int main()
     // 背景1始终固定在Ui中, 所以创建一个的UI摄像机
     auto ui_camera =
         std::make_shared<Camera>(Vector2{my_game.GetScreenWidth(), my_game.GetScreenHeight()});
+    ui_camera->SetRenderMod(false);
     main_scene->AddCamera("scene-ui", ui_camera);
     main_scene->SetCenterAnchorPoint("scene-ui", background);
     ui_camera->AddRenderObj("background-1");
@@ -360,8 +351,7 @@ int main()
     air_wall_collision2->SetOffset({1400.0f, 0.0f});
 
     // 空气墙上添加文本组件
-    const std::wstring& fontId = L"zpix";
-    auto air_wall_text = air_wall->CreateComponent<Text>(fontId);
+    auto air_wall_text = air_wall->CreateComponent<Text>(std::wstring{L"zpix"});
     // air_wall_text->SetAlignMode(TextAlignMode::CenterTop);
     air_wall_text->SetTextBoxSize({500.0f, 500.0f});
     // air_wall_text->SetText(L"你好世界\n");
@@ -387,7 +377,7 @@ int main()
     ground_collision->SetSize({1500.0f, 50.0f});
     ground_collision->SetSrcLayer(CollisionLayerTool::wall);
     ground_collision->AddDstLayer(CollisionLayerTool::player);
-    auto groundText = ground->CreateComponent<Text>(fontId);
+    auto groundText = ground->CreateComponent<Text>(std::wstring{L"zpix"});
     groundText->EnableShadow(true);
     groundText->SetTextBoxSize({1500.0f, 50.0f});
     groundText->SetAlignMode(TextAlignMode::RightMiddle);
@@ -396,6 +386,7 @@ int main()
     // 主场景添加游戏对象
     main_scene->AddGameObjects({background2, background, player, air_wall, ground});
     auto main_camera = main_scene->GetCamera("scene-main");
+    // main_camera->SetRenderMod(true);
     main_camera->SetPosition({0.0, -200.0f});  // 目的, 隐藏图片背景下的空隙
     // 主摄像机聚焦player
     main_camera->SetFollowTarget(player, Camera::FollowMode::Smooth);
@@ -406,6 +397,7 @@ int main()
     // audioManager.PlayAudio("bgm-start", true);
     gameaf::log("bgm-start的音量强度:{}", audioManager.GetVolume("bgm-start"));
 
+    main_scene->SetDebugRenderCamera(true);
     my_game.Run();  // 阻塞死循环
 
     return 0;

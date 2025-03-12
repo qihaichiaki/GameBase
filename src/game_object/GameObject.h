@@ -58,6 +58,9 @@ public:
     /// @brief 每个物理帧都会调用一次
     virtual void OnFixUpdate() {}
 
+    /// @brief 每个渲染帧会调用一次, 可以添加一些组件的debug渲染
+    virtual void OnDraw(const Camera&) {}
+
     /// 注入回调式更新游戏对象
     using EnterCallback = void (*)(GameObject*);
     using UpdateCallback = void (*)(GameObject*);
@@ -118,9 +121,11 @@ public:
     /// @brief 指定取出第几个子游戏对象
     GameObjectPtr GetChildObject(size_t index);
 
-    /// @brief 根据对象id取出对象(们)
+    /// @brief 根据对象id取出子游戏对象(们)
     std::vector<GameObjectPtr> FindChildObjects(const std::string& child_id);
-    // TODO: 删除子游戏对象
+
+    /// @brief 根据对象id删除对应子游戏对象(们)
+    void DelChildObjects(const std::string& child_id);
 
     // 水平翻转组件
     void Flip();

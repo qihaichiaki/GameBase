@@ -57,15 +57,17 @@ void Scene::OnRender()
 
     for (auto& object : *m_gameObjects) {
         for (auto& [_, camera] : m_cameras) {
-            if (camera->IsAllRender())
+            if (camera->HasRender(object->GetName())) {
                 object->OnRender(*camera);
-            else if (camera->HasRender(object->GetName()))
-                object->OnRender(*camera);
+                object->OnDraw(*camera);
+            }
         }
     }
 
-    for (auto& [_, camera] : m_cameras) {
-        camera->OnDebugRender();
+    if (m_renderCamera) {
+        for (auto& [_, camera] : m_cameras) {
+            camera->OnDebugRender();
+        }
     }
 }
 
