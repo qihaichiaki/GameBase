@@ -2,6 +2,7 @@
 #include <scene/Scene.h>
 
 #include <algorithm>
+#include <common/Log.hpp>
 
 namespace gameaf {
 
@@ -141,6 +142,15 @@ void Scene::DelCamera(const std::string& camera_id)
 {
     if (m_cameras.count(camera_id) == 0) return;
     m_cameras.erase(camera_id);
+}
+
+Scene::CameraPtr Scene::GetCamera(const std::string& camera_id)
+{
+    if (m_cameras.count(camera_id) == 0) {
+        gameaf::log("[error][GetCamera] 摄像机未能找到 id:{}", camera_id);
+        return nullptr;
+    }
+    return m_cameras.at(camera_id);
 }
 
 }  // namespace gameaf

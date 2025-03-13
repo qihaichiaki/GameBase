@@ -97,8 +97,11 @@ void InputManager::ProcessInput()
                     isWindowActive = true;
                 }
                 break;
-            case WM_DESTROY:
-                gameaf::log("窗口被关闭");
+            case WM_SIZE:
+                // 窗口大小被调整
+                break;
+            case WM_MOUSEWHEEL:
+                // 鼠标滚轮事件
                 break;
             default:
                 gameaf::log("[warning][onInput] 未处理输入信息类别:{}", msg.message);

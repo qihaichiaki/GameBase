@@ -11,7 +11,7 @@ Using C++ language, build a general-purpose game framework that provides fundame
 - 框架对象
   - 资源管理器
   - 输入管理器
-  - 场景管理器
+  - <a href="./doc/Scene.md">场景管理器</a>
   - 摄像机对象
   - 游戏对象
   - <a href="./doc/component/component.md">组件</a> 

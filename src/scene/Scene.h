@@ -13,7 +13,7 @@ namespace gameaf {
 
 class Camera;
 
-class Scene : public StateNode, public std::enable_shared_from_this<Scene>
+class Scene : public std::enable_shared_from_this<Scene>
 {
 public:
     using GameObjectPtr = ::std::shared_ptr<GameObject>;
@@ -24,7 +24,17 @@ public:
 
 public:
     Scene();
-    ~Scene() override;
+    virtual ~Scene();
+
+public:
+    /// @brief 创建完毕后调用一次, 即在注册到SceneManage时调用一次
+    virtual void OnAwake() {}
+    /// @brief 切换到场景时, 新场景调用一次此方法
+    virtual void OnEnter() {};
+    /// @brief 当前场景一直会调用的方法
+    virtual void OnUpdate() {};
+    /// @brief 切换场景时, 上一次场景会调用一次此方法退出
+    virtual void OnExit() {};
 
 public:
     /// @brief 物理循环更新
@@ -58,11 +68,7 @@ public:
     /// @brief 删除摄像机对象
     void DelCamera(const std::string& camera_id);
     /// @brief 获取摄像机对象
-    CameraPtr GetCamera(const std::string& camera_id)
-    {
-        if (m_cameras.count(camera_id) == 0) return nullptr;
-        return m_cameras.at(camera_id);
-    }
+    CameraPtr GetCamera(const std::string& camera_id);
     /// @brief 设置是否debug渲染相机辅助区域
     void SetDebugRenderCamera(bool renderCamera) { m_renderCamera = renderCamera; }
 

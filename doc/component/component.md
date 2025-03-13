@@ -1,4 +1,4 @@
-### component
+## component
 
 ### 前言
 * 组件是作为游戏对象的附加属性附加到上面的.所有的创建/获取组件都是通过gameobject创建的,生命周期也都是由gameobject管理.

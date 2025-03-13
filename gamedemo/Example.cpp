@@ -257,7 +257,7 @@ int main()
     // <=======资源加载======>
 
     gameaf::log("游戏开始加载场景资源......");
-    scene_manager.RegisterState("main-scene", std::make_shared<Scene>());
+    scene_manager.Register("main-scene", std::make_shared<Scene>());
     scene_manager.SetEntry("main-scene");
     gameaf::log("游戏开始加载场景中游戏对象资源......");
     auto main_scene = scene_manager.GetScene("main-scene");
