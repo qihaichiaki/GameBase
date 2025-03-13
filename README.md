@@ -20,3 +20,9 @@ Using C++ language, build a general-purpose game framework that provides fundame
     3. 刚体
     4. 文本
     5. 音频
+
+
+## 游戏示例
+- 位置: ``./gamedemo/``
+- Example.cpp : 游戏api示例使用
+- src/: 2D横板rpg简单demo 

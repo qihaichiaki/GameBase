@@ -48,11 +48,14 @@ inline void PutImageEx(const Camera& camera, TImage* img, const Rect& dst, const
 /// @brief 加载字体
 /// @param path 字体路径
 /// @note 注意后续字体的名字就是后缀.ttf前面的name
-inline void LoadFont(const std::wstring& path)
+inline bool LoadFont(const std::wstring& path)
 {
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
-    AddFontResourceEx(path.c_str(), FR_PRIVATE, nullptr);
-    setbkmode(TRANSPARENT);
+    if (AddFontResourceEx(path.c_str(), FR_PRIVATE, nullptr)) {
+        setbkmode(TRANSPARENT);
+        return true;
+    }
+    return false;
 #else
 #endif
 }

@@ -24,7 +24,7 @@ public:
 
 public:
     Scene();
-    ~Scene();
+    ~Scene() override;
 
 public:
     /// @brief 物理循环更新

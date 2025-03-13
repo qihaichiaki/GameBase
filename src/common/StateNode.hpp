@@ -4,8 +4,12 @@ namespace gameaf {
 class StateNode
 {
 public:
-    virtual void onEnter() {};
-    virtual void onUpdate() {};
-    virtual void onExit() {};
+    StateNode() = default;
+    virtual ~StateNode() = default;
+
+public:
+    virtual void OnEnter() {};
+    virtual void OnUpdate() {};
+    virtual void OnExit() {};
 };
 }  // namespace gameaf

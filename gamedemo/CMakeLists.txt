@@ -1,8 +1,13 @@
 project(GameDemo)
 
-file(GLOB_RECURSE LIST_SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+# api示例demo
+# file(GLOB_RECURSE LIST_SRC "${CMAKE_CURRENT_SOURCE_DIR}/Example.cpp")
 
-add_executable(${PROJECT_NAME} ${LIST_SRC})
+# 2d rpg示例demo
+file(GLOB_RECURSE LIST_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+
+# resource.rc 是最后exe生成时所带的资源图标
+add_executable(${PROJECT_NAME} ${LIST_SRC} resource.rc)
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE

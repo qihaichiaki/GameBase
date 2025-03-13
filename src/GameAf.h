@@ -11,8 +11,9 @@ public:
     // === 游戏主循环内的执行函数 ===
 
     /// @brief 初始化窗口
+    /// @param iconPath 图标路径
     /// @note 切记输出日志前先调用此函数, 否则utf8编码可能出现乱码问题
-    void InitWindow();
+    void InitWindow(const std::string& iconPath = "");
 
     /// @brief 游戏运行
     /// @note 主线程中阻塞

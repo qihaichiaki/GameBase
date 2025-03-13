@@ -17,7 +17,7 @@ SceneManager::ScenePtr SceneManager::GetScene(const std::string& id)
 
 void SceneManager::OnUpdate(float delta)
 {
-    m_currentState->onUpdate();
+    m_currentState->OnUpdate();
     std::static_pointer_cast<Scene>(m_currentState)->OnUpdate(delta);
 }
 

@@ -13,18 +13,19 @@ public:
     using StatePtr = std::shared_ptr<StateNode>;
 
     // 设置初始状态
-    void setEntry(const std::string& id) { m_currentState = m_statePool.at(id); }
+    void SetEntry(const std::string& id) { m_currentState = m_statePool.at(id); }
     // 切换状态
-    void switchTo(const std::string& id)
+    void SwitchTo(const std::string& id)
     {
-        m_currentState->onExit();
+        m_currentState->OnExit();
         m_currentState = m_statePool.at(id);
-        m_currentState->onEnter();
+        m_currentState->OnEnter();
     }
     // 注册状态
-    void registerState(const std::string& id, StatePtr stateNode)
+    void RegisterState(const std::string& id, StatePtr stateNode)
     {
         m_statePool[id] = std::move(stateNode);
+        if (m_currentState == nullptr) m_currentState = m_statePool[id];
     }
 
 protected:

@@ -38,7 +38,10 @@ bool ResourceManager::NewImage(const std::string& image_path, const std::string&
 }
 bool ResourceManager::LoadFont(const std::string& font_path)
 {
-    gameaf::LoadFont(UTF8StrToWStr(font_path).c_str());
+    if (gameaf::LoadFont(UTF8StrToWStr(font_path).c_str())) {
+        return true;
+    }
+    gameaf::log("[error][LoadFont] 字体路径:\"{}\"不存在......", font_path);
     return true;
 }
 bool ResourceManager::LoadAtlas(const std::string& atlas_path, size_t n_images,

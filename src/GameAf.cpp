@@ -6,6 +6,8 @@
 
 #include <chrono>
 #include <codecvt>
+#include <common/Log.hpp>
+#include <common/Utils.hpp>
 #include <game_object/component/CollisionManager.hpp>
 #include <thread>
 
@@ -17,16 +19,34 @@ GameAF& GameAF::GetInstance()
     return instance;
 }
 
-void GameAF::InitWindow()
+void GameAF::InitWindow(const std::string& iconPath)
 {
     // 初始化屏幕
     WINDOWS_USE_UTF8;
 #ifdef GAMEAF_USE_EASYX
-    HWND hwnd = m_isShowConsole ? initgraph(m_screenWidth, m_screenHeight, EX_SHOWCONSOLE)
-                                : initgraph(m_screenWidth, m_screenHeight);
+    HWND hwnd;
+    if (m_isShowConsole) {
+        hwnd = initgraph(m_screenWidth, m_screenHeight, EX_SHOWCONSOLE);
+    } else {
+        hwnd = initgraph(m_screenWidth, m_screenHeight);
+        FreeConsole();  // 隐藏控制台
+    }
 
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> convert;
-    SetWindowTextW(hwnd, convert.from_bytes(m_screenName).c_str());
+    SetWindowTextW(hwnd, UTF8StrToWStr(m_screenName).c_str());
+
+    if (iconPath == "") return;
+    // 从文件加载图标
+    HICON hIcon =
+        (HICON)LoadImageW(NULL, UTF8StrToWStr(iconPath).c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+    if (hIcon) {
+        // 设置窗口的大图标（任务栏、窗口标题）
+        SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        // 设置窗口的小图标（任务栏缩略图、Alt+Tab 切换）
+        SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    } else {
+        DWORD err = GetLastError();
+        gameaf::log("[warring][InitWindow] path: {} error: {}", iconPath, err);
+    }
 #else
 #endif
 }

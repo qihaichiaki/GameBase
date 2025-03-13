@@ -1,11 +1,15 @@
 #include "InputManager.h"
 
+#include <GameAf.h>
 #include <common/Macros.h>
 
 #include <common/Log.hpp>
 #include <unordered_map>
 
 namespace gameaf {
+
+// 用于焦点控制，来通知是否需要检查窗口状态, 节省CPU开销
+static bool isWindowActive = true;
 
 InputManager& InputManager::GetInstance()
 {
@@ -16,6 +20,10 @@ InputManager& InputManager::GetInstance()
 void InputManager::ProcessInput()
 {
 #ifdef GAMEAF_USE_EASYX
+    if (!isWindowActive) {
+        // 失去焦点时检测窗口是否关闭, 如果关闭设置退出状态
+        if (!IsWindow(GetHWnd())) GameAF::GetInstance().Exit();
+    }
     // 按键类型映射
     static std::unordered_map<BYTE, size_t> key_map = {
         {(BYTE)0x30, (size_t)KeyValue::_0},          {(BYTE)0x31, (size_t)KeyValue::_1},
@@ -81,6 +89,16 @@ void InputManager::ProcessInput()
                 break;
             case WM_ACTIVATE:
                 // 窗口焦点切换
+                if (msg.wParam == WA_INACTIVE) {
+                    // gameaf::log("失去焦点");
+                    isWindowActive = false;
+                } else {
+                    // gameaf::log("聚焦于此");
+                    isWindowActive = true;
+                }
+                break;
+            case WM_DESTROY:
+                gameaf::log("窗口被关闭");
                 break;
             default:
                 gameaf::log("[warning][onInput] 未处理输入信息类别:{}", msg.message);
