@@ -77,7 +77,7 @@ public:
         // rigidbody2D->gravityScale() = 10.5f;
 
         // 创建文本组件
-        auto text = CreateComponent<Text>(std::wstring{L"zpix"});
+        auto text = CreateComponent<Text>(std::wstring{L"Syne Mono"});
         // text->SetOffset({-collisionBox->GetSize().X, -collisionBox->GetSize().Y / 2});
         text->SetTextBoxSize({0.0f, collisionBox->GetSize().Y});
         text->SetAlignMode(TextAlignMode::CenterTop);
@@ -236,23 +236,21 @@ int main()
     gameaf::log("{}", "游戏开始加载图像资源...");
 
     // <=======资源加载======>
-    resource_manager.NewImage(
-        ASSETS_PATH "other/Surroundings/Medieval_Castle/Background/layer_1.png", "background-1");
-    resource_manager.NewImage(
-        ASSETS_PATH "other/Surroundings/Medieval_Castle/Background/layer_2.png", "background-2");
+    resource_manager.NewImage(ASSETS_PATH "background/layer_1.png", "background-1");
+    resource_manager.NewImage(ASSETS_PATH "background/layer_2.png", "background-2");
 
     // 加载idle图集
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/idle/%d.png", 6, "player-idle");
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/run/%d.png", 8, "player-run");
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/jump/%d.png", 8, "player-jump");
-    resource_manager.LoadAtlas(ASSETS_PATH "kongdongwushi/enemy/fall/%d.png", 4, "player-fall");
+    resource_manager.LoadAtlas(ASSETS_PATH "character/hornet/idle/%d.png", 6, "player-idle");
+    resource_manager.LoadAtlas(ASSETS_PATH "character/hornet/run/%d.png", 8, "player-run");
+    resource_manager.LoadAtlas(ASSETS_PATH "character/hornet/jump/%d.png", 8, "player-jump");
+    resource_manager.LoadAtlas(ASSETS_PATH "character/hornet/fall/%d.png", 4, "player-fall");
 
     // 加载音频资源
-    resource_manager.LoadAudio(ASSETS_PATH "kongdongwushi/audio/bgm_start.mp3", "bgm-start");
-    resource_manager.LoadAudio(ASSETS_PATH "kongdongwushi/audio/bullet_time.mp3", "bullet_time");
+    resource_manager.LoadAudio(ASSETS_PATH "audio/bgm_start.mp3", "bgm-start");
+    resource_manager.LoadAudio(ASSETS_PATH "audio/bullet_time.mp3", "bullet_time");
 
     // 加载字体资源
-    resource_manager.LoadFont(ASSETS_PATH "kongdongwushi/font/zpix.ttf");
+    resource_manager.LoadFont(ASSETS_PATH "SyneMono-Regular.ttf");
 
     // <=======资源加载======>
 
@@ -351,7 +349,7 @@ int main()
     air_wall_collision2->SetOffset({1400.0f, 0.0f});
 
     // 空气墙上添加文本组件
-    auto air_wall_text = air_wall->CreateComponent<Text>(std::wstring{L"zpix"});
+    auto air_wall_text = air_wall->CreateComponent<Text>(std::wstring{L"Syne Mono"});
     // air_wall_text->SetAlignMode(TextAlignMode::CenterTop);
     air_wall_text->SetTextBoxSize({500.0f, 500.0f});
     // air_wall_text->SetText(L"你好世界\n");

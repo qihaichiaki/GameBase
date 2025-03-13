@@ -32,6 +32,7 @@ public:
     using CollisionList = std::unique_ptr<std::vector<CollisionPtr>>;
     using Rigidbody2DPtr = std::unique_ptr<Rigidbody2D>;
     using TextPtr = std::unique_ptr<Text>;
+    using TextLists = std::unique_ptr<std::vector<TextPtr>>;
 
 public:
     friend class Scene;
@@ -136,7 +137,7 @@ public:
 
     // 获取组件指针
     template <typename T>
-    std::enable_if_t<std::is_base_of_v<Component, T>, T*> GetComponent();
+    std::enable_if_t<std::is_base_of_v<Component, T>, T*> GetComponent(int index = 0);
 
 public:
     /// @brief 游戏框架内置物理更新
@@ -171,7 +172,7 @@ private:
     AnimatorPtr m_animator = nullptr;        // 动画管理器组件
     CollisionList m_collisions = nullptr;    // 碰撞组件
     Rigidbody2DPtr m_rigidbody2D = nullptr;  // 刚体组件
-    TextPtr m_text = nullptr;                // 文本组件
+    TextLists m_texts = nullptr;             // 文本组件
     // ...
 
     ChildGameObjects m_child_gameObjects = nullptr;  // 子游戏对象容器

@@ -63,9 +63,13 @@ GameObject::GameObject(const GameObject& obj)
         m_rigidbody2D = std::make_unique<Rigidbody2D>(*(obj.m_rigidbody2D));
         m_rigidbody2D->SetGameObject(this);
     }
-    if (obj.m_text != nullptr) {
-        m_text = std::make_unique<Text>(*(obj.m_text));
-        m_text->SetGameObject(this);
+    if (obj.m_texts != nullptr) {
+        m_texts = std::make_unique<std::vector<TextPtr>>();
+        for (auto& text : *obj.m_texts) {
+            auto copyText = std::make_unique<Text>(*(text));
+            copyText->SetGameObject(this);
+            m_texts->emplace_back(std::move(copyText));
+        }
     }
     gameaf::log("[debug] 对象{}复制成功......", m_name);
 }
@@ -96,8 +100,12 @@ void GameObject::Swap(GameObject& mv_obj)
     }
     m_rigidbody2D = std::move(mv_obj.m_rigidbody2D);
     m_rigidbody2D->SetGameObject(this);
-    m_text = std::move(mv_obj.m_text);
-    m_text->SetGameObject(this);
+    m_texts = std::move(mv_obj.m_texts);
+    if (m_texts) {
+        for (auto& text : *m_texts) {
+            text->SetGameObject(this);
+        }
+    }
 }
 
 GameObject::GameObject(GameObject&& mv_obj)
@@ -227,8 +235,10 @@ void GameObject::OnRender(const Camera& camera)
         m_animator->OnRender(camera);
     }
 
-    if (m_text) {
-        m_text->OnRender(camera);
+    if (m_texts) {
+        for (auto& text : *m_texts) {
+            text->OnRender(camera);
+        }
     }
 
     if (m_child_gameObjects) {
@@ -335,9 +345,14 @@ std::enable_if_t<std::is_base_of_v<Component, T>, T*> GameObject::CreateComponen
         //                   std::is_same_v<std::tuple<std::decay_t<Args>...>,
         //                                  std::tuple<std::wstring, Vector2>>,
         //               "Text组件参数: (fontName-wstr[, offset])");
-        if (m_text) return nullptr;
-        m_text = std::make_unique<Text>(this, std::forward<Args>(args)...);
-        return m_text.get();
+        if (m_texts == nullptr) {
+            m_texts = std::make_unique<std::vector<TextPtr>>();
+        }
+
+        auto text = std::make_unique<Text>(this, std::forward<Args>(args)...);
+        auto result = text.get();
+        m_texts->emplace_back(std::move(text));
+        return result;
     } else {
         static_assert(false, "非法组件创建");
     }
@@ -347,45 +362,54 @@ std::enable_if_t<std::is_base_of_v<Component, T>, T*> GameObject::CreateComponen
 
 // 获取组件指针
 template <typename T>
-std::enable_if_t<std::is_base_of_v<Component, T>, T*> GameObject::GetComponent()
+std::enable_if_t<std::is_base_of_v<Component, T>, T*> GameObject::GetComponent(int index)
 {
     return nullptr;
 }
 template <>
-Image* GameObject::GetComponent<Image>()
+Image* GameObject::GetComponent<Image>(int index)
 {
     return m_image.get();
 }
 template <>
-Animator* GameObject::GetComponent<Animator>()
+Animator* GameObject::GetComponent<Animator>(int index)
 {
     if (m_animator == nullptr) return nullptr;
     return m_animator.get();
 }
 template <>
-CollisionBox* GameObject::GetComponent<CollisionBox>()
+CollisionBox* GameObject::GetComponent<CollisionBox>(int index)
 {
     if (m_collisions == nullptr) return nullptr;
+    int i = 0;
     for (auto collision : *m_collisions) {
         if (collision->Type() == CollisionType::Box) {
-            return static_cast<CollisionBox*>(collision);
+            if (index == i) {
+                return static_cast<CollisionBox*>(collision);
+            }
+
+            ++i;
         }
     }
     return nullptr;
 }
 
 template <>
-Rigidbody2D* GameObject::GetComponent<Rigidbody2D>()
+Rigidbody2D* GameObject::GetComponent<Rigidbody2D>(int index)
 {
     if (m_rigidbody2D == nullptr) return nullptr;
     return m_rigidbody2D.get();
 }
 
 template <>
-Text* GameObject::GetComponent<Text>()
+Text* GameObject::GetComponent<Text>(int index)
 {
-    if (m_text == nullptr) return nullptr;
-    return m_text.get();
+    if (m_texts == nullptr) return nullptr;
+    int i = 0;
+    for (auto& text : *m_texts) {
+        if (index == i++) return text.get();
+    }
+    return nullptr;
 }
 
 // 显示实例化模板函数
@@ -407,10 +431,10 @@ template Rigidbody2D* GameObject::CreateComponent<Rigidbody2D>();
 template Text* GameObject::CreateComponent<Text>(const std::wstring&);
 template Text* GameObject::CreateComponent<Text>(std::wstring&&);
 
-template Image* GameObject::GetComponent<Image>();
-template Animator* GameObject::GetComponent<Animator>();
-template CollisionBox* GameObject::GetComponent<CollisionBox>();
-template Rigidbody2D* GameObject::GetComponent<Rigidbody2D>();
-template Text* GameObject::GetComponent<Text>();
+template Image* GameObject::GetComponent<Image>(int);
+template Animator* GameObject::GetComponent<Animator>(int);
+template CollisionBox* GameObject::GetComponent<CollisionBox>(int);
+template Rigidbody2D* GameObject::GetComponent<Rigidbody2D>(int);
+template Text* GameObject::GetComponent<Text>(int);
 
 }  // namespace gameaf
