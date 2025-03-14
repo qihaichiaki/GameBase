@@ -4,7 +4,7 @@
 
 namespace gameaf {
 
-Animation::Animation()
+void Animation::TimerInit()
 {
     timer.SetOnTimeout([&]() {
         ++m_frame_index;
@@ -13,6 +13,18 @@ Animation::Animation()
             if (m_on_finished) m_on_finished();
         }
     });
+}
+
+Animation::Animation() { TimerInit(); }
+
+Animation::Animation(const Animation& animation)
+{
+    m_frames = animation.m_frames;
+    m_frame_index = animation.m_frame_index;
+    m_is_loop = animation.m_is_loop;  // 是否是循环动画
+    m_on_finished = animation.m_on_finished;
+    timer = animation.timer;
+    TimerInit();
 }
 
 Animation::~Animation() {}

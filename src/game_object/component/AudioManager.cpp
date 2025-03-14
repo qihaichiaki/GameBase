@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <common/Log.hpp>
+#include <common/Utils.hpp>
 
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
 #pragma comment(lib, "WINMM.lib")  // 音频播放
@@ -28,14 +29,26 @@ AudioManager& AudioManager::GetInstance()
 
 bool AudioManager::OpenAudio(const std::string& path, const std::string& id)
 {
-    if (m_audioVolumes.count(id) != 0 || id == "") {
-        gameaf::log("[warring][OpenAudio] `{}`疑似重名或者为空......", id);
+    if (m_audioVolumes.count(id) != 0) {
+        gameaf::log("[warring][OpenAudio] `{}`重名了......", id);
+        return false;
+    }
+
+    if (id == "") {
+        gameaf::log("[warring][OpenAudio] `{}`id不可为空......", id);
         return false;
     }
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
     static char strCmd[512];
     _stprintf_s(strCmd, "open %s alias %s", path.c_str(), id.c_str());
-    mciSendStringA(strCmd, NULL, 0, NULL);
+    MMRESULT result = mciSendStringA(strCmd, NULL, 0, NULL);
+    if (result != 0) {
+        char errorMsg[256] = {0};
+        mciGetErrorStringA(result, errorMsg, sizeof(errorMsg));
+        gameaf::log("[error][OpenAudio] path: `{}`-{},音频加载失败:{}", path, id,
+                    GBKStrToUTF8Str(errorMsg));
+        return false;
+    }
 #else
 #endif
     m_audioVolumes.emplace(id, AudioVolume{});
@@ -51,7 +64,13 @@ bool AudioManager::PlayAudio(const std::string& id, bool isLoop)
 #if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
     static char strCmd[512];
     _stprintf_s(strCmd, "play %s %s from 0", id.c_str(), isLoop ? _T("repeat") : _T(""));
-    mciSendStringA(strCmd, NULL, 0, NULL);
+    MMRESULT result = mciSendStringA(strCmd, NULL, 0, NULL);
+    if (result != 0) {
+        char errorMsg[256] = {0};
+        mciGetErrorStringA(result, errorMsg, sizeof(errorMsg));
+        gameaf::log("[error][PlayAudio] path: {}音频播放失败:{}", id, GBKStrToUTF8Str(errorMsg));
+        return false;
+    }
 #else
 #endif
     return true;

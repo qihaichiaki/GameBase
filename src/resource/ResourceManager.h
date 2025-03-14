@@ -23,6 +23,7 @@ public:
     /// @brief 加载字体资源
     bool LoadFont(const std::string& font_path);
     /// @brief 加载图集资源
+    /// @param atlas_path "xxx%dxxx.png/jpg", 注意下标从1开始
     bool LoadAtlas(const std::string& atlas_path, size_t n_images, const std::string& atlas_name);
     /// @brief 加载音频资源
     bool LoadAudio(const std::string& audio_path, const std::string& audio_name);

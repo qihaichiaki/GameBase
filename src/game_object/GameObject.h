@@ -62,6 +62,9 @@ public:
     /// @brief 每个渲染帧会调用一次, 可以添加一些组件的debug渲染
     virtual void OnDraw(const Camera&) {}
 
+    /// @brief 每当加载入场景时调用一次, clone时不调用
+    virtual void OnAwake() {}
+
     /// 注入回调式更新游戏对象
     using EnterCallback = void (*)(GameObject*);
     using UpdateCallback = void (*)(GameObject*);
@@ -81,7 +84,23 @@ public:
     /// @brief 克隆一个一致的对象
     /// @warning 注意派生类中的属性并没有复制, 需要自己手动继承实现
     /// @note 此clone会自动继承父游戏对象
-    virtual GameObjectPtr Clone();
+    virtual GameObjectPtr Clone()
+    {
+        auto clonePtr = std::make_shared<GameObject>(*this);
+        if (auto parent = GetParent()) {
+            parent->AddChildObject(clonePtr);
+        }
+        return clonePtr;
+    }
+
+    /// @brief 获取当前游戏对象的父对象
+    GameObject* GetParent() const
+    {
+        if (auto parent_ptr = m_parent.lock()) {
+            return parent_ptr.get();
+        }
+        return nullptr;
+    }
 
     /// @brief 获取当前对象名字
     std::string GetName() const { return m_name; }
@@ -165,7 +184,8 @@ private:
     // gameobject所属的scene
     // scene的生命周期不由gameobject进行管理
     SceneWeakPtr m_myScene;
-    Vector2 m_position;  // 位置组件
+    Vector2 m_position;      // 位置组件
+    bool m_isAwake = false;  // 判断是否唤醒过, 一个游戏对象只能一次
 
     // === 特殊属性(可有可无, 使用指针管理,延迟加载) ===
     ImagePtr m_image = nullptr;              // 图像组件

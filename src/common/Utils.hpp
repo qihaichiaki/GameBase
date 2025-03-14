@@ -24,4 +24,20 @@ inline std::wstring UTF8StrToWStr(const std::string& str)
     return std::wstring{};
 #endif
 }
+
+inline std::string GBKStrToUTF8Str(const std::string& gbkStr)
+{
+#ifdef _MSC_VER
+    wchar_t wideMsg[256] = {0};
+    char utf8Msg[256] = {0};
+    // 先将GBK->Unicode
+    int wideLen = MultiByteToWideChar(936, 0, gbkStr.c_str(), (int)gbkStr.size(), wideMsg, 256);
+    // check wideLen == 0
+    int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wideMsg, 256, utf8Msg, 256, NULL, NULL);
+    // check utf8Len == 0
+    return utf8Msg;
+#else
+    return std::string{};
+#endif
+}
 }  // namespace gameaf

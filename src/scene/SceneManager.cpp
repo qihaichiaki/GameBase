@@ -36,7 +36,9 @@ void SceneManager::SetEntry(const std::string& sceneId)
     if (m_scenePool.count(sceneId) == 0) {
         gameaf::log("[error][SetEntry] 场景并未注册 sceneId: {}", sceneId);
     } else {
+        if (m_currentScene) m_currentScene->OnExit();
         m_currentScene = m_scenePool.at(sceneId);
+        m_currentScene->OnEnter();
     }
 }
 void SceneManager::SwitchTo(const std::string& sceneId)
@@ -49,7 +51,9 @@ void SceneManager::Register(const std::string& sceneId, SceneManager::ScenePtr s
 {
     scene->OnAwake();
     m_scenePool[sceneId] = std::move(scene);
-    if (m_currentScene == nullptr) m_currentScene = m_scenePool[sceneId];
+    if (m_currentScene == nullptr) {
+        SetEntry(sceneId);
+    }
 }
 
 }  // namespace gameaf

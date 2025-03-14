@@ -16,6 +16,7 @@ class Animation
 
 public:
     Animation();
+    Animation(const Animation&);
     ~Animation();
 
 public:
@@ -54,6 +55,9 @@ public:
 
     /// @brief x方向上垂直旋转自身
     void Flip();
+
+private:
+    void TimerInit();
 
 private:
     // 描述动画里的一帧

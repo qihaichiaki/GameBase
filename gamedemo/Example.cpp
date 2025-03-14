@@ -63,10 +63,10 @@ public:
 
         auto& resourceManager = ResourceManager::GetInstance();
 
-        animator->AddAnimation("idle", resourceManager.GetAtlas("player-idle"));
-        animator->AddAnimation("run", resourceManager.GetAtlas("player-run"));
-        animator->AddAnimation("jump", resourceManager.GetAtlas("player-jump"), false);
-        animator->AddAnimation("fall", resourceManager.GetAtlas("player-fall"));
+        animator->AddAnimationForAtlas("idle", "player-idle");
+        animator->AddAnimationForAtlas("run", "player-run");
+        animator->AddAnimationForAtlas("jump", "player-jump", false);
+        animator->AddAnimationForAtlas("fall", "player-fall");
 
         collisionBox = CreateComponent<CollisionBox>();
         collisionBox->SetSize({50.0f, collisionBox->GetSize().Y});

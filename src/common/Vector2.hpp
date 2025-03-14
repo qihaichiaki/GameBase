@@ -46,6 +46,22 @@ public:
 
     float Length() const { return std::sqrt(X * X + Y * Y); }
 
+    void Normalize()
+    {
+        float len = std::sqrt(X * X + Y * Y);
+        if (len > 0.0f) {
+            X /= len;
+            Y /= len;
+        }
+    }
+
+    Vector2 Normalized() const
+    {
+        Vector2 result = *this;
+        result.Normalize();
+        return result;
+    }
+
 public:
     static Vector2 Lerp(const Vector2& v_start, const Vector2& v_end, float smoothing)
     {

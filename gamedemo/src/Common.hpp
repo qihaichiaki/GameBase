@@ -7,5 +7,6 @@
 struct RenderZOrder
 {
     constexpr static int PLAYER = 0;
-    constexpr static int UI = 1;
+    constexpr static int UI_1 = 1;
+    constexpr static int UI_2 = 2;
 };

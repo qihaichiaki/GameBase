@@ -35,6 +35,7 @@ GameObject::GameObject(const GameObject& obj)
     m_zOrder = obj.m_zOrder;
     m_myScene = obj.m_myScene;
     m_position = obj.m_position;
+    m_isAwake = obj.m_isAwake;
     if (obj.m_image != nullptr) {
         m_image = std::make_unique<Image>(*(obj.m_image));
         m_image->SetGameObject(this);
@@ -83,6 +84,7 @@ void GameObject::Swap(GameObject& mv_obj)
     m_zOrder = mv_obj.m_zOrder;
     m_myScene = mv_obj.m_myScene;
     m_position = mv_obj.m_position;
+    m_isAwake = mv_obj.m_isAwake;
     m_image = std::move(mv_obj.m_image);
     m_image->SetGameObject(this);
     m_animator = std::move(mv_obj.m_animator);
@@ -128,15 +130,6 @@ GameObject& GameObject::operator=(GameObject&& obj)
     return *this;
 }
 
-GameObject::GameObjectPtr GameObject::Clone()
-{
-    auto clone_ptr = std::make_shared<GameObject>(*this);
-    if (auto parent_ptr = clone_ptr->m_parent.lock()) {
-        parent_ptr->AddChildObject(clone_ptr);
-    }
-    return clone_ptr;
-}
-
 void GameObject::DetachChildObject(GameObject* detach_child)
 {
     if (m_child_gameObjects) {
@@ -155,7 +148,12 @@ void GameObject::AddChildObject(GameObjectPtr child)
     if (parent_ptr && parent_ptr.get() != this) {
         parent_ptr->DetachChildObject(child.get());
     }
+
     child->m_parent = shared_from_this();
+    if (!child->m_isAwake) {
+        child->OnAwake();
+        child->m_isAwake = true;
+    }
     if (m_child_gameObjects == nullptr) {
         m_child_gameObjects = std::make_unique<std::vector<GameObjectPtr>>();
     }

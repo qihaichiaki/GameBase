@@ -74,7 +74,12 @@ void Scene::OnRender()
 
 void Scene::AddGameObject(GameObjectPtr game_object)
 {
-    game_object->OnEnter();
+    // game_object->OnEnter();
+    if (!game_object->m_isAwake) {
+        game_object->OnAwake();  // 加载时调用一次
+        game_object->m_isAwake = true;
+    }
+
     // 设置myScene, 方便游戏对象在设置某种状态时, 能通知上层级的场景
     game_object->m_myScene = shared_from_this();
     if (m_gameObjects == nullptr) {

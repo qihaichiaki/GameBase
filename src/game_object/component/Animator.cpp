@@ -34,13 +34,14 @@ void Animator::Flip()
     }
 }
 
-bool Animator::AddAnimation(const std::string& animation_id, TImage* timg, bool isLoop,
-                            float interval)
+bool Animator::AddAnimationForImage(const std::string& animation_id, const std::string& imgID,
+                                    bool isLoop, float interval)
 {
     if (m_animations.count(animation_id) != 0) {
         gameaf::log("[warring][AddAnimation] animation重名了...");
         return false;
     }
+    auto timg = ResourceManager::GetInstance().GetTImage(imgID);
     if (timg == nullptr) {
         gameaf::log("[error][AddAnimation] 图像元空空如也...");
         return false;
@@ -48,6 +49,7 @@ bool Animator::AddAnimation(const std::string& animation_id, TImage* timg, bool 
 
     if (m_initial_animation_id == "") {
         m_initial_animation_id = animation_id;
+        m_current_animation_id = m_initial_animation_id;
     }
     m_animations[animation_id].AddFrame(Image{m_gameObject, timg, m_offset});
     m_animations[animation_id].SetLoop(isLoop);
@@ -55,13 +57,14 @@ bool Animator::AddAnimation(const std::string& animation_id, TImage* timg, bool 
     return true;
 }
 
-bool Animator::AddAnimation(const std::string& animation_id, Atlas* atlas, bool isLoop,
-                            float interval)
+bool Animator::AddAnimationForAtlas(const std::string& animation_id, const std::string& atlasID,
+                                    bool isLoop, float interval)
 {
     if (m_animations.count(animation_id) != 0) {
         gameaf::log("[warring][AddAnimation] animation重名了...");
         return false;
     }
+    auto atlas = ResourceManager::GetInstance().GetAtlas(atlasID);
     if (atlas == nullptr) {
         gameaf::log("[error][AddAnimation] 图集空空如也...");
         return false;

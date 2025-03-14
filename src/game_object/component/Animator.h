@@ -28,23 +28,23 @@ public:
     void Flip() override;
 
 public:
-    /// @brief 添加动画对象
+    /// @brief 添加动画对象来自图像
     /// @param animation_id 动画对象在当前动画管理器中的唯一id
-    /// @param img 图元对象
+    /// @param imgID 图元对象ID
     /// @param isLoop 是否循环
     /// @param interval 帧之间的间隔
     /// @return 是否添加成功
-    bool AddAnimation(const std::string& animation_id, TImage* timg, bool isLoop = true,
-                      float interval = 0.15f);
+    bool AddAnimationForImage(const std::string& animation_id, const std::string& imgID,
+                              bool isLoop = true, float interval = 0.15f);
 
-    /// @brief 添加动画对象
+    /// @brief 添加动画对象来自图集
     /// @param animation_id 动画对象在当前动画管理器中的唯一id
-    /// @param atlas 图集对象
+    /// @param atlasID 图集对象ID
     /// @param isLoop 是否循环
     /// @param interval 帧之间的间隔
     /// @return 是否添加成功
-    bool AddAnimation(const std::string& animation_id, Atlas* atlas, bool isLoop = true,
-                      float interval = 0.15f);
+    bool AddAnimationForAtlas(const std::string& animation_id, const std::string& atlasID,
+                              bool isLoop = true, float interval = 0.15f);
 
     /// @brief 删除动画对象
     /// @param animation_id 动画对象id

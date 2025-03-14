@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 /**
  * 存放一些公共的类型声明
  */
@@ -17,6 +18,12 @@ using byte = unsigned char;
 struct ColorRGB
 {
     byte r = 255, g = 255, b = 255;
+
+    ColorRGB() = default;
+    ColorRGB(byte r, byte g, byte b) : r(r), g(g), b(b) {}
+    /// @brief 解析二进制颜色
+    /// @param hex "#FFFFFF"
+    ColorRGB(const std::string& hex);
 };
 
 }  // namespace gameaf

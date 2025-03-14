@@ -64,8 +64,7 @@ bool ResourceManager::LoadAtlas(const std::string& atlas_path, size_t n_images,
 }
 bool ResourceManager::LoadAudio(const std::string& audio_path, const std::string& audio_name)
 {
-    AudioManager::GetInstance().OpenAudio(audio_path, audio_name);
-    return false;
+    return AudioManager::GetInstance().OpenAudio(audio_path, audio_name);
 }
 
 bool ResourceManager::FlipImage(const std::string& image_name, const std::string& flip_image_name)
