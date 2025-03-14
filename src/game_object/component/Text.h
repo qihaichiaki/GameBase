@@ -60,6 +60,9 @@ public:
     /// @param textBoxSize
     void SetTextBoxSize(const Vector2& textBoxSize);
 
+    /// @brief 获取实际渲染的文本框大小
+    const Vector2& GetRenderBoxSize() const { return m_renderBoxSize; }
+
     /// @brief 设置文本颜色
     void SetTextColor(const ColorRGB& textColor) { m_textColor = textColor; }
 
@@ -74,6 +77,8 @@ public:
 
     /// @brief 设置文本阴影偏移
     void SetTextShadedOffset(const Vector2& offset) { m_textShadedOffset = offset; }
+
+    bool ContainsScreenPoint(const Camera&, const Vector2&) const override;
 
 private:
     void RenderLeftTop(const Camera& camera, Vector2 pos,
@@ -106,6 +111,7 @@ private:
     std::wstring m_text;                     // 文本内容
     std::vector<TextLine> m_textLinesCache;  // 文本内容行缓存
     Vector2 m_textBoxSize;                   // 文本框大小
+    Vector2 m_renderBoxSize;                 // 实际文本框渲染大小
     ColorRGB m_textColor;                    // 文本颜色
 
     bool m_isShaded = false;                            // 是否启用字体阴影

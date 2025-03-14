@@ -69,6 +69,8 @@ bool Animation::AddFrame(const Image& img)
     return true;
 }
 
+const Animation::Frame& Animation::GetCurrentFrame() const { return m_frames.at(m_frame_index); }
+
 const Vector2& Animation::CurrentFrameSize() const
 {
     return m_frames.at(m_frame_index).img.GetSize();

@@ -34,8 +34,7 @@ inline static Rect BuildRender(const Vector2& pos, const Vector2& size, const Ve
 
 void Image::OnRender(const Camera& camera, size_t spriteIndex) const
 {
-    PutImageEx(camera, m_currentImg,
-               BuildRender(m_gameObject->GetPosition() + m_offset, m_size, m_anchorPosition),
+    PutImageEx(camera, m_currentImg, BuildRender(Position(), m_size, m_anchorPosition),
                m_img->GetSpriteRect(spriteIndex));
 }
 
@@ -80,6 +79,14 @@ void Image::SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position)
         default:
             break;
     }
+}
+
+bool Image::ContainsScreenPoint(const Camera& camera, const Vector2& pos) const
+{
+    Rect dst = BuildRender(Position(), m_size, m_anchorPosition);
+    dst.x -= camera.GetPosition().X;
+    dst.y -= camera.GetPosition().Y;
+    return (pos.X >= dst.x && pos.X <= dst.x + dst.w) && (pos.Y >= dst.y && pos.Y <= dst.y + dst.h);
 }
 
 }  // namespace gameaf

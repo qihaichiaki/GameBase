@@ -16,8 +16,13 @@ AudioManager::AudioManager() {}
 
 AudioManager::~AudioManager()
 {
-    for (const auto [id, _] : m_audioVolumes) {
-        CloseAudio(id);
+    for (const auto& [id, _] : m_audioVolumes) {
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+        static char strCmd[512];
+        _stprintf_s(strCmd, "close %s", id.c_str());
+        mciSendStringA(strCmd, NULL, 0, NULL);
+#else
+#endif
     }
 }
 

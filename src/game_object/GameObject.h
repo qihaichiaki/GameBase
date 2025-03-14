@@ -23,7 +23,7 @@ class GameObject : public std::enable_shared_from_this<GameObject>
 public:
     // using
     using GameObjectPtr = std::shared_ptr<GameObject>;
-    using GameObjectWeakPtr = std::weak_ptr<GameObject>;
+    using GameObjectWeakPtr = GameObject*;
     using SceneWeakPtr = std::weak_ptr<Scene>;
     using ChildGameObjects = std::unique_ptr<std::vector<GameObjectPtr>>;
     using ImagePtr = std::unique_ptr<Image>;  // image的生命周期由资源管理器管理
@@ -33,6 +33,7 @@ public:
     using Rigidbody2DPtr = std::unique_ptr<Rigidbody2D>;
     using TextPtr = std::unique_ptr<Text>;
     using TextLists = std::unique_ptr<std::vector<TextPtr>>;
+    using CameraLists = std::unique_ptr<std::vector<Camera*>>;
 
 public:
     friend class Scene;
@@ -65,6 +66,17 @@ public:
     /// @brief 每当加载入场景时调用一次, clone时不调用
     virtual void OnAwake() {}
 
+    // 鼠标事件
+
+    /// @brief 鼠标进入对象区域
+    virtual void OnMouseEnter() {}
+
+    /// @brief 鼠标离开对象区域
+    virtual void OnMouseExit() {}
+
+    /// @brief 鼠标点击
+    virtual void OnMouseClicked() {}
+
     /// 注入回调式更新游戏对象
     using EnterCallback = void (*)(GameObject*);
     using UpdateCallback = void (*)(GameObject*);
@@ -94,13 +106,7 @@ public:
     }
 
     /// @brief 获取当前游戏对象的父对象
-    GameObject* GetParent() const
-    {
-        if (auto parent_ptr = m_parent.lock()) {
-            return parent_ptr.get();
-        }
-        return nullptr;
-    }
+    GameObject* GetParent() const { return m_parent; }
 
     /// @brief 获取当前对象名字
     std::string GetName() const { return m_name; }
@@ -150,6 +156,18 @@ public:
     // 水平翻转组件
     void Flip();
 
+    /// @brief 设置游戏对象是否活动, 如果不活动则后续不会调用其update、render相关方法
+    void SetActive(bool isActive)
+    {
+        if (!m_isActive && isActive) {
+            OnEnter();
+        }
+        m_isActive = isActive;
+    }
+
+    /// @brief 查看游戏对象是否处于活跃状态
+    bool GetActive() const { return m_isActive; }
+
     // 创建组件
     template <typename T, typename... Args>
     std::enable_if_t<std::is_base_of_v<Component, T>, T*> CreateComponent(Args&&... args);
@@ -168,12 +186,20 @@ public:
     /// @brief 游戏框架内置渲染
     void OnRender(const Camera&);
 
+    /// @brief 附加摄像机对象
+    void AttachCamera(Camera*);
+    /// @brief 判断一个窗口坐标是否在对象内部
+    bool ContainsScreenPoint(const Vector2& pos);
+
 private:
     /// @brief 根据对象地址删除对应的子对象
     void DetachChildObject(GameObject*);
 
     /// @brief 转移资源
     void Swap(GameObject&);
+
+    /// @brief 返回当前渲染该游戏对象的摄像机（子游戏对象返回的是父游戏对象的）
+    const CameraLists& GetCameras();
 
 private:
     // === 固有属性 ===
@@ -184,8 +210,11 @@ private:
     // gameobject所属的scene
     // scene的生命周期不由gameobject进行管理
     SceneWeakPtr m_myScene;
-    Vector2 m_position;      // 位置组件
     bool m_isAwake = false;  // 判断是否唤醒过, 一个游戏对象只能一次
+    bool m_isActive = true;  // 是否活动, 如果不活动，则不对其对象进行渲染和update
+
+    // transform
+    Vector2 m_position;  // 位置组件
 
     // === 特殊属性(可有可无, 使用指针管理,延迟加载) ===
     ImagePtr m_image = nullptr;              // 图像组件
@@ -196,6 +225,7 @@ private:
     // ...
 
     ChildGameObjects m_child_gameObjects = nullptr;  // 子游戏对象容器
-    GameObjectWeakPtr m_parent;                      // 父对象
+    GameObjectWeakPtr m_parent = nullptr;            // 父对象
+    CameraLists m_cameras;                           // 当前游戏对象附加的摄像机对象们
 };
 }  // namespace gameaf

@@ -124,4 +124,18 @@ bool Animator::SwitchToAnimation(const std::string& animation_id)
     return true;
 }
 
+bool Animator::ContainsScreenPoint(const Camera& camera, const Vector2& pos) const
+{
+    return m_animations.at(m_initial_animation_id)
+        .GetCurrentFrame()
+        .img.ContainsScreenPoint(camera, pos);
+}
+
+void Animator::Restart()
+{
+    for (auto& [_, animation] : m_animations) {
+        animation.Restart();
+    }
+}
+
 }  // namespace gameaf

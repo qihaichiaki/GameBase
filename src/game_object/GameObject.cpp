@@ -72,6 +72,10 @@ GameObject::GameObject(const GameObject& obj)
             m_texts->emplace_back(std::move(copyText));
         }
     }
+
+    if (obj.m_cameras != nullptr) {
+        m_cameras = std::make_unique<std::vector<Camera*>>(*obj.m_cameras);
+    }
     gameaf::log("[debug] 对象{}复制成功......", m_name);
 }
 
@@ -108,6 +112,8 @@ void GameObject::Swap(GameObject& mv_obj)
             text->SetGameObject(this);
         }
     }
+
+    m_cameras = std::move(mv_obj.m_cameras);
 }
 
 GameObject::GameObject(GameObject&& mv_obj)
@@ -144,16 +150,17 @@ void GameObject::DetachChildObject(GameObject* detach_child)
 
 void GameObject::AddChildObject(GameObjectPtr child)
 {
-    auto parent_ptr = child->m_parent.lock();
-    if (parent_ptr && parent_ptr.get() != this) {
+    auto parent_ptr = child->m_parent;
+    if (parent_ptr && parent_ptr != this) {
         parent_ptr->DetachChildObject(child.get());
     }
 
-    child->m_parent = shared_from_this();
+    child->m_parent = this;
     if (!child->m_isAwake) {
         child->OnAwake();
         child->m_isAwake = true;
     }
+    child->m_cameras = nullptr;
     if (m_child_gameObjects == nullptr) {
         m_child_gameObjects = std::make_unique<std::vector<GameObjectPtr>>();
     }
@@ -204,8 +211,10 @@ void GameObject::OnFixUpdate(float alpha)
     if (m_rigidbody2D) m_rigidbody2D->OnFixedUpdate(alpha);
     if (m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
-            game_object->OnFixUpdate();
-            game_object->OnFixUpdate(alpha);
+            if (game_object->GetActive()) {
+                game_object->OnFixUpdate();
+                game_object->OnFixUpdate(alpha);
+            }
         }
     }
 }
@@ -216,8 +225,10 @@ void GameObject::OnUpdate(float delta)
     if (m_animator) m_animator->OnUpdate(delta);
     if (m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
-            game_object->OnUpdate();
-            game_object->OnUpdate(delta);
+            if (game_object->GetActive()) {
+                game_object->OnUpdate();
+                game_object->OnUpdate(delta);
+            }
         }
     }
 }
@@ -241,10 +252,56 @@ void GameObject::OnRender(const Camera& camera)
 
     if (m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
-            game_object->OnRender(camera);
-            game_object->OnDraw(camera);
+            if (game_object->GetActive()) {
+                game_object->OnRender(camera);
+                game_object->OnDraw(camera);
+            }
         }
     }
+}
+
+void GameObject::AttachCamera(Camera* camera)
+{
+    if (m_cameras == nullptr) {
+        m_cameras = std::make_unique<std::vector<Camera*>>();
+    }
+    m_cameras->push_back(camera);
+}
+
+const GameObject::CameraLists& GameObject::GetCameras()
+{
+    if (m_parent) {
+        return m_parent->GetCameras();
+    }
+    return m_cameras;
+}
+
+bool GameObject::ContainsScreenPoint(const Vector2& pos)
+{
+    const auto& cameras = GetCameras();
+    if (cameras == nullptr || !m_isActive) return false;
+
+    for (auto camera : *cameras) {
+        if (m_image && m_image->ContainsScreenPoint(*camera, pos)) {
+            return true;
+        }
+        if (m_animator && m_animator->ContainsScreenPoint(*camera, pos)) {
+            return true;
+        }
+        if (m_texts) {
+            for (const auto& text : *m_texts) {
+                if (text->ContainsScreenPoint(*camera, pos)) return true;
+            }
+        }
+    }
+
+    if (m_child_gameObjects) {
+        for (auto& child : *m_child_gameObjects) {
+            if (child->ContainsScreenPoint(pos)) return true;
+        }
+    }
+
+    return false;
 }
 
 void GameObject::SetZOrder(int z_order)

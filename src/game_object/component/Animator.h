@@ -77,6 +77,11 @@ public:
     /// @return 切换是否成功
     bool SwitchToAnimation(const std::string& animation_id);
 
+    bool ContainsScreenPoint(const Camera&, const Vector2&) const override;
+
+    /// @brief 动画全部重置
+    void Restart();
+
 private:
     std::unordered_map<std::string, Animation> m_animations;
     std::string m_current_animation_id;

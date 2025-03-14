@@ -1,4 +1,5 @@
 #include <GameAf.h>
+#include <input/InputManager.h>
 #include <scene/Scene.h>
 
 #include <algorithm>
@@ -23,10 +24,19 @@ static bool CompareByZOrder(const Scene::GameObjectPtr& ptr1, const Scene::GameO
 void Scene::OnUpdate(float delta)
 {
     if (m_gameObjects) {
-        for (auto& object : *m_gameObjects) {
-            object->OnUpdate();
-            object->OnUpdate(delta);
+        if (m_needRenderLayerUpdate) {
+            std::sort(m_gameObjects->begin(), m_gameObjects->end(), CompareByZOrder);
+            m_needRenderLayerUpdate = false;
         }
+
+        for (auto& object : *m_gameObjects) {
+            if (object->GetActive()) {
+                object->OnUpdate();
+                object->OnUpdate(delta);
+            }
+        }
+
+        InputManager::GetInstance().ProcessMouseEvent(*m_gameObjects);
     }
 
     for (auto& [_, camera] : m_cameras) {
@@ -38,8 +48,10 @@ void Scene::OnFixUpdate(float alpha)
 {
     if (m_gameObjects) {
         for (auto& object : *m_gameObjects) {
-            object->OnFixUpdate();
-            object->OnFixUpdate(alpha);
+            if (object->GetActive()) {
+                object->OnFixUpdate();
+                object->OnFixUpdate(alpha);
+            }
         }
     }
 
@@ -51,14 +63,10 @@ void Scene::OnFixUpdate(float alpha)
 void Scene::OnRender()
 {
     if (m_gameObjects == nullptr) return;
-    if (m_needRenderLayerUpdate) {
-        std::sort(m_gameObjects->begin(), m_gameObjects->end(), CompareByZOrder);
-        m_needRenderLayerUpdate = false;
-    }
 
     for (auto& object : *m_gameObjects) {
         for (auto& [_, camera] : m_cameras) {
-            if (camera->HasRender(object->GetName())) {
+            if (camera->HasRender(object->GetName()) && object->GetActive()) {
                 object->OnRender(*camera);
                 object->OnDraw(*camera);
             }
@@ -85,22 +93,22 @@ void Scene::AddGameObject(GameObjectPtr game_object)
     if (m_gameObjects == nullptr) {
         m_gameObjects = std::make_unique<std::vector<GameObjectPtr>>();
     }
+    // 添加场景内匹配的摄像机对象
+    for (auto& [_, camera] : m_cameras) {
+        if (camera->HasRender(game_object->GetName())) {
+            game_object->AttachCamera(camera.get());
+        }
+    }
+
     m_gameObjects->push_back(std::move(game_object));
     m_needRenderLayerUpdate = true;  // 渲染的时候需要进行排序了
 }
 
 void Scene::AddGameObjects(const std::vector<GameObjectPtr>& game_objects)
 {
-    if (m_gameObjects == nullptr) {
-        m_gameObjects = std::make_unique<std::vector<GameObjectPtr>>();
-    }
-
     for (const auto& object : game_objects) {
-        object->OnEnter();
-        object->m_myScene = shared_from_this();
-        m_gameObjects->push_back(std::move(object));
+        AddGameObject(std::move(object));
     }
-    m_needRenderLayerUpdate = true;  // 渲染的时候需要进行排序了
 }
 
 void Scene::DelGameObjects(const std::string& id)

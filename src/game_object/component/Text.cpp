@@ -30,6 +30,7 @@ void Text::PrecomputeTextLayout()
 
     // 计算每行文本宽度
     int lineWidth = 0;
+    int maxLineWidth = 0;
     std::wstring lineBuffer;
 
     for (size_t i = 0; i < m_text.size(); ++i) {
@@ -39,6 +40,7 @@ void Text::PrecomputeTextLayout()
             (m_textBoxSize.X > 0 && lineWidth + fontWidthCache[ch] > m_textBoxSize.X)) {
             m_textLinesCache.push_back({lineBuffer, lineWidth});
             lineBuffer.clear();
+            maxLineWidth = lineWidth > maxLineWidth ? lineWidth : maxLineWidth;
             lineWidth = 0;
             if (ch == '\n') continue;
         }
@@ -51,9 +53,15 @@ void Text::PrecomputeTextLayout()
 
     if (!lineBuffer.empty()) {
         m_textLinesCache.push_back({std::move(lineBuffer), lineWidth});
+        maxLineWidth = lineWidth > maxLineWidth ? lineWidth : maxLineWidth;
     }
 
     SetAlignMode(m_alignMode);
+
+    // 自适配 m_textBoxSize
+    m_renderBoxSize.X = m_textBoxSize.X == 0 ? maxLineWidth : m_textBoxSize.X;
+    m_renderBoxSize.Y =
+        m_textBoxSize.Y == 0 ? m_textLinesCache.size() * m_fontSize : m_textBoxSize.Y;
 }
 
 void Text::SetFontName(const std::wstring& fontName)
@@ -166,7 +174,7 @@ void Text::OnRender(const Camera& camera)
     gameaf::SetFontSize(m_fontName, m_fontSize);
 
     int lineHeight = 0;
-    Vector2 pos = m_gameObject->GetPosition() + m_offset;
+    Vector2 pos = Position();
     Vector2 linePos;
     for (const auto& [line, lineWidth] : m_textLinesCache) {
         linePos.X = pos.X + m_alignArgument.a_X * lineWidth + m_alignArgument.b_X;
@@ -179,6 +187,17 @@ void Text::OnRender(const Camera& camera)
         lineHeight += m_fontSize;
         if (m_textBoxSize.Y > 0 && lineHeight >= m_textBoxSize.Y) break;
     }
+}
+
+bool Text::ContainsScreenPoint(const Camera& camera, const Vector2& pos) const
+{
+    Vector2 textPos = Position();
+    textPos.X += m_alignArgument.a_X * m_renderBoxSize.X + m_alignArgument.b_X;
+    textPos.Y += m_alignArgument.b_Y;
+    float x = textPos.X - camera.GetPosition().X;
+    float y = textPos.Y - camera.GetPosition().Y;
+    return (pos.X >= x && pos.X <= x + m_renderBoxSize.X) &&
+           (pos.Y >= y && pos.Y <= y + m_renderBoxSize.Y);
 }
 
 }  // namespace gameaf

@@ -2,6 +2,7 @@
 
 #include <GameAf.h>
 #include <common/Macros.h>
+#include <game_object/GameObject.h>
 
 #include <common/Log.hpp>
 #include <unordered_map>
@@ -10,6 +11,12 @@ namespace gameaf {
 
 // 用于焦点控制，来通知是否需要检查窗口状态, 节省CPU开销
 static bool isWindowActive = true;
+
+// 用于检测鼠标移动, 判断是否进行处理鼠标事件
+static bool isMouseMove = true;
+
+/// 用于判断对象是否enter/exit
+static GameObject* hoverObj = nullptr;
 
 InputManager& InputManager::GetInstance()
 {
@@ -66,6 +73,7 @@ void InputManager::ProcessInput()
             case WM_LBUTTONDOWN:
                 m_key_state[INPUT_CONTINUE_INDEX].set((size_t)KeyValue::LButton);
                 m_key_state[INPUT_CURRENT_INDEX].set((size_t)KeyValue::LButton);
+                if (hoverObj) hoverObj->OnMouseClicked();
                 break;
             case WM_LBUTTONUP:
                 m_key_state[INPUT_CONTINUE_INDEX].reset((size_t)KeyValue::LButton);
@@ -83,6 +91,9 @@ void InputManager::ProcessInput()
                 break;
             case WM_MOUSEMOVE:
                 // 鼠标移动
+                isMouseMove = true;
+                m_mousePos.X = msg.x;
+                m_mousePos.Y = msg.y;
                 break;
             case WM_MOVE:
                 // 窗口移动
@@ -111,6 +122,34 @@ void InputManager::ProcessInput()
     // gameaf::log("MessageType: {}, value: {}", (int)m_message, (int)m_value);
 #else
 #endif
+}
+
+void InputManager::ProcessMouseEvent(const std::vector<std::shared_ptr<GameObject>>& objs)
+{
+    if (!isMouseMove) return;
+    GameObject* currentHoverObj = nullptr;
+    auto rit = objs.rbegin();
+    while (rit != objs.rend()) {
+        GameObject* obj = (*rit).get();
+        if (obj->ContainsScreenPoint({m_mousePos.X * 1.0f, m_mousePos.Y * 1.0f})) {
+            // gameaf::log("鼠标移动到了`{}`上, 坐标为:{},{}", (*rit)->GetName(), m_mousePos.X,
+            //             m_mousePos.Y);
+            currentHoverObj = obj;
+            if (hoverObj != currentHoverObj) {
+                if (hoverObj) hoverObj->OnMouseExit();
+                hoverObj = obj;
+                obj->OnMouseEnter();
+            }
+            break;
+        }
+        ++rit;
+    }
+    if (currentHoverObj != hoverObj) {
+        if (hoverObj) hoverObj->OnMouseExit();
+        hoverObj = nullptr;
+    }
+
+    isMouseMove = false;
 }
 
 }  // namespace gameaf

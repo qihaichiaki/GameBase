@@ -9,6 +9,7 @@
 namespace gameaf {
 
 class GameObject;
+class Camera;
 class Component
 {
 public:
@@ -33,6 +34,9 @@ public:
 
     /// @brief 翻转组件
     virtual void Flip() {};
+
+    /// @brief 判断在对应摄像机下, 窗口坐标是否位于组件上
+    virtual bool ContainsScreenPoint(const Camera&, const Vector2&) const { return false; }
 
 protected:
     GameObject* m_gameObject = nullptr;  // 弱引用

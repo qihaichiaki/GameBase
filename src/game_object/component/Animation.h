@@ -12,7 +12,14 @@ class Camera;
 class GameObject;
 class Animation
 {
+public:
     friend class Animator;
+    // 描述动画里的一帧
+    struct Frame
+    {
+        size_t spriteIndex;  // 精灵图中精灵图id
+        Image img;           // 图像组件
+    };
 
 public:
     Animation();
@@ -50,6 +57,9 @@ public:
     /// @return 添加帧是否成功
     bool AddFrame(const Image& img);
 
+    /// @brief 获取当前帧
+    const Frame& GetCurrentFrame() const;
+
     /// @brief 当前帧的大小
     const Vector2& CurrentFrameSize() const;
 
@@ -60,13 +70,6 @@ private:
     void TimerInit();
 
 private:
-    // 描述动画里的一帧
-    struct Frame
-    {
-        size_t spriteIndex;  // 精灵图中精灵图id
-        Image img;           // 图像组件
-    };
-
     std::vector<Frame> m_frames;
     int m_frame_index = 0;
     Timer timer;

@@ -49,6 +49,8 @@ public:
     /// 请自由的设置锚点在x方向所占的比例和在y方向所占的比例(单位矩形).值的取值在[0,1]
     void SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position = {0.0f, 0.0f});
 
+    bool ContainsScreenPoint(const Camera&, const Vector2&) const override;
+
 private:
     TImage* m_img;                      // 图像元
     Vector2 m_size;                     // 图像大小
