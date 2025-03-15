@@ -100,6 +100,10 @@ public:
     /// @brief 清除当前帧记录的事件状态
     void ClearFrameInput() { m_key_state[INPUT_CURRENT_INDEX].reset(); }
 
+    /// @brief 清理场景中的缓存
+    /// @param obj 指定缓存对象, 如果设置为null, 则直接清理
+    void ClearSenseCache(GameObject* obj = nullptr);
+
     /// @brief 处理游戏对象鼠标事件
     /// @param objs 游戏对象们, 需要render从小到大(适配scene层处理gameobjec的模式)
     void ProcessMouseEvent(const std::vector<std::shared_ptr<GameObject>>& objs);

@@ -153,4 +153,12 @@ void InputManager::ProcessMouseEvent(const std::vector<std::shared_ptr<GameObjec
     isMouseMove = false;
 }
 
+void InputManager::ClearSenseCache(GameObject* obj)
+{
+    if (obj == nullptr || obj == hoverObj) {
+        if (hoverObj) hoverObj->OnMouseExit();
+        hoverObj = nullptr;
+    }
+}
+
 }  // namespace gameaf

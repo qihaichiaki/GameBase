@@ -103,17 +103,23 @@ void Scene::AddGameObjects(const std::vector<GameObjectPtr>& game_objects)
 void Scene::DelGameObjects(const std::string& id)
 {
     if (m_gameObjects == nullptr) return;
+    auto& input = InputManager::GetInstance();
     // 找到所有对应id的游戏对象，进行删除. 并且将摄像机追随的相关游戏对象也要进行删除
     auto it = m_gameObjects->begin();
     while (it != m_gameObjects->end()) {
         if ((*it)->GetName() == id) {
+            input.ClearSenseCache((*it).get());
             it = m_gameObjects->erase(it);
         } else {
             ++it;
         }
     }
 }
-void Scene::DelAllGameObject() { m_gameObjects = nullptr; }
+void Scene::DelAllGameObject()
+{
+    InputManager::GetInstance().ClearSenseCache();
+    m_gameObjects = nullptr;
+}
 
 std::vector<Scene::GameObjectPtr> Scene::GetGameObjects(const std::string& id)
 {

@@ -40,4 +40,9 @@ inline std::string GBKStrToUTF8Str(const std::string& gbkStr)
     return std::string{};
 #endif
 }
+
+inline float Lerp(float start, float end, float smoothing)
+{
+    return start * (1 - smoothing) + smoothing * end;
+}
 }  // namespace gameaf

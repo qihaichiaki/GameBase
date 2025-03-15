@@ -6,6 +6,7 @@
 #include <game_object/widgets/ProgressBar.h>
 #include <resource/ResourceManager.h>
 #include <scene/Scene.h>
+#include <scene/SceneManager.h>
 
 #include <common/Log.hpp>
 
@@ -15,31 +16,15 @@
 
 using namespace gameaf;
 
-class AudioProgressBar : public ProgressBar
-{
-public:
-    void OnUpdate() override
-    {
-        static float len = AudioManager::GetInstance().AskAudioLength("menu-bgm");
-        float currentLen = AudioManager::GetInstance().AskAudioPos("menu-bgm");
-        SetTargetProgressValue(currentLen / len);
-        ProgressBar::OnUpdate();
-    }
-};
-
-class MenuScene : public Scene
+class Title : public GameObject
 {
 public:
     void OnAwake() override
     {
-        // 初始化时调用
-        // 创建标题对象
-        auto title = std::make_shared<GameObject>(RenderZOrder::UI_1, "title");
-        auto titleText = title->CreateComponent<Text>(std::wstring{L"Syne Mono"});
-        auto subheading = title->CreateComponent<Text>(std::wstring{L"Syne Mono"});
-        // 设置到场景主相机的正中心
-        auto mainCamera = GetCamera("scene-main");
-        mainCamera->LookAt(title->GetPosition());  // 以0,0 设置为菜单场景的正中心
+        SetName("title");
+        SetZOrder(RenderZOrder::UI_1);
+        titleText = CreateComponent<Text>(std::wstring{L"Syne Mono"});
+        subheading = CreateComponent<Text>(std::wstring{L"Syne Mono"});
 
         // 设置主标题内容
         titleText->SetText(L"GameDemo");
@@ -53,6 +38,35 @@ public:
         subheading->SetText(L"Author: QiHai");
         subheading->SetFontSize(50);
         subheading->SetOffset({0.0f, -150.0f});
+    }
+
+    void OnMouseUp() override
+    {
+        hits++;
+        if (hits == 6) {
+            // 小彩蛋
+            titleText->SetText(L"技术宅拯救世界");
+            titleText->SetFontSize(150);  //
+            subheading->SetText(L"Easter egg!");
+        }
+    }
+
+private:
+    int hits = 0;
+    Text* titleText;
+    Text* subheading;
+};
+
+class MenuScene : public Scene
+{
+public:
+    void OnAwake() override
+    {
+        // 初始化时调用
+        // 创建标题对象
+        auto title = std::make_shared<Title>();
+        auto mainCamera = GetCamera("scene-main");
+        mainCamera->LookAt(title->GetPosition());  // 以0,0 设置为菜单场景的正中心
 
         // 创建一些闪亮的东西
         // 加载效果资源
@@ -82,13 +96,10 @@ public:
         buttonNew->Translate({0.0f, 140.0f});
         buttonExit->Translate({0.0f, 220.0f});
 
-        auto progressBar = std::make_shared<AudioProgressBar>();
-        // progressBar->SetGhostBar(true);  // 设置滞留条
-        // progressBar->SetProgressBarColor(ColorRGB{"#98b856"});
-        // progressBar->SetGhostBarColor(ColorRGB{255, 0, 0});
-        AddGameObjects({bug, title, buttonNew, buttonExit, progressBar});
+        AddGameObjects({bug, title, buttonNew, buttonExit});
 
-        buttonNew->RegisterMouseClicked([]() { gameaf::log("开始游戏"); });
+        buttonNew->RegisterMouseClicked(
+            []() { SceneManager::GetInstance().SwitchTo("game", true); });
         buttonExit->RegisterMouseClicked([]() { GameAF::GetInstance().Exit(); });  // 设置游戏退出
         // 加载菜单场景的音乐
         ResourceManager::GetInstance().LoadAudio(ASSETS_PATH "audio/bgm-menu.wav", "menu-bgm");

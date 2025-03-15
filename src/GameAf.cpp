@@ -66,8 +66,7 @@ void GameAF::Run()
     steady_clock::time_point last_tick = steady_clock::now();
     steady_clock::time_point start_tick;
     // 物理固定帧
-    float fixed_timestep = 1.0f / 60.0f;  // 60hz
-    float accumulate_time = 0.0f;         // 时间累积器
+    float accumulate_time = 0.0f;  // 时间累积器
 
 #ifdef GAMEAF_USE_EASYX
     BeginBatchDraw();
@@ -90,11 +89,11 @@ void GameAF::Run()
 
         // 物理更新
         accumulate_time += m_delta_time;
-        while (accumulate_time >= fixed_timestep) {
+        while (accumulate_time >= m_fixed_timestep) {
             // 场景资源物理更新
-            scene.OnFixUpdate(fixed_timestep);
-            collision.ProcessCollide(fixed_timestep);  // 碰撞检测 + 物理修正
-            accumulate_time -= fixed_timestep;
+            scene.OnFixUpdate(m_fixed_timestep);
+            collision.ProcessCollide(m_fixed_timestep);  // 碰撞检测 + 物理修正
+            accumulate_time -= m_fixed_timestep;
         }
 
         // 场景数据更新

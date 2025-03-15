@@ -25,6 +25,7 @@ Camera::Camera(Vector2 size) : m_size(size)
         m_shakeTimer.Pause();
     });
     m_shakeTimer.Pause();
+    m_position = {-m_size.X / 2, -m_size.Y / 2};  // 默认以世界坐标0, 0为中心
 }
 Camera::~Camera() {}
 

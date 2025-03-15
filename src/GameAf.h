@@ -48,6 +48,9 @@ public:
     /// @brief 获取当前帧和上一帧的相隔时间, 单位为s
     float GetDeltaTime() { return m_delta_time; }
 
+    /// @brief 获取固定的物理频率
+    float GetFixDeltaTime() { return m_fixed_timestep; }
+
     /// @brief 生成[start, end]之间的随机数
     /// @warning 如果gameaf没有run, 则生成出来的随机数每次都是固定的
     template <typename T>
@@ -85,6 +88,7 @@ private:
     bool m_isShowConsole = false;
     std::string m_screenName = "MyGame";
     float m_delta_time;
+    float m_fixed_timestep = 1.0f / 60.0f;  // 物理固定频率 - 60hz
 
     // 游戏帧数
     int m_fps = 144;
