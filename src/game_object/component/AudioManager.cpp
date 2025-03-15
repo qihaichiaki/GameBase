@@ -232,4 +232,19 @@ float AudioManager::GetVolume(const std::string& id)
     return m_globalVolume * m_audioVolumes[id].categoryVolume * m_audioVolumes[id].relativeVolume;
 }
 
+bool AudioManager::IsPlayingAudio(const std::string& id)
+{
+    if (m_audioVolumes.count(id) == 0) return false;
+
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    static char strCmd[512];
+    _stprintf_s(strCmd, "status %s mode", id.c_str());
+    char buffer[128];
+    mciSendStringA(strCmd, buffer, sizeof(buffer), NULL);
+    if (strcmp(buffer, "playing") == 0) return true;
+#else
+#endif
+    return false;
+}
+
 }  // namespace gameaf

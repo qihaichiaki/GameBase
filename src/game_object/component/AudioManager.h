@@ -89,6 +89,10 @@ public:
     /// @return [0.0, 1.0] 如果id没找到, 返回-1.0
     float GetVolume(const std::string& id);
 
+    /// @brief 查询对应音频是否在播放
+    /// @param id 指定音频
+    bool IsPlayingAudio(const std::string& id);
+
 private:
     AudioManager();
     AudioManager(const AudioManager&) = delete;

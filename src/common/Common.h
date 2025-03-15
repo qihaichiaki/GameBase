@@ -15,6 +15,8 @@ struct Rect
 };
 
 using byte = unsigned char;
+using word = unsigned short;
+using dword = unsigned long;
 struct ColorRGB
 {
     byte r = 255, g = 255, b = 255;
@@ -24,6 +26,11 @@ struct ColorRGB
     /// @brief 解析二进制颜色
     /// @param hex "#FFFFFF"
     ColorRGB(const std::string& hex);
+
+    operator unsigned long() const
+    {
+        return (((byte)(r) | ((word)((byte)(g)) << 8)) | (((dword)(byte)(b)) << 16));
+    }
 };
 
 }  // namespace gameaf

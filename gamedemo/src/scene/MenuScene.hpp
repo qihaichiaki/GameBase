@@ -3,14 +3,15 @@
 #include <game_object/GameObject.h>
 #include <game_object/component/AudioManager.h>
 #include <game_object/component/Text.h>
+#include <game_object/widgets/ProgressBar.h>
 #include <resource/ResourceManager.h>
 #include <scene/Scene.h>
 
 #include <common/Log.hpp>
 
 #include "../Common.hpp"
-#include "ButtonObject.hpp"
 #include "EffectObject.hpp"
+#include "UIChoose.hpp"
 
 using namespace gameaf;
 
@@ -59,16 +60,29 @@ public:
         // 添加按钮对象
         ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/ui_choose/%d.png", 11,
                                                  "ui_choose");
-        auto buttonNew = std::make_shared<Button>(L"New Game");
-        auto buttonExit = std::make_shared<Button>(L"Exit Game");
+        auto buttonNew = std::make_shared<UIChoose>(L"New Game");
+        auto buttonExit = std::make_shared<UIChoose>(L"Exit Game");
 
         buttonNew->Translate({0.0f, 100.0f});
         buttonExit->Translate({0.0f, 180.0f});
 
-        buttonExit->RegisterMouseClicked([]() { GameAF::GetInstance().Exit(); });
+        auto progressBar = std::make_shared<ProgressBar>();
+        progressBar->SetGhostBar(true);  // 设置滞留条
+        progressBar->SetProgressBarColor(ColorRGB{"#98b856"});
+        progressBar->SetGhostBarColor(ColorRGB{255, 0, 0});
+        AddGameObjects({bug, title, buttonNew, buttonExit, progressBar});
 
-        AddGameObjects({bug, title, buttonNew, buttonExit});
+        // progressBar->SetTargetProgressValue(1.0f);
 
+        buttonNew->RegisterMouseClicked([progressBar]() {
+            progressBar->SetTargetProgressValue(GameAF::GetInstance().Random(0.0f, 1.0f));
+            if (!AudioManager::GetInstance().IsPlayingAudio("menu-bgm")) {
+                AudioManager::GetInstance().PlayAudio("menu-bgm");
+            } else {
+                gameaf::log("音频正在播放中....");
+            }
+        });
+        buttonExit->RegisterMouseClicked([]() { GameAF::GetInstance().Exit(); });  // 设置游戏退出
         // 加载菜单场景的音乐
         ResourceManager::GetInstance().LoadAudio(ASSETS_PATH "audio/bgm-menu.wav", "menu-bgm");
     }
