@@ -37,7 +37,7 @@ public:
         return clonePtr;
     }
 
-    void OnMouseClicked() override
+    void OnMouseUp() override
     {
         if (onMouseClicked) onMouseClicked();
     }

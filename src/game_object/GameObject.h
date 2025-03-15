@@ -69,13 +69,28 @@ public:
     // 鼠标事件
 
     /// @brief 鼠标进入对象区域
-    virtual void OnMouseEnter() {}
+    virtual void OnMouseEnter()
+    {
+        if (m_containsScreenPointChildObj) m_containsScreenPointChildObj->OnMouseEnter();
+    }
 
     /// @brief 鼠标离开对象区域
-    virtual void OnMouseExit() {}
+    virtual void OnMouseExit()
+    {
+        if (m_containsScreenPointChildObj) m_containsScreenPointChildObj->OnMouseExit();
+    }
 
-    /// @brief 鼠标点击
-    virtual void OnMouseClicked() {}
+    /// @brief 左键按下
+    virtual void OnMouseDown()
+    {
+        if (m_containsScreenPointChildObj) m_containsScreenPointChildObj->OnMouseDown();
+    }
+
+    /// @brief 左键松开
+    virtual void OnMouseUp()
+    {
+        if (m_containsScreenPointChildObj) m_containsScreenPointChildObj->OnMouseUp();
+    }
 
     /// 注入回调式更新游戏对象
     using EnterCallback = void (*)(GameObject*);
@@ -130,6 +145,9 @@ public:
     /// @param offset 位移大小
     void Translate(const Vector2& offset) { m_position += offset; }
 
+    /// @brief 基于视口坐标设置
+    void SetScreenPosition(const Camera& camera, const Vector2& screenPosition);
+
     /// @brief 设置渲染层级,越大渲染级别越高,越后被渲染
     void SetZOrder(int z_order);
 
@@ -139,6 +157,7 @@ public:
     /// @brief 添加子对象
     /// @note - 父对象会添加为当前对象, 并且如果之前存在父对象, 则会遍历删除一遍
     /// @note - 成为子对象, 渲染级别和父对象一致(子对象之间看插入的先后关系)
+    /// @warning 注意, 如果父对象没有加载入场景, 子对象加载入了, 可能会出现指针异常, 并且这是非法的
     void AddChildObject(GameObjectPtr child);
 
     /// @brief 添加多个子对象
@@ -163,7 +182,11 @@ public:
             OnEnter();
         }
         m_isActive = isActive;
+        m_isChildrenActive = isActive;
     }
+
+    /// @brief 设置子游戏对象是否活动, 不会调用子对象得OnEnter方法，只会影响子游戏对象是否参与更新和渲染
+    void SetChildrenActive(bool isActive) { m_isChildrenActive = isActive; }
 
     /// @brief 查看游戏对象是否处于活跃状态
     bool GetActive() const { return m_isActive; }
@@ -183,6 +206,8 @@ public:
     /// @brief 游戏框架内置更新
     /// @param delta 当前帧和上一帧相差时间间隔
     void OnUpdate(float delta);
+    /// @brief 渲染游戏对象
+    void OnRender();
     /// @brief 游戏框架内置渲染
     void OnRender(const Camera&);
 
@@ -210,8 +235,9 @@ private:
     // gameobject所属的scene
     // scene的生命周期不由gameobject进行管理
     SceneWeakPtr m_myScene;
-    bool m_isAwake = false;  // 判断是否唤醒过, 一个游戏对象只能一次
-    bool m_isActive = true;  // 是否活动, 如果不活动，则不对其对象进行渲染和update
+    bool m_isAwake = false;          // 判断是否唤醒过, 一个游戏对象只能一次
+    bool m_isActive = true;          // 是否活动, 如果不活动，则不对其对象进行渲染和update
+    bool m_isChildrenActive = true;  // 是否对Children启用活动?
 
     // transform
     Vector2 m_position;  // 位置组件
@@ -224,8 +250,9 @@ private:
     TextLists m_texts = nullptr;             // 文本组件
     // ...
 
-    ChildGameObjects m_child_gameObjects = nullptr;  // 子游戏对象容器
-    GameObjectWeakPtr m_parent = nullptr;            // 父对象
-    CameraLists m_cameras;                           // 当前游戏对象附加的摄像机对象们
+    ChildGameObjects m_child_gameObjects = nullptr;       // 子游戏对象容器
+    GameObjectWeakPtr m_parent = nullptr;                 // 父对象
+    GameObject* m_containsScreenPointChildObj = nullptr;  // 包含屏幕点的具体子对象
+    CameraLists m_cameras;                                // 当前游戏对象附加的摄像机对象们
 };
 }  // namespace gameaf

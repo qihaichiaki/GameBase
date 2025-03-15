@@ -200,4 +200,18 @@ bool Text::ContainsScreenPoint(const Camera& camera, const Vector2& pos) const
            (pos.Y >= y && pos.Y <= y + m_renderBoxSize.Y);
 }
 
+void Text::OnDebugRender(const Camera& camera)
+{
+    Vector2 position = Position();
+    int left = static_cast<int>(position.X - m_renderBoxSize.X / 2 - camera.GetPosition().X);
+    int top = static_cast<int>(position.Y - m_renderBoxSize.Y / 2 - camera.GetPosition().Y);
+    int right = static_cast<int>(position.X + m_renderBoxSize.X / 2 - camera.GetPosition().X);
+    int bottom = static_cast<int>(position.Y + m_renderBoxSize.Y / 2 - camera.GetPosition().Y);
+#ifdef GAMEAF_USE_EASYX
+    setlinecolor(RGB(115, 115, 175));
+    rectangle(left, top, right, bottom);
+#else
+#endif
+}
+
 }  // namespace gameaf

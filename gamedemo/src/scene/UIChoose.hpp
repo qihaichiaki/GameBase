@@ -9,6 +9,7 @@
 
 using gameaf::Animator;
 using gameaf::Button;
+using gameaf::Camera;
 using gameaf::ColorRGB;
 using gameaf::GameObject;
 using gameaf::Text;
@@ -50,12 +51,14 @@ public:
 
         ui_chooseLeft = std::make_shared<UIChooseAnimator>();
 
-        ui_chooseLeft->SetPosition({GetPosition().X - 140.0f, GetPosition().Y});
+        ui_chooseLeft->SetPosition(
+            {GetPosition().X - GetTextComponent()->GetRenderBoxSize().X / 2 - 40.0f,
+             GetPosition().Y - 5.0f});
         AddChildObject(ui_chooseLeft);
 
         ui_chooseRight = ui_chooseLeft->Clone();
         ui_chooseRight->Flip();
-        ui_chooseRight->Translate({280.0f, 0.0f});
+        ui_chooseRight->Translate({GetTextComponent()->GetRenderBoxSize().X + 80.0f, 0.0f});
         Select(false);
     }
 
@@ -70,6 +73,8 @@ public:
         Select(false);
         GetTextComponent()->SetTextColor(ColorRGB{});
     }
+
+    // void OnDraw(const Camera& camera) { GetTextComponent()->OnDebugRender(camera); }
 
 public:
     void Select(bool isSelect)

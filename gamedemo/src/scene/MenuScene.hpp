@@ -15,6 +15,18 @@
 
 using namespace gameaf;
 
+class AudioProgressBar : public ProgressBar
+{
+public:
+    void OnUpdate() override
+    {
+        static float len = AudioManager::GetInstance().AskAudioLength("menu-bgm");
+        float currentLen = AudioManager::GetInstance().AskAudioPos("menu-bgm");
+        SetTargetProgressValue(currentLen / len);
+        ProgressBar::OnUpdate();
+    }
+};
+
 class MenuScene : public Scene
 {
 public:
@@ -26,7 +38,8 @@ public:
         auto titleText = title->CreateComponent<Text>(std::wstring{L"Syne Mono"});
         auto subheading = title->CreateComponent<Text>(std::wstring{L"Syne Mono"});
         // 设置到场景主相机的正中心
-        GetCamera("scene-main")->LookAt(title->GetPosition());
+        auto mainCamera = GetCamera("scene-main");
+        mainCamera->LookAt(title->GetPosition());  // 以0,0 设置为菜单场景的正中心
 
         // 设置主标题内容
         titleText->SetText(L"GameDemo");
@@ -47,15 +60,18 @@ public:
 
         // 闪亮存在一个父对象, 利用附加的一个子对象随后clone(自动继承父对象)
         // 使用一个父对象可以将游戏对象归类
-        auto bug = std::make_shared<GameObject>("bug");
+        auto bug = std::make_shared<GameObject>();
         bug->SetZOrder(RenderZOrder::UI_2);
-        auto bug1 = std::make_shared<Bug>();
-        bug1->Translate({0.0f, -200.0f});
+        auto bug1 = std::make_shared<Bug>(mainCamera.get());
+        // 添加子对象
         bug->AddChildObject(bug1);
+        bug1->Translate({0.0f, -200.0f});
         auto bug2 = bug1->Clone();
         bug2->Translate({-300.0f, 0.0f});
         auto bug3 = bug1->Clone();
         bug3->Translate({300.0f, 0.0f});
+        bug->SetActive(false);
+        bug->SetChildrenActive(true);
 
         // 添加按钮对象
         ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/ui_choose/%d.png", 11,
@@ -63,25 +79,16 @@ public:
         auto buttonNew = std::make_shared<UIChoose>(L"New Game");
         auto buttonExit = std::make_shared<UIChoose>(L"Exit Game");
 
-        buttonNew->Translate({0.0f, 100.0f});
-        buttonExit->Translate({0.0f, 180.0f});
+        buttonNew->Translate({0.0f, 140.0f});
+        buttonExit->Translate({0.0f, 220.0f});
 
-        auto progressBar = std::make_shared<ProgressBar>();
-        progressBar->SetGhostBar(true);  // 设置滞留条
-        progressBar->SetProgressBarColor(ColorRGB{"#98b856"});
-        progressBar->SetGhostBarColor(ColorRGB{255, 0, 0});
+        auto progressBar = std::make_shared<AudioProgressBar>();
+        // progressBar->SetGhostBar(true);  // 设置滞留条
+        // progressBar->SetProgressBarColor(ColorRGB{"#98b856"});
+        // progressBar->SetGhostBarColor(ColorRGB{255, 0, 0});
         AddGameObjects({bug, title, buttonNew, buttonExit, progressBar});
 
-        // progressBar->SetTargetProgressValue(1.0f);
-
-        buttonNew->RegisterMouseClicked([progressBar]() {
-            progressBar->SetTargetProgressValue(GameAF::GetInstance().Random(0.0f, 1.0f));
-            if (!AudioManager::GetInstance().IsPlayingAudio("menu-bgm")) {
-                AudioManager::GetInstance().PlayAudio("menu-bgm");
-            } else {
-                gameaf::log("音频正在播放中....");
-            }
-        });
+        buttonNew->RegisterMouseClicked([]() { gameaf::log("开始游戏"); });
         buttonExit->RegisterMouseClicked([]() { GameAF::GetInstance().Exit(); });  // 设置游戏退出
         // 加载菜单场景的音乐
         ResourceManager::GetInstance().LoadAudio(ASSETS_PATH "audio/bgm-menu.wav", "menu-bgm");

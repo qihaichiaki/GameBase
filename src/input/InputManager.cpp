@@ -73,11 +73,12 @@ void InputManager::ProcessInput()
             case WM_LBUTTONDOWN:
                 m_key_state[INPUT_CONTINUE_INDEX].set((size_t)KeyValue::LButton);
                 m_key_state[INPUT_CURRENT_INDEX].set((size_t)KeyValue::LButton);
-                if (hoverObj) hoverObj->OnMouseClicked();
+                if (hoverObj) hoverObj->OnMouseDown();
                 break;
             case WM_LBUTTONUP:
                 m_key_state[INPUT_CONTINUE_INDEX].reset((size_t)KeyValue::LButton);
                 m_key_state[INPUT_CURRENT_INDEX].set((size_t)KeyValue::LButton);
+                if (hoverObj) hoverObj->OnMouseUp();
                 break;
             case WM_RBUTTONDOWN:
                 m_key_state[INPUT_CONTINUE_INDEX].set((size_t)KeyValue::RButton);
@@ -131,7 +132,7 @@ void InputManager::ProcessMouseEvent(const std::vector<std::shared_ptr<GameObjec
     auto rit = objs.rbegin();
     while (rit != objs.rend()) {
         GameObject* obj = (*rit).get();
-        if (obj->ContainsScreenPoint({m_mousePos.X * 1.0f, m_mousePos.Y * 1.0f})) {
+        if (obj->ContainsScreenPoint(m_mousePos)) {
             // gameaf::log("鼠标移动到了`{}`上, 坐标为:{},{}", (*rit)->GetName(), m_mousePos.X,
             //             m_mousePos.Y);
             currentHoverObj = obj;

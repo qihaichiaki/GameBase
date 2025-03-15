@@ -5,6 +5,7 @@
  */
 
 #include <bitset>
+#include <common/Vector2.hpp>
 #include <memory>
 #include <vector>
 
@@ -14,12 +15,6 @@
 #define INPUT_CURRENT_INDEX 1
 
 namespace gameaf {
-
-struct MousePosition
-{
-    int X = 0, Y = 0;
-};
-
 class GameObject;
 class InputManager
 {
@@ -96,7 +91,7 @@ public:
     /// @brief 检测`key`是否被按下
     bool GetKey(KeyValue key) { return m_key_state[INPUT_CONTINUE_INDEX].test((size_t)key); }
 
-    const MousePosition& GetMousePos() { return m_mousePos; }
+    const Vector2& GetMousePos() { return m_mousePos; }
 
 public:
     /// @brief 处理输入
@@ -116,6 +111,6 @@ private:
     // TODO: 事件队列?
 
     // 鼠标位置
-    MousePosition m_mousePos;
+    Vector2 m_mousePos;
 };
 }  // namespace gameaf

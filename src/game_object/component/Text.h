@@ -80,6 +80,9 @@ public:
 
     bool ContainsScreenPoint(const Camera&, const Vector2&) const override;
 
+    /// @brief debug显示文本框
+    void OnDebugRender(const Camera& camera);
+
 private:
     void RenderLeftTop(const Camera& camera, Vector2 pos,
                        std::unordered_map<wchar_t, int>& fontWidthCache);

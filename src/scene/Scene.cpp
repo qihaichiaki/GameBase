@@ -30,10 +30,7 @@ void Scene::OnUpdate(float delta)
         }
 
         for (auto& object : *m_gameObjects) {
-            if (object->GetActive()) {
-                object->OnUpdate();
-                object->OnUpdate(delta);
-            }
+            object->OnUpdate(delta);
         }
 
         InputManager::GetInstance().ProcessMouseEvent(*m_gameObjects);
@@ -48,10 +45,7 @@ void Scene::OnFixUpdate(float alpha)
 {
     if (m_gameObjects) {
         for (auto& object : *m_gameObjects) {
-            if (object->GetActive()) {
-                object->OnFixUpdate();
-                object->OnFixUpdate(alpha);
-            }
+            object->OnFixUpdate(alpha);
         }
     }
 
@@ -65,12 +59,7 @@ void Scene::OnRender()
     if (m_gameObjects == nullptr) return;
 
     for (auto& object : *m_gameObjects) {
-        for (auto& [_, camera] : m_cameras) {
-            if (camera->HasRender(object->GetName()) && object->GetActive()) {
-                object->OnRender(*camera);
-                object->OnDraw(*camera);
-            }
-        }
+        object->OnRender();
     }
 
     if (m_renderCamera) {

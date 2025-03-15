@@ -197,6 +197,9 @@ void GameObject::DelChildObjects(const std::string& child_id)
         auto it = m_child_gameObjects->begin();
         while (it != m_child_gameObjects->end()) {
             if ((*it)->GetName() == child_id) {
+                if ((*it).get() == m_containsScreenPointChildObj) {
+                    m_containsScreenPointChildObj = nullptr;
+                }
                 it = m_child_gameObjects->erase(it);
             } else {
                 ++it;
@@ -207,9 +210,13 @@ void GameObject::DelChildObjects(const std::string& child_id)
 
 void GameObject::OnFixUpdate(float alpha)
 {
-    // 特殊属性处理更新
-    if (m_rigidbody2D) m_rigidbody2D->OnFixedUpdate(alpha);
-    if (m_child_gameObjects) {
+    if (m_isActive) {
+        // 特殊属性处理更新
+        if (m_rigidbody2D) m_rigidbody2D->OnFixedUpdate(alpha);
+        OnFixUpdate();
+    }
+
+    if (m_isChildrenActive && m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
             if (game_object->GetActive()) {
                 game_object->OnFixUpdate();
@@ -221,9 +228,13 @@ void GameObject::OnFixUpdate(float alpha)
 
 void GameObject::OnUpdate(float delta)
 {
-    // 特殊属性处理更新
-    if (m_animator) m_animator->OnUpdate(delta);
-    if (m_child_gameObjects) {
+    if (m_isActive) {
+        // 特殊属性处理更新
+        if (m_animator) m_animator->OnUpdate(delta);
+        OnUpdate();
+    }
+
+    if (m_isChildrenActive && m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
             if (game_object->GetActive()) {
                 game_object->OnUpdate();
@@ -233,24 +244,35 @@ void GameObject::OnUpdate(float delta)
     }
 }
 
+void GameObject::OnRender()
+{
+    if (m_cameras == nullptr) return;
+    for (auto camera : *m_cameras) {
+        OnRender(*camera);
+        OnDraw(*camera);
+    }
+}
+
 void GameObject::OnRender(const Camera& camera)
 {
-    // 特殊属性处理渲染
-    if (m_image) {
-        m_image->OnRender(camera);
-    }
+    if (m_isActive) {
+        // 特殊属性处理渲染
+        if (m_image) {
+            m_image->OnRender(camera);
+        }
 
-    if (m_animator) {
-        m_animator->OnRender(camera);
-    }
+        if (m_animator) {
+            m_animator->OnRender(camera);
+        }
 
-    if (m_texts) {
-        for (auto& text : *m_texts) {
-            text->OnRender(camera);
+        if (m_texts) {
+            for (auto& text : *m_texts) {
+                text->OnRender(camera);
+            }
         }
     }
 
-    if (m_child_gameObjects) {
+    if (m_isChildrenActive && m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
             if (game_object->GetActive()) {
                 game_object->OnRender(camera);
@@ -279,29 +301,39 @@ const GameObject::CameraLists& GameObject::GetCameras()
 bool GameObject::ContainsScreenPoint(const Vector2& pos)
 {
     const auto& cameras = GetCameras();
-    if (cameras == nullptr || !m_isActive) return false;
+    if (cameras == nullptr) return false;
 
-    for (auto camera : *cameras) {
-        if (m_image && m_image->ContainsScreenPoint(*camera, pos)) {
-            return true;
-        }
-        if (m_animator && m_animator->ContainsScreenPoint(*camera, pos)) {
-            return true;
-        }
-        if (m_texts) {
-            for (const auto& text : *m_texts) {
-                if (text->ContainsScreenPoint(*camera, pos)) return true;
+    if (m_isActive) {
+        for (auto camera : *cameras) {
+            if (m_image && m_image->ContainsScreenPoint(*camera, pos)) {
+                return true;
+            }
+            if (m_animator && m_animator->ContainsScreenPoint(*camera, pos)) {
+                return true;
+            }
+            if (m_texts) {
+                for (const auto& text : *m_texts) {
+                    if (text->ContainsScreenPoint(*camera, pos)) return true;
+                }
             }
         }
     }
 
-    if (m_child_gameObjects) {
+    if (m_isChildrenActive && m_child_gameObjects) {
         for (auto& child : *m_child_gameObjects) {
-            if (child->ContainsScreenPoint(pos)) return true;
+            if (child->ContainsScreenPoint(pos)) {
+                m_containsScreenPointChildObj = child.get();
+                return true;
+            }
         }
     }
 
     return false;
+}
+
+void GameObject::SetScreenPosition(const Camera& camera, const Vector2& screenPosition)
+{
+    m_position = screenPosition + camera.GetPosition();
 }
 
 void GameObject::SetZOrder(int z_order)

@@ -3,6 +3,7 @@
 #include <GameAf.h>
 #include <game_object/GameObject.h>
 #include <game_object/component/Animator.h>
+#include <input/InputManager.h>
 
 #include <common/Log.hpp>
 
@@ -11,13 +12,17 @@
  */
 
 using gameaf::Animator;
+using gameaf::Camera;
 using gameaf::GameObject;
+using gameaf::InputManager;
 using gameaf::log;
 using gameaf::Vector2;
 
 class Bug : public GameObject
 {
 public:
+    Bug(Camera* renderCamera) : renderCamera(renderCamera) {}
+
     void OnAwake() override
     {
         // 添加动画组件, bug
@@ -61,25 +66,37 @@ public:
             isStart = false;
         }
 
-        Vector2 currentPos = GetPosition();
-        if ((target - currentPos).Length() < (dir * speed).Length()) {
-            // 随机位置
-            target = {
-                GameAF::GetInstance().Random(position.X - size.X / 2, position.X + size.X / 2) *
-                    1.0f,
-                GameAF::GetInstance().Random(position.Y - size.Y / 2, position.Y + size.Y / 2) *
-                    1.0f};
-            dir = (target - currentPos).Normalized();
-        }
+        // 小彩蛋: 实现鼠标拖拽效果
+        if (isDragging) {
+            SetScreenPosition(*renderCamera, InputManager::GetInstance().GetMousePos());
+            target = GetPosition();
+        } else {
+            Vector2 currentPos = GetPosition();
+            if ((target - currentPos).Length() < (dir * speed).Length()) {
+                // 随机位置
+                target = {
+                    GameAF::GetInstance().Random(position.X - size.X / 2, position.X + size.X / 2) *
+                        1.0f,
+                    GameAF::GetInstance().Random(position.Y - size.Y / 2, position.Y + size.Y / 2) *
+                        1.0f};
+                dir = (target - currentPos).Normalized();
+            }
 
-        Translate(dir * speed);
+            Translate(dir * speed);
+        }
     }
 
+    void OnMouseDown() override { isDragging = true; }
+
+    void OnMouseUp() override { isDragging = false; }
+
 private:
+    Camera* renderCamera = nullptr;
     Vector2 size;
     Vector2 position;
     Vector2 target;
     Vector2 dir;
     float speed;
     bool isStart = true;
+    bool isDragging = false;
 };

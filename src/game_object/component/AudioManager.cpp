@@ -247,4 +247,32 @@ bool AudioManager::IsPlayingAudio(const std::string& id)
     return false;
 }
 
+float AudioManager::AskAudioLength(const std::string& id)
+{
+    if (m_audioVolumes.count(id) == 0) return 0.0f;
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    static char strCmd[512];
+    _stprintf_s(strCmd, "status %s length", id.c_str());
+    char buffer[128];
+    mciSendStringA(strCmd, buffer, sizeof(buffer), NULL);
+    return atof(buffer);
+#else
+#endif
+    return 0.0f;
+}
+
+float AudioManager::AskAudioPos(const std::string& id)
+{
+    if (m_audioVolumes.count(id) == 0) return 0.0f;
+#if defined(_MSC_VER) && defined(GAMEAF_USE_EASYX)
+    static char strCmd[512];
+    _stprintf_s(strCmd, "status %s position", id.c_str());
+    char buffer[128];
+    mciSendStringA(strCmd, buffer, sizeof(buffer), NULL);
+    return atof(buffer);
+#else
+#endif
+    return 0.0f;
+}
+
 }  // namespace gameaf

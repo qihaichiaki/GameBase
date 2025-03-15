@@ -93,6 +93,14 @@ public:
     /// @param id 指定音频
     bool IsPlayingAudio(const std::string& id);
 
+    /// @brief 查询音频总时长
+    /// @return 毫秒
+    float AskAudioLength(const std::string& id);
+
+    /// @brief 查询音频当前进度
+    /// @return 毫秒
+    float AskAudioPos(const std::string& id);
+
 private:
     AudioManager();
     AudioManager(const AudioManager&) = delete;
