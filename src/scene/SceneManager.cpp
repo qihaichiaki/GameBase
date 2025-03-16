@@ -5,11 +5,26 @@
 #include <input/InputManager.h>
 #include <scene/Scene.h>
 
+#include <atomic>
 #include <common/Log.hpp>
 #include <common/Utils.hpp>
+#include <mutex>
+#include <queue>
 #include <thread>
 
 namespace gameaf {
+
+// 就场景管理器全局的主线程任务队列
+// 用于异步任务再主线程执行逻辑
+static std::queue<std::function<void()>> mainThreadQueue;
+static std::mutex queueMutex;
+static std::atomic<float> loadingProgress = 0.0f;  // 共享进度变量
+
+inline static void RunOnMainThread(std::function<void()> func)
+{
+    std::lock_guard<std::mutex> lock(queueMutex);
+    mainThreadQueue.push(func);
+}
 
 SceneManager& SceneManager::GetInstance()
 {
@@ -45,6 +60,13 @@ void SceneManager::OnUpdate(float delta)
             m_transitionSpeed *= -1.0f;
             m_transitionProgress = 0.0f;
         }
+    }
+
+    // 主线程任务队列
+    // 没有锁的保护, 可能会出现问题
+    while (!mainThreadQueue.empty()) {
+        mainThreadQueue.front()();
+        mainThreadQueue.pop();
     }
 }
 
@@ -139,8 +161,13 @@ void SceneManager::LoadSceneAsync(LoadAsyncFuc loadFunc, const std::string& load
     // 开始异步加载
     std::thread([=]() {
         loadFunc();
-        SwitchTo(nextSceneId, isTransition);
+        // 执行完毕, 在主线程切换场景
+        RunOnMainThread([=]() { SwitchTo(nextSceneId, isTransition); });
     }).detach();
 }
+
+float SceneManager::GetLoadProgress() { return loadingProgress; }
+
+void SceneManager::SetLoadProgress(float progress) { loadingProgress = progress; }
 
 }  // namespace gameaf

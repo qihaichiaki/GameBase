@@ -24,6 +24,13 @@ public:
     /// @brief 设置进度条大小
     void SetProgressBarSize(const Vector2& progressBarSize) { m_progressBarSize = progressBarSize; }
 
+    /// @brief 调整进度条整体比例
+    void SetSizeScale(const Vector2& scale)
+    {
+        m_borderSize *= scale;
+        m_progressBarSize *= scale;
+    }
+
     /// @brief 设置是否存在滞留进度
     /// @param ghostSpeedScale 滞留条相对于进度条的速度
     void SetGhostBar(bool isGhostBar, float ghostSpeedScale = 0.5f)
@@ -92,7 +99,7 @@ private:
     float m_progressValue = 0.0f;        // 当前进度值 0 ~ 1.0
     float m_ghostProgressValue = 0.0f;   // 滞留进度值
     float m_targetProgressValue = 0.0f;  // 目标进度值
-    float m_progressSpeed = 0.28f;       // 进度条速度
+    float m_progressSpeed = 0.15f;       // 进度条速度
     float m_ghostSpeedScale = 0.5f;      // 滞留速度占比(0.0~1.0) 对应为speed的多少倍
 };
 }  // namespace gameaf

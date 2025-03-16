@@ -29,8 +29,22 @@ int main()
     sceneManager.Register("game", std::make_shared<GameScene>());
     sceneManager.Register("load", std::make_shared<LoadScene>());
     // sceneManager.SetEntry("menu", true);
-    sceneManager.LoadSceneAsync([]() { std::this_thread::sleep_for(std::chrono::seconds(3)); },
-                                "load", "menu", true);
+    sceneManager.LoadSceneAsync(
+        [&]() {
+            sceneManager.SetLoadProgress(0.0f);
+            gameaf::log("执行任务1");
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            sceneManager.SetLoadProgress(0.2f);
+            gameaf::log("执行任务2");
+            std::this_thread::sleep_for(std::chrono::seconds(4));
+            sceneManager.SetLoadProgress(0.6f);
+            gameaf::log("执行任务3");
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            sceneManager.SetLoadProgress(1.0f);
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            gameaf::log("执行完毕");
+        },
+        "load", "menu", true);
 
     // 游戏死循环运行
     gameaf.Run();

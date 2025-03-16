@@ -40,11 +40,21 @@ public:
     /// @brief 异步加载场景
     /// @param loadFunc 异步加载内容
     /// @param loadSceneId 加载时显示场景
-    /// @param nextSceneId 加载完毕的下一个场景
+    /// @param nextSceneId 加载完毕的下一个场景1
     /// @param isTransition 是否过渡
     /// @note 如果没设置默认场景, loadSceneId就是第一个场景
+    /// @warning loadFunc异步加载内容不能影响主线程内容(Gameobject创建等), 音频资源也不能异步加载(MCI问题)
+    /// @warning 建议加载资源时使用异步, 除开字体和音频, 图集之类密集IO类型类型可以异步加载
     void LoadSceneAsync(LoadAsyncFuc loadFunc, const std::string& loadSceneId,
                         const std::string& nextSceneId, bool isTransition = false);
+
+    /// @brief 获取全局的加载进度
+    /// @note 通常使用在异步加载任务过程中, 异步任务共享进度给加载场景
+    float GetLoadProgress();
+
+    /// @brief 设置全局的加载进度
+    /// @param progress 通常使用在异步加载任务中, 异步加载任务设置任务进度
+    void SetLoadProgress(float progress);
 
 private:
     ScenePtr m_currentScene = nullptr;
