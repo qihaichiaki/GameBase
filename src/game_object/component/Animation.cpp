@@ -83,4 +83,11 @@ void Animation::Flip()
     }
 }
 
+void Animation::SetSizeScale(const Vector2& scale)
+{
+    for (auto& frame : m_frames) {
+        frame.img.SetSizeScale(scale);
+    }
+}
+
 }  // namespace gameaf

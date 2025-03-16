@@ -20,9 +20,10 @@ public:
     void OnAwake() override
     {
         auto load = std::make_shared<GameObject>("load");
-        ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/little_knight/%d.png", 5,
+        ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/load/little_knight/%d.png", 5,
                                                  "little_knight");
-        load->CreateComponent<Animator>()->AddAnimationForAtlas("load", "little_knight", true);
+        auto loadAnimator = load->CreateComponent<Animator>();
+        loadAnimator->AddAnimationForAtlas("load", "little_knight", true);
 
         auto progressBar = std::make_shared<ProgressBar>();
         progressBar->Translate({0.0f, 200.0f});

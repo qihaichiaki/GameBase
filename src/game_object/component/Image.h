@@ -32,7 +32,10 @@ public:
     const Vector2& GetSize() const;
 
     /// @brief 设置图像大小
-    void SetSize(Vector2 size);
+    void SetSize(const Vector2& size);
+
+    /// @brief 设置图像大小比例
+    void SetSizeScale(const Vector2& size);
 
     /// @brief 返回精灵图的总数
     size_t GetSpriteNum() const;

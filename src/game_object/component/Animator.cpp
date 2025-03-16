@@ -138,4 +138,11 @@ void Animator::Restart()
     }
 }
 
+void Animator::SetSizeScale(const Vector2& scale)
+{
+    for (auto& [_, animation] : m_animations) {
+        animation.SetSizeScale(scale);
+    }
+}
+
 }  // namespace gameaf

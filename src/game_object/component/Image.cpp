@@ -53,7 +53,9 @@ void Image::Flip()
 
 const Vector2& Image::GetSize() const { return m_size; }
 
-void Image::SetSize(Vector2 size) { m_size = size; }
+void Image::SetSize(const Vector2& size) { m_size = size; }
+
+void Image::SetSizeScale(const Vector2& scale) { m_size *= scale; }
 
 size_t Image::GetSpriteNum() const { return m_img->GetSpriteNum(); }
 

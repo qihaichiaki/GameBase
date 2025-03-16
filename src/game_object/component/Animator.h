@@ -82,6 +82,9 @@ public:
     /// @brief 动画全部重置
     void Restart();
 
+    /// @brief 设置所有动画的图像大小比例
+    void SetSizeScale(const Vector2& scale);
+
 private:
     std::unordered_map<std::string, Animation> m_animations;
     std::string m_current_animation_id;

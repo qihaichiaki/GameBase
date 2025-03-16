@@ -66,6 +66,9 @@ public:
     /// @brief x方向上垂直旋转自身
     void Flip();
 
+    /// @brief 设置动画每帧的图像大小比例
+    void SetSizeScale(const Vector2& scale);
+
 private:
     void TimerInit();
 
