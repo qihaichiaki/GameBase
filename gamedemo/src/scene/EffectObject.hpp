@@ -21,7 +21,7 @@ using gameaf::Vector2;
 class Bug : public GameObject
 {
 public:
-    Bug(Camera* renderCamera) : renderCamera(renderCamera) {}
+    Bug(Camera* renderCamera) : GameObject("bug"), renderCamera(renderCamera) {}
 
     void OnAwake() override
     {

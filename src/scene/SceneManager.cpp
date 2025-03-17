@@ -38,7 +38,7 @@ SceneManager::ScenePtr SceneManager::GetScene(const std::string& sceneId)
         gameaf::log("[error][GetScene] 场景并未注册 sceneId: {}", sceneId);
         return nullptr;
     }
-    return m_scenePool.at(sceneId);
+    return m_scenePool.at(sceneId).scene;
 }
 
 void SceneManager::OnUpdate(float delta)
@@ -50,7 +50,8 @@ void SceneManager::OnUpdate(float delta)
     if (m_isTransition) {
         m_transitionProgress += m_transitionSpeed;
         if (m_transitionProgress >= 1.0f && m_swicthToSceneId != "") {
-            m_currentScene = m_scenePool.at(m_swicthToSceneId);
+            m_currentScene->OnExit();  // 上个场景退出逻辑
+            m_currentScene = m_scenePool.at(m_swicthToSceneId).scene;
             m_currentScene->OnEnter();
             m_transitionProgress = 1.0f;
             m_transitionSpeed *= -1.0f;
@@ -111,15 +112,30 @@ void SceneManager::SetEntry(const std::string& sceneId, bool isTransition)
 {
     if (m_scenePool.count(sceneId) == 0) {
         gameaf::log("[error][SetEntry] 场景并未注册 sceneId: {}", sceneId);
+        return;
+    }
+
+    if (m_currentScene != nullptr) {
+        gameaf::log("[error][SetEntry] 当前并不是初始阶段, 已经存在场景运行");
+        return;
+    }
+
+    auto& sceneInfo = m_scenePool.at(sceneId);
+    m_currentScene = sceneInfo.scene;
+    if (sceneInfo.isAwake) {
+        // 不应该出现, 这里做个简单检查
+        gameaf::log("[error][SetEntry] {}初始场景被调用过OnAwake方法了.....", sceneId);
     } else {
-        m_currentScene = m_scenePool.at(sceneId);
-        m_currentScene->OnEnter();
-        if (isTransition) {
-            m_isTransition = true;
-            m_transitionProgress = 1.0f;
-            m_transitionSpeed *= -1.0f;
-            m_swicthToSceneId = "";
-        }
+        m_currentScene->OnAwake();  // 初始阶段调用一次
+        sceneInfo.isAwake = true;
+    }
+
+    m_currentScene->OnEnter();
+    if (isTransition) {
+        m_isTransition = true;
+        m_transitionProgress = 1.0f;
+        m_transitionSpeed *= -1.0f;
+        m_swicthToSceneId = "";
     }
 }
 void SceneManager::SwitchTo(const std::string& sceneId, bool isTransition)
@@ -128,10 +144,15 @@ void SceneManager::SwitchTo(const std::string& sceneId, bool isTransition)
         gameaf::log("[error][SwitchTo] 场景并未注册 sceneId: {}", sceneId);
         return;
     }
-    m_currentScene->OnExit();
     InputManager::GetInstance().ClearSenseCache();  // 清理input中上个场景的缓存
+    auto& sceneInfo = m_scenePool.at(sceneId);
+    if (!sceneInfo.isAwake) {
+        sceneInfo.scene->OnAwake();  // 在实际enter前调用OnAwake
+        sceneInfo.isAwake = true;
+    }
     if (!isTransition) {
-        m_currentScene = m_scenePool.at(sceneId);
+        m_currentScene->OnExit();
+        m_currentScene = sceneInfo.scene;
         m_currentScene->OnEnter();
     } else {
         m_isTransition = true;  // 开始执行过渡逻辑
@@ -140,8 +161,7 @@ void SceneManager::SwitchTo(const std::string& sceneId, bool isTransition)
 }
 void SceneManager::Register(const std::string& sceneId, SceneManager::ScenePtr scene)
 {
-    scene->OnAwake();
-    m_scenePool[sceneId] = std::move(scene);
+    m_scenePool[sceneId].scene = std::move(scene);
 }
 
 void SceneManager::LoadSceneAsync(LoadAsyncFuc loadFunc, const std::string& loadSceneId,
@@ -169,5 +189,8 @@ void SceneManager::LoadSceneAsync(LoadAsyncFuc loadFunc, const std::string& load
 float SceneManager::GetLoadProgress() { return loadingProgress; }
 
 void SceneManager::SetLoadProgress(float progress) { loadingProgress = progress; }
+
+SceneManager::SceneManager() { gameaf::log("场景管理器启动"); }
+SceneManager::~SceneManager() { gameaf::log("场景管理器析构"); }
 
 }  // namespace gameaf

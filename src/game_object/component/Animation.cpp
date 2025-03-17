@@ -65,7 +65,18 @@ bool Animation::AddFrame(const Image& img)
     for (size_t i = 0; i < img.GetSpriteNum(); ++i) {
         m_frames.emplace_back(Frame{i, img});
     }
+    return true;
+}
 
+bool Animation::AddFrame(const Image& img, const std::vector<size_t>& indexs)
+{
+    for (auto index : indexs) {
+        if (index >= img.GetSpriteNum()) {
+            gameaf::log("[error][AddFrame] 指定的index不在精灵图总数内...");
+            return false;
+        }
+        m_frames.emplace_back(Frame{index, img});
+    }
     return true;
 }
 

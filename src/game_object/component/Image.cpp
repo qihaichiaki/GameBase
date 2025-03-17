@@ -10,7 +10,7 @@ namespace gameaf {
 Image::Image(GameObject* obj, TImage* timg, Vector2 offset)
     : Component{obj, offset},
       m_img(timg),
-      m_size(timg->GetWidth(), timg->GetHeight()),
+      m_size(timg->GetSpriteRect(0).w, timg->GetSpriteRect(0).h),
       m_currentImg(timg)
 {
 }
@@ -31,6 +31,8 @@ inline static Rect BuildRender(const Vector2& pos, const Vector2& size, const Ve
     dst.y = pos.Y - size.Y * anchor_pos.Y;
     return dst;
 }
+
+void Image::OnRender(const Camera& camera) const { OnRender(camera, m_renderSpriteIndex); }
 
 void Image::OnRender(const Camera& camera, size_t spriteIndex) const
 {

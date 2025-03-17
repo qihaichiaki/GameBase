@@ -18,6 +18,8 @@ using gameaf::Vector2;
 class UIChooseAnimator : public GameObject
 {
 public:
+    UIChooseAnimator() : GameObject("UIChooseAnimator") {}
+
     void OnAwake() override
     {
         animator = CreateComponent<Animator>();

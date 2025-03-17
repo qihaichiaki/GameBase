@@ -19,9 +19,20 @@ class LoadScene : public Scene
 public:
     void OnAwake() override
     {
+        auto& resourceManager = ResourceManager::GetInstance();
+
+        // === 加载主线程加载资源 ===
+        resourceManager.LoadFont(ASSETS_PATH "SyneMono-Regular.ttf");
+        // 加载菜单场景的音乐
+        resourceManager.LoadAudio(ASSETS_PATH "audio/bgm-menu.wav", "menu-bgm");
+        // 加载加载音效
+        resourceManager.LoadAudio(ASSETS_PATH "audio/play_tape.mp3", "play_tape");
+        // 加载加载场景的图集
+        resourceManager.LoadAtlas(ASSETS_PATH "effect/load/little_knight/%d.png", 5,
+                                  "little_knight");
+
+        // === 加载场景特有的初始化 ===
         auto load = std::make_shared<GameObject>("load");
-        ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/load/little_knight/%d.png", 5,
-                                                 "little_knight");
         auto loadAnimator = load->CreateComponent<Animator>();
         loadAnimator->AddAnimationForAtlas("load", "little_knight", true);
 
@@ -31,7 +42,6 @@ public:
         bar = progressBar.get();
 
         AddGameObjects({load, progressBar});
-        ResourceManager::GetInstance().LoadAudio(ASSETS_PATH "audio/play_tape.mp3", "play_tape");
     }
 
     void OnUpdate() override

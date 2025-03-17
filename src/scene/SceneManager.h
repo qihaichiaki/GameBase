@@ -57,8 +57,14 @@ public:
     void SetLoadProgress(float progress);
 
 private:
+    struct SceneInfo
+    {
+        ScenePtr scene = nullptr;
+        bool isAwake = false;
+    };
+
     ScenePtr m_currentScene = nullptr;
-    std::unordered_map<std::string, ScenePtr> m_scenePool;
+    std::unordered_map<std::string, SceneInfo> m_scenePool;
 
     // 场景过渡相关
     std::string m_swicthToSceneId;      // 待切换场景的id
@@ -68,8 +74,8 @@ private:
     bool m_isTransition = false;        // 是否开始过渡
 
 private:
-    SceneManager() = default;
-    ~SceneManager() = default;
+    SceneManager();
+    ~SceneManager();
     SceneManager(const SceneManager&) = delete;
     SceneManager& operator=(const SceneManager&) = delete;
 };

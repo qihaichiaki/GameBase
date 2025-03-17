@@ -57,6 +57,11 @@ public:
     /// @return 添加帧是否成功
     bool AddFrame(const Image& img);
 
+    /// @brief 将精灵图中特定的某些图像添加到帧内
+    /// @param img 精灵图
+    /// @param indexs 精灵图中每帧图在拆分中的编号(从0开始)
+    bool AddFrame(const Image& img, const std::vector<size_t>& indexs);
+
     /// @brief 获取当前帧
     const Frame& GetCurrentFrame() const;
 

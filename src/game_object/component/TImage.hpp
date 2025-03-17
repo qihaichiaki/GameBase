@@ -23,7 +23,7 @@ public:
     /// @param spriteN 图像精灵图个数
     /// @return 加载是否成功
     /// @note rows+cols 配合精灵图个数可以实现均分图像上的任意个
-    bool Load(const std::string& img_path, int rows = 1, int cols = 1, size_t spriteN = 1)
+    bool Load(const std::string& img_path, int rows = 1, int cols = 1, size_t spriteN = 0)
     {
 #ifdef GAMEAF_USE_EASYX
         loadimage(&m_image, UTF8StrToWStr(img_path).c_str());
@@ -32,8 +32,8 @@ public:
         if (m_width == 0 || m_height == 0) return false;
 #else
 #endif
-        m_spriteN = spriteN;
-        m_spriteRegion = {0.0f, 0.0f, m_width / rows, m_height / cols};
+        m_spriteN = spriteN == 0 ? rows * cols : spriteN;
+        m_spriteRegion = {0.0f, 0.0f, m_width / cols, m_height / rows};
         return true;
     }
 

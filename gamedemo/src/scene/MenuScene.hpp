@@ -69,9 +69,6 @@ public:
         mainCamera->LookAt(title->GetPosition());  // 以0,0 设置为菜单场景的正中心
 
         // 创建一些闪亮的东西
-        // 加载效果资源
-        ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/bug/%d.png", 8, "bug");
-
         // 闪亮存在一个父对象, 利用附加的一个子对象随后clone(自动继承父对象)
         // 使用一个父对象可以将游戏对象归类
         auto bug = std::make_shared<GameObject>();
@@ -88,8 +85,6 @@ public:
         bug->SetChildrenActive(true);
 
         // 添加按钮对象
-        ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/ui_choose/%d.png", 11,
-                                                 "ui_choose");
         auto buttonNew = std::make_shared<UIChoose>(L"New Game");
         auto buttonExit = std::make_shared<UIChoose>(L"Exit Game");
 
@@ -101,8 +96,6 @@ public:
         buttonNew->RegisterMouseClicked(
             []() { SceneManager::GetInstance().SwitchTo("game", true); });
         buttonExit->RegisterMouseClicked([]() { GameAF::GetInstance().Exit(); });  // 设置游戏退出
-        // 加载菜单场景的音乐
-        ResourceManager::GetInstance().LoadAudio(ASSETS_PATH "audio/bgm-menu.wav", "menu-bgm");
     }
 
     void OnEnter() override

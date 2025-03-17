@@ -21,8 +21,12 @@ public:
 public:
     /// @brief 渲染图像组件
     /// @param camera 相机
+    void OnRender(const Camera& camera) const;
+
+    /// @brief 渲染图像组件
+    /// @param camera 相机
     /// @param spriteIndex 精灵图id
-    void OnRender(const Camera& camera, size_t spriteIndex = 0) const;
+    void OnRender(const Camera& camera, size_t spriteIndex) const;
 
 public:
     /// @brief 水平方向翻转自身
@@ -52,7 +56,12 @@ public:
     /// 请自由的设置锚点在x方向所占的比例和在y方向所占的比例(单位矩形).值的取值在[0,1]
     void SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position = {0.0f, 0.0f});
 
+    /// @brief 检测屏幕坐标是否在图像组件内容
     bool ContainsScreenPoint(const Camera&, const Vector2&) const override;
+
+    /// @brief 设置图像具体渲染哪张精灵图
+    /// @param renderSpriteIndex 从0开头
+    void SetRenderSpriteIndex(size_t renderSpriteIndex);
 
 private:
     TImage* m_img;                      // 图像元
@@ -63,6 +72,8 @@ private:
     // 锚点
     ImageAnchorMode m_anchorMode = ImageAnchorMode::Centered;  // 默认锚点位置在图片中心
     Vector2 m_anchorPosition = {0.5f, 0.5f};  // 锚点单位矩形内的坐标, 默认为图像中心
+
+    size_t m_renderSpriteIndex = 0;  // 精灵图作为图像组件时, 需要渲染的第几张精灵图
 };
 
 }  // namespace gameaf

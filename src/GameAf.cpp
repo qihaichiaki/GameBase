@@ -13,26 +13,38 @@
 
 using namespace gameaf;
 
+static int g_screenWidth;
+static int g_screenHeight;
+
 GameAF& GameAF::GetInstance()
 {
     static GameAF instance;
     return instance;
 }
 
-void GameAF::InitWindow(const std::string& iconPath)
+void GameAF::InitWindow(const std::string& iconPath, bool isShowConsole,
+                        const std::string& screenName, int screenWidth, int screenHeight)
 {
     // 初始化屏幕
     WINDOWS_USE_UTF8;
+
+    // 实例化单例, 控制单例正确的顺序
+    (void)InputManager::GetInstance();
+    (void)CollisionManager::GetInstance();
+    (void)SceneManager::GetInstance();
+
 #ifdef GAMEAF_USE_EASYX
     HWND hwnd;
-    if (m_isShowConsole) {
-        hwnd = initgraph(m_screenWidth, m_screenHeight, EX_SHOWCONSOLE);
+    if (isShowConsole) {
+        hwnd = initgraph(screenWidth, screenHeight, EX_SHOWCONSOLE);
     } else {
-        hwnd = initgraph(m_screenWidth, m_screenHeight);
+        hwnd = initgraph(screenWidth, screenHeight);
         FreeConsole();  // 隐藏控制台
     }
 
-    SetWindowTextW(hwnd, UTF8StrToWStr(m_screenName).c_str());
+    SetWindowTextW(hwnd, UTF8StrToWStr(screenName).c_str());
+    g_screenWidth = screenWidth;
+    g_screenHeight = screenHeight;
 
     if (iconPath == "") return;
     // 从文件加载图标
@@ -131,16 +143,11 @@ void GameAF::Run()
 #else
 #endif
 }
+std::tuple<int, int> GameAF::GetScreenSize() { return {g_screenWidth, g_screenHeight}; }
 
-void GameAF::SetScreenSize(float width, float height)
-{
-    m_screenWidth = width;
-    m_screenHeight = height;
-}
+int GameAF::GetScreenWidth() { return g_screenWidth; }
 
-void GameAF::SetShowConsole(bool isShowConsole) { m_isShowConsole = isShowConsole; }
-
-void GameAF::SetScreenName(const std::string& screenName) { m_screenName = screenName; };
+int GameAF::GetScreenHeight() { return g_screenHeight; }
 
 void GameAF::SetFPS(int fps)
 {

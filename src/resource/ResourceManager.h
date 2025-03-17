@@ -19,7 +19,7 @@ public:
 
     /// @brief 加载图像资源
     bool NewImage(const std::string& image_path, const std::string& image_name, int rows = 1,
-                  int cols = 1, size_t spriteN = 1);
+                  int cols = 1, size_t spriteN = 0);
     /// @brief 加载字体资源
     bool LoadFont(const std::string& font_path);
     /// @brief 加载图集资源

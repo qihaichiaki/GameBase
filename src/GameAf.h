@@ -10,10 +10,16 @@ public:
 
     // === 游戏主循环内的执行函数 ===
 
-    /// @brief 初始化窗口
-    /// @param iconPath 图标路径
-    /// @note 切记输出日志前先调用此函数, 否则utf8编码可能出现乱码问题
-    void InitWindow(const std::string& iconPath = "");
+    /// @brief 初始化窗口,游戏
+    /// @param iconPath 窗口图标路径
+    /// @param isShowConsole 是否显示控制台
+    /// @param screenName 窗口名称
+    /// @param screenWidth 屏幕宽度
+    /// @param screenHeight 屏幕高度
+    /// @warning 使用gameaf框架构建游戏时, 优先使用此函数(前面不可使用此框架内的其他东西), 否则容易崩溃(乱码, 释放资源顺序不正确)
+    static void InitWindow(const std::string& iconPath = "", bool isShowConsole = false,
+                           const std::string& screenName = "MyGame", int screenWidth = 1280,
+                           int screenHeight = 720);
 
     /// @brief 游戏运行
     /// @note 主线程中阻塞
@@ -23,18 +29,12 @@ public:
 
     /// === 游戏框架相关参数操作 ===
 
-    /// @brief 设置屏幕的长度和宽度
-    void SetScreenSize(float width, float height);
     /// @brief 获取屏幕的大小
-    std::tuple<float, float> GetScreenSize() { return {m_screenWidth, m_screenHeight}; }
+    static std::tuple<int, int> GetScreenSize();
     /// @brief 获取屏幕的宽度
-    float GetScreenWidth() { return m_screenWidth; }
+    static int GetScreenWidth();
     /// @brief 获取屏幕的高度
-    float GetScreenHeight() { return m_screenHeight; }
-    /// @brief 设置是否显示控制台
-    void SetShowConsole(bool isShowConsole);
-    /// @brief 设置窗口名字
-    void SetScreenName(const std::string& screenName);
+    static int GetScreenHeight();
     /// @brief 设置游戏内帧数
     /// @note 设置帧数限制在min ~ max帧的区间内
     void SetFPS(int fps);
@@ -82,11 +82,6 @@ private:
     std::mt19937 gen;
 
 private:
-    // 屏幕的长度和宽度 是否显示控制台 窗口名字
-    float m_screenWidth = 1280.0f;
-    float m_screenHeight = 720.0f;
-    bool m_isShowConsole = false;
-    std::string m_screenName = "MyGame";
     float m_delta_time;
     float m_fixed_timestep = 1.0f / 60.0f;  // 物理固定频率 - 60hz
 

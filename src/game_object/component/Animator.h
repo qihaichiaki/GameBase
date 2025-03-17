@@ -28,7 +28,7 @@ public:
     void Flip() override;
 
 public:
-    /// @brief 添加动画对象来自图像
+    /// @brief 添加动画对象来自图像(一张精灵图包含的所有图都属于同一个动画)
     /// @param animation_id 动画对象在当前动画管理器中的唯一id
     /// @param imgID 图元对象ID
     /// @param isLoop 是否循环
@@ -36,6 +36,28 @@ public:
     /// @return 是否添加成功
     bool AddAnimationForImage(const std::string& animation_id, const std::string& imgID,
                               bool isLoop = true, float interval = 0.15f);
+
+    /// @brief 添加动画对象来自图像
+    /// @param animation_id 动画对象在当前动画管理器中的唯一id
+    /// @param imgID 图元对象ID
+    /// @param indexs 指定精灵图中对应的图编号
+    /// @param isLoop 是否循环
+    /// @param interval 帧之间的间隔
+    /// @return 是否添加成功
+    bool AddAnimationForImage(const std::string& animation_id, const std::string& imgID,
+                              const std::vector<size_t>& indexs, bool isLoop = true,
+                              float interval = 0.15f);
+
+    /// @brief 添加动画对象来自图像
+    /// @param animation_id 动画对象在当前动画管理器中的唯一id
+    /// @param imgID 图元对象ID
+    /// @param begin 精灵图开始的编号
+    /// @param len 精灵图的个数
+    /// @param isLoop 是否循环
+    /// @param interval 帧之间的间隔
+    /// @return 是否添加成功
+    bool AddAnimationForImage(const std::string& animation_id, const std::string& imgID,
+                              size_t begin, size_t len, bool isLoop = true, float interval = 0.15f);
 
     /// @brief 添加动画对象来自图集
     /// @param animation_id 动画对象在当前动画管理器中的唯一id
