@@ -11,8 +11,8 @@
 #include <common/Log.hpp>
 
 #include "../Common.hpp"
-#include "EffectObject.hpp"
-#include "UIChoose.hpp"
+#include "../other_object/EffectObject.hpp"
+#include "../other_object/UIChoose.hpp"
 
 using namespace gameaf;
 
@@ -65,7 +65,7 @@ public:
         // 初始化时调用
         // 创建标题对象
         auto title = std::make_shared<Title>();
-        auto mainCamera = GetCamera("scene-main");
+        auto mainCamera = GetCamera("main");
         mainCamera->LookAt(title->GetPosition());  // 以0,0 设置为菜单场景的正中心
 
         // 创建一些闪亮的东西
@@ -95,7 +95,7 @@ public:
 
         buttonNew->RegisterMouseClicked(
             []() { SceneManager::GetInstance().SwitchTo("game", true); });
-        buttonExit->RegisterMouseClicked([]() { GameAF::GetInstance().Exit(); });  // 设置游戏退出
+        buttonExit->RegisterMouseClicked([]() { GameAf::GetInstance().Exit(); });  // 设置游戏退出
     }
 
     void OnEnter() override

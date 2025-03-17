@@ -42,26 +42,26 @@ public:
     {
         if (isStart) {
             // 增加效果，在以自身为中心的[100, 300]随机 的矩形框内随机移动
-            int x = GameAF::GetInstance().Random(100, 300);
-            int y = GameAF::GetInstance().Random(100, 300);
+            int x = GameAf::GetInstance().Random(100, 300);
+            int y = GameAf::GetInstance().Random(100, 300);
             size = {x * 1.0f, y * 1.0f};
             position = GetPosition();
             target = {
-                GameAF::GetInstance().Random(position.X - size.X / 2, position.X + size.X / 2) *
+                GameAf::GetInstance().Random(position.X - size.X / 2, position.X + size.X / 2) *
                     1.0f,
-                GameAF::GetInstance().Random(position.Y - size.Y / 2, position.Y + size.Y / 2) *
+                GameAf::GetInstance().Random(position.Y - size.Y / 2, position.Y + size.Y / 2) *
                     1.0f};
             dir = (target - position).Normalized();
-            if (GameAF::GetInstance().Random(0, 100) >= 50) {
+            if (GameAf::GetInstance().Random(0, 100) >= 50) {
                 // 快
-                speed = GameAF::GetInstance().Random(0.15f, 0.25f);
+                speed = GameAf::GetInstance().Random(0.15f, 0.25f);
                 GetComponent<Animator>()->GetCurrentAnimation().SetInterval(
-                    GameAF::GetInstance().Random(0.08f, 0.12f));
+                    GameAf::GetInstance().Random(0.08f, 0.12f));
             } else {
                 // 慢
-                speed = GameAF::GetInstance().Random(0.07f, 0.15f);
+                speed = GameAf::GetInstance().Random(0.07f, 0.15f);
                 GetComponent<Animator>()->GetCurrentAnimation().SetInterval(
-                    GameAF::GetInstance().Random(0.13f, 0.20f));
+                    GameAf::GetInstance().Random(0.13f, 0.20f));
             }
             isStart = false;
         }
@@ -75,9 +75,9 @@ public:
             if ((target - currentPos).Length() < (dir * speed).Length()) {
                 // 随机位置
                 target = {
-                    GameAF::GetInstance().Random(position.X - size.X / 2, position.X + size.X / 2) *
+                    GameAf::GetInstance().Random(position.X - size.X / 2, position.X + size.X / 2) *
                         1.0f,
-                    GameAF::GetInstance().Random(position.Y - size.Y / 2, position.Y + size.Y / 2) *
+                    GameAf::GetInstance().Random(position.Y - size.Y / 2, position.Y + size.Y / 2) *
                         1.0f};
                 dir = (target - currentPos).Normalized();
             }

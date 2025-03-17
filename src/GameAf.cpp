@@ -16,13 +16,13 @@ using namespace gameaf;
 static int g_screenWidth;
 static int g_screenHeight;
 
-GameAF& GameAF::GetInstance()
+GameAf& GameAf::GetInstance()
 {
-    static GameAF instance;
+    static GameAf instance;
     return instance;
 }
 
-void GameAF::InitWindow(const std::string& iconPath, bool isShowConsole,
+void GameAf::InitWindow(const std::string& iconPath, bool isShowConsole,
                         const std::string& screenName, int screenWidth, int screenHeight)
 {
     // 初始化屏幕
@@ -63,7 +63,7 @@ void GameAF::InitWindow(const std::string& iconPath, bool isShowConsole,
 #endif
 }
 
-void GameAF::Run()
+void GameAf::Run()
 {
     using std::chrono::duration;
     using std::chrono::nanoseconds;
@@ -143,15 +143,15 @@ void GameAF::Run()
 #else
 #endif
 }
-std::tuple<int, int> GameAF::GetScreenSize() { return {g_screenWidth, g_screenHeight}; }
+std::tuple<int, int> GameAf::GetScreenSize() { return {g_screenWidth, g_screenHeight}; }
 
-int GameAF::GetScreenWidth() { return g_screenWidth; }
+int GameAf::GetScreenWidth() { return g_screenWidth; }
 
-int GameAF::GetScreenHeight() { return g_screenHeight; }
+int GameAf::GetScreenHeight() { return g_screenHeight; }
 
-void GameAF::SetFPS(int fps)
+void GameAf::SetFPS(int fps)
 {
     m_fps = fps < GAMEAF_MIN_FPS ? GAMEAF_MIN_FPS : fps > GAMEAF_MAX_FPS ? GAMEAF_MAX_FPS : fps;
 }
 
-void GameAF::Exit() { m_exit = true; }
+void GameAf::Exit() { m_exit = true; }

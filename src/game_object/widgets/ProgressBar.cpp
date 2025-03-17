@@ -14,7 +14,7 @@ static inline bool CheckProgress(float delta, float progressValue, float targetP
 
 void ProgressBar::OnUpdate()
 {
-    float delta = GameAF::GetInstance().GetFixDeltaTime() * m_progressSpeed *
+    float delta = GameAf::GetInstance().GetFixDeltaTime() * m_progressSpeed *
                   (m_targetProgressValue > m_progressValue ? 1 : -1);
 
     if (CheckProgress(delta, m_progressValue, m_targetProgressValue)) {

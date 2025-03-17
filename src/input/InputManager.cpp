@@ -29,7 +29,7 @@ void InputManager::ProcessInput()
 #ifdef GAMEAF_USE_EASYX
     if (!isWindowActive) {
         // 失去焦点时检测窗口是否关闭, 如果关闭设置退出状态
-        if (!IsWindow(GetHWnd())) GameAF::GetInstance().Exit();
+        if (!IsWindow(GetHWnd())) GameAf::GetInstance().Exit();
     }
     // 按键类型映射
     static std::unordered_map<BYTE, size_t> key_map = {
@@ -83,6 +83,8 @@ void InputManager::ProcessInput()
             case WM_RBUTTONDOWN:
                 m_key_state[INPUT_CONTINUE_INDEX].set((size_t)KeyValue::RButton);
                 m_key_state[INPUT_CURRENT_INDEX].set((size_t)KeyValue::RButton);
+                // debug : 显示屏幕坐标
+                gameaf::log("[debug] {}", m_mousePos);
                 break;
             case WM_RBUTTONUP:
                 m_key_state[INPUT_CONTINUE_INDEX].reset((size_t)KeyValue::RButton);

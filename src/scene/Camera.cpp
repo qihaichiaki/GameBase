@@ -124,7 +124,7 @@ void Camera::OnUpdate(float delta)
     m_shakeTimer.OnUpdate(delta);
 
     if (is_shaking) {
-        static auto& gameAF = GameAF::GetInstance();
+        static auto& gameAF = GameAf::GetInstance();
         m_shakePosition.X =
             (-50 + gameAF.Random<int>(0, 100)) / 50.0f * m_shakeIntensity + m_position.X;
         m_shakePosition.Y =

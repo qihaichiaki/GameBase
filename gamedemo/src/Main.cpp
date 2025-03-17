@@ -15,9 +15,9 @@ using namespace gameaf;
 int main()
 {
     // === 初始化窗口 第一个进行初始化 ===
-    GameAF::InitWindow(ASSETS_PATH "favicon.ico", true);
+    GameAf::InitWindow(ASSETS_PATH "favicon.ico", true);
 
-    auto& gameaf = GameAF::GetInstance();
+    auto& gameaf = GameAf::GetInstance();
     auto& sceneManager = SceneManager::GetInstance();
     auto& resourceManager = ResourceManager::GetInstance();
 
@@ -29,23 +29,27 @@ int main()
     // 异步资源加载
     sceneManager.LoadSceneAsync(
         [&]() {
+            auto& resourceManager = ResourceManager::GetInstance();
             // 加载实际资源
             sceneManager.SetLoadProgress(0.0f);
             // bug 飞蝶图集
-            ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/bug/%d.png", 8, "bug");
+            resourceManager.LoadAtlas(ASSETS_PATH "effect/bug/%d.png", 8, "bug");
             sceneManager.SetLoadProgress(1.0f / 3);
             std::this_thread::sleep_for(std::chrono::seconds(2));
             // ui_choose图集
-            ResourceManager::GetInstance().LoadAtlas(ASSETS_PATH "effect/ui_choose/%d.png", 11,
-                                                     "ui_choose");
+            resourceManager.LoadAtlas(ASSETS_PATH "effect/ui_choose/%d.png", 11, "ui_choose");
             sceneManager.SetLoadProgress(2.0f / 3);
             std::this_thread::sleep_for(std::chrono::seconds(2));
             // 加载测试背景
-            ResourceManager::GetInstance().NewImage(ASSETS_PATH "background/test.jpg", "test");
-            sceneManager.SetLoadProgress(1.0f);
+            resourceManager.NewImage(ASSETS_PATH "background/test.jpg", "test");
             // 加载玩家精灵图
-            ResourceManager::GetInstance().NewImage(ASSETS_PATH "character/player/player.png",
-                                                    "player", 17, 6, 99);
+            resourceManager.NewImage(ASSETS_PATH "character/player/player.png", "player", 17, 6,
+                                     99);
+            // 加载游戏背景
+            resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");
+            resourceManager.NewImage(ASSETS_PATH "background/layer_2.png", "background_layer2");
+            resourceManager.NewImage(ASSETS_PATH "platform/TearCity/Floor_1.png", "ground");
+            sceneManager.SetLoadProgress(1.0f);
 
             // 等待2秒缓冲
             std::this_thread::sleep_for(std::chrono::seconds(2));

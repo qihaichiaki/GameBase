@@ -9,9 +9,9 @@ namespace gameaf {
 
 Scene::Scene()
 {
-    auto [s_w, s_h] = GameAF::GetScreenSize();
+    auto [s_w, s_h] = GameAf::GetScreenSize();
     // 初始化main摄像机
-    AddCamera("scene-main", std::make_shared<Camera>(Vector2({s_w * 1.0f, s_h * 1.0f})));
+    AddCamera("main", std::make_shared<Camera>(Vector2({s_w * 1.0f, s_h * 1.0f})));
 }
 Scene::~Scene() = default;
 

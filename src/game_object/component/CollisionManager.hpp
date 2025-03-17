@@ -73,13 +73,12 @@ public:
     }
 
 private:
-    CollisionManager() { gameaf::log("碰撞管理器启动"); }
+    CollisionManager() {}
     CollisionManager(const CollisionManager&) = delete;
     CollisionManager& operator=(const CollisionManager&) = delete;
 
     ~CollisionManager()
     {
-        gameaf::log("碰撞管理器析构");
         for (auto collision_component : m_collide_components) {
             delete collision_component;
         }

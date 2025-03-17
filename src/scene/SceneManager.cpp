@@ -190,7 +190,7 @@ float SceneManager::GetLoadProgress() { return loadingProgress; }
 
 void SceneManager::SetLoadProgress(float progress) { loadingProgress = progress; }
 
-SceneManager::SceneManager() { gameaf::log("场景管理器启动"); }
-SceneManager::~SceneManager() { gameaf::log("场景管理器析构"); }
+SceneManager::SceneManager() {}
+SceneManager::~SceneManager() {}
 
 }  // namespace gameaf

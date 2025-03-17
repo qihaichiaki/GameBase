@@ -3,10 +3,10 @@
 #include <random>
 #include <string>
 
-class GameAF
+class GameAf
 {
 public:
-    static GameAF& GetInstance();
+    static GameAf& GetInstance();
 
     // === 游戏主循环内的执行函数 ===
 
@@ -16,7 +16,7 @@ public:
     /// @param screenName 窗口名称
     /// @param screenWidth 屏幕宽度
     /// @param screenHeight 屏幕高度
-    /// @warning 使用gameaf框架构建游戏时, 优先使用此函数(前面不可使用此框架内的其他东西), 否则容易崩溃(乱码, 释放资源顺序不正确)
+    /// @warning ⚠使用gameaf框架构建游戏时, 优先使用此函数(前面不可使用此框架内的其他东西), 否则容易崩溃(乱码, 释放资源顺序不正确)
     static void InitWindow(const std::string& iconPath = "", bool isShowConsole = false,
                            const std::string& screenName = "MyGame", int screenWidth = 1280,
                            int screenHeight = 720);
@@ -73,10 +73,10 @@ public:
     }
 
 private:
-    GameAF() = default;
-    ~GameAF() = default;
-    GameAF(const GameAF&) = delete;
-    GameAF& operator=(const GameAF&) = delete;
+    GameAf() = default;
+    ~GameAf() = default;
+    GameAf(const GameAf&) = delete;
+    GameAf& operator=(const GameAf&) = delete;
 
 private:
     std::mt19937 gen;

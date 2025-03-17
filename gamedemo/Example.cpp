@@ -101,7 +101,7 @@ public:
     {
         using KeyValue = InputManager::KeyValue;
         auto& input_manager = InputManager::GetInstance();
-        auto& game_af = GameAF::GetInstance();
+        auto& game_af = GameAf::GetInstance();
         auto& audioManager = AudioManager::GetInstance();
 
         // 测试音量
@@ -224,14 +224,13 @@ private:
 
 int main()
 {
-    auto& my_game = GameAF::GetInstance();
+    GameAf::InitWindow();
+    auto& my_game = GameAf::GetInstance();
     auto& resource_manager = ResourceManager::GetInstance();
     auto& scene_manager = SceneManager::GetInstance();
     auto& audioManager = AudioManager::GetInstance();
 
     // my_game.SetFPS(240);
-    my_game.SetShowConsole(true);
-    my_game.InitWindow();
     gameaf::log("{}", "游戏开始预加载设置...");
     gameaf::log("{}", "游戏开始加载图像资源...");
 
@@ -294,7 +293,7 @@ int main()
     // background2 更新逻辑
     background2->AddUpdateCallback([](GameObject* _this) {
         auto& scene_manager = SceneManager::GetInstance();
-        auto& game_af = GameAF::GetInstance();
+        auto& game_af = GameAf::GetInstance();
 
         // 2_1 2_2 2_3
         static auto b2_main = _this->GetChildObject(0).get();
@@ -331,7 +330,7 @@ int main()
     // 玩家游戏对象
     auto player = std::make_shared<Player>();
     // 设置玩家对象在当前场景的主相机的中心位置
-    main_scene->SetCenterAnchorPoint("scene-main", player);
+    main_scene->SetCenterAnchorPoint("main", player);
 
     // 添加空气墙
     auto air_wall = std::make_shared<GameObject>();
