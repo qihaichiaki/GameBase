@@ -42,9 +42,20 @@ int main()
             std::this_thread::sleep_for(std::chrono::seconds(2));
             // 加载测试背景
             resourceManager.NewImage(ASSETS_PATH "background/test.jpg", "test");
-            // 加载玩家精灵图
-            resourceManager.NewImage(ASSETS_PATH "character/player/player.png", "player", 17, 6,
-                                     99);
+            // 加载玩家图集
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/idle/%d.png", 56,
+                                      "player_idle");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/idleToRun/%d.png", 2,
+                                      "player_idleToRun");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/run/%d.png", 8, "player_run");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/runToIdle/%d.png", 4,
+                                      "player_runToIdle");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/jump/%d.png", 5, "player_jump");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/falling/%d.png", 3,
+                                      "player_falling");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/landing/%d.png", 3,
+                                      "player_landing");
+
             // 加载游戏背景
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");
             resourceManager.NewImage(ASSETS_PATH "background/layer_2.png", "background_layer2");

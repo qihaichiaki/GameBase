@@ -51,7 +51,7 @@ public:
 
     /// @brief 设置动画最后一帧结束后执行的回调
     /// @param onFinished 执行回调逻辑
-    void SetOnFinished(std::function<void()> onFinished);
+    void SetOnFinished(std::function<void(Animation*)> onFinished);
 
     /// @brief 将动画的每帧的图像添加
     /// @return 添加帧是否成功
@@ -74,6 +74,12 @@ public:
     /// @brief 设置动画每帧的图像大小比例
     void SetSizeScale(const Vector2& scale);
 
+    /// @brief 设置锚点模式
+    /// @param mod 锚点模式
+    /// @param anchor_position 如果自定义,
+    /// 请自由的设置锚点在x方向所占的比例和在y方向所占的比例(单位矩形).值的取值在[0,1]
+    void SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position = {0.0f, 0.0f});
+
 private:
     void TimerInit();
 
@@ -81,7 +87,7 @@ private:
     std::vector<Frame> m_frames;
     int m_frame_index = 0;
     Timer timer;
-    bool m_is_loop = false;               // 是否是循环动画
-    std::function<void()> m_on_finished;  // 驱动力
+    bool m_is_loop = false;                         // 是否是循环动画
+    std::function<void(Animation*)> m_on_finished;  // 驱动力
 };
 }  // namespace gameaf

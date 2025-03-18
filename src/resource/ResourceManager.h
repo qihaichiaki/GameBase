@@ -23,15 +23,16 @@ public:
     /// @param rows 切分精灵图的行数
     /// @param cols 切分精灵图的列数
     /// @param spriteN 实际精灵图总个数
+    /// @param pivotXScale 图像翻转时对称轴相对于左上角的水平距离占精灵图宽度的占比(默认0.5f 表示中心对称)
     /// @return 是否创建成功
     bool NewImage(const std::string& image_path, const std::string& image_name, int rows = 1,
-                  int cols = 1, size_t spriteN = 0);
+                  int cols = 1, size_t spriteN = 0, float pivotXScale = 0.5);
 
     /// @brief 加载字体资源
     bool LoadFont(const std::string& font_path);
 
     /// @brief 加载图集资源
-    /// @param atlas_path "xxx%dxxx.png/jpg", 注意下标从1开始
+    /// @param atlas_path "xxx%dxxx.png/jpg", 注意下标从0开始
     bool LoadAtlas(const std::string& atlas_path, size_t n_images, const std::string& atlas_name);
     /// @brief 加载音频资源
     bool LoadAudio(const std::string& audio_path, const std::string& audio_name);

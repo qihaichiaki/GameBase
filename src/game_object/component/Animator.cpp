@@ -181,4 +181,11 @@ void Animator::SetSizeScale(const Vector2& scale)
     }
 }
 
+void Animator::SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position)
+{
+    for (auto& [_, animation] : m_animations) {
+        animation.SetAnchorMode(mod, anchor_position);
+    }
+}
+
 }  // namespace gameaf

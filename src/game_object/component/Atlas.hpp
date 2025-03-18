@@ -15,14 +15,14 @@ class Atlas
 public:
     /// @brief 加载图集资源
     /// @param atlas_path 图集路径, 类似`Assets/xxx/xxx_%d.png(jpg)`
-    /// @param num 图集的图片个数(%d从1开始)
+    /// @param num 图集的图片个数(%d从0开始)
     bool Load(const std::string& atlas_path, int num)
     {
         timages.clear();
         timages.reserve(num);
 
         char img_path[256];
-        for (int i = 1; i <= num; ++i) {
+        for (int i = 0; i < num; ++i) {
             TImage timg;
             sprintf_s(img_path, atlas_path.c_str(), i);
             if (!timg.Load(img_path)) return false;

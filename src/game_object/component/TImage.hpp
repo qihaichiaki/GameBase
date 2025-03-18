@@ -21,9 +21,11 @@ public:
     /// @param rows 图像在水平方向上均分个数
     /// @param cols 图像在竖直方向上均分个数
     /// @param spriteN 图像精灵图个数
+    /// @param pivotXScale 图像翻转时对称轴相对于左上角的水平距离占精灵图宽度的占比(默认0.5f 表示中心对称)
     /// @return 加载是否成功
     /// @note rows+cols 配合精灵图个数可以实现均分图像上的任意个
-    bool Load(const std::string& img_path, int rows = 1, int cols = 1, size_t spriteN = 0)
+    bool Load(const std::string& img_path, int rows = 1, int cols = 1, size_t spriteN = 0,
+              float pivotXScale = 0.5f)
     {
 #ifdef GAMEAF_USE_EASYX
         loadimage(&m_image, UTF8StrToWStr(img_path).c_str());
@@ -34,6 +36,8 @@ public:
 #endif
         m_spriteN = spriteN == 0 ? rows * cols : spriteN;
         m_spriteRegion = {0.0f, 0.0f, m_width / cols, m_height / rows};
+        pivotXScale = std::clamp(pivotXScale, 0.0f, 1.0f);
+        m_pivotX = m_spriteRegion.w * pivotXScale;
         return true;
     }
 
@@ -76,15 +80,14 @@ public:
         copy_img = m_image;
 
         for (int i = 0; i < m_spriteN; ++i) {
-            x += i * m_spriteRegion.w;
+            FlipImage(&copy_img, &m_image, {x * 1.0f, y * 1.0f, m_spriteRegion.w, m_spriteRegion.h},
+                      m_pivotX);
+
+            x += m_spriteRegion.w;
             if (x == m_width) {
                 x = 0;
                 y += m_spriteRegion.h;
-                continue;
             }
-
-            FlipImage(&copy_img, &m_image,
-                      {x * 1.0f, y * 1.0f, m_spriteRegion.w, m_spriteRegion.h});
         }
 #endif
     }
@@ -104,7 +107,8 @@ private:
     /// @param src_img 源图像
     /// @param dst_img 目标图像(注意没有Resize)
     /// @param flip_rect 翻转矩形
-    void FlipImage(IMAGE* src_img, IMAGE* dst_img, const Rect& flip_rect)
+    /// @param pivot_x 翻转对称轴相离左上角的水平距离
+    void FlipImage(IMAGE* src_img, IMAGE* dst_img, const Rect& flip_rect, int pivot_x)
     {
         int flip_x = flip_rect.x;
         int flip_y = flip_rect.y;
@@ -112,10 +116,16 @@ private:
         DWORD* src = GetImageBuffer(src_img);
         DWORD* dst = GetImageBuffer(dst_img);
 
+        // 计算翻转的对称轴（相对于 flip_rect 的 pivot_x）
+        int mirror_x = flip_x + pivot_x;
+
         // 画图理解一下
         for (int y = flip_y; y < flip_y + flip_rect.h; ++y) {
             for (int x = flip_x; x < flip_x + flip_rect.w; ++x) {
-                dst[y * src_w + x] = src[y * src_w + (2 * flip_x - x + flip_rect.w - 1)];
+                int flipped_x = 2 * flip_x + flip_rect.w - x - 1;  // 对称点
+                // if (flipped_x >= flip_x && flipped_x < flip_x + flip_rect.w) {  // 防止翻转越界
+                dst[y * src_w + x] = src[y * src_w + flipped_x];
+                // }
             }
         }
     }
@@ -125,6 +135,7 @@ private:
 private:
     int m_width = 0;
     int m_height = 0;
+    int m_pivotX;         // 对称轴相对于左上角的水平偏移距离
     size_t m_spriteN;     // 图像精灵图个数
     Rect m_spriteRegion;  // 描述每个精灵图的区域
 

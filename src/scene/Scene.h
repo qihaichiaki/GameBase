@@ -57,6 +57,8 @@ public:
     void DelAllGameObject();
     /// @brief 获取当前场景下对应名字的游戏对象
     std::vector<GameObjectPtr> GetGameObjects(const std::string& id);
+    /// @brief 获取当前场景下对于名字的第一个游戏对象
+    GameObjectPtr GetGameObject(const std::string& id);
     /// @brief 游戏对象渲染层级更新
     void NotifyRenderLayerUpdate() { m_needRenderLayerUpdate = true; }
     /// @brief 添加场景摄像机

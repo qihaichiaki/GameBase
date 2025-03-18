@@ -11,7 +11,7 @@
 
 #include "../Common.hpp"
 #include "../other_object/Background.hpp"
-#include "../player/Player.hpp"
+#include "../player/Player.h"
 
 using namespace gameaf;
 
@@ -20,7 +20,7 @@ class GameScene : public Scene
 public:
     void OnAwake() override
     {
-        auto mainCamera = GetCamera("main");  // 默认主相机, 全局渲染模式
+        auto mainCamera = GetCamera("main").get();  // 默认主相机, 全局渲染模式
         auto uiCamera = std::make_shared<Camera>(Vector2{
             GameAf::GetScreenWidth() * 1.0f,
             GameAf::GetScreenHeight() * 1.0f,
@@ -41,7 +41,20 @@ public:
         // 创建地板
         auto ground = std::make_shared<Ground>();
 
+        // 主相机跟随玩家
+        mainCamera->SetFollowTarget(player, Camera::FollowMode::Smooth);
+        mainCamera->SetCameraDeadZone(Vector2{200.0f, 600.0f});
+        SetDebugRenderCamera(true);
+
         AddGameObjects({backgroundBottom, backgroundMiddle, ground, player});
+    }
+
+    void OnEnter() override
+    {
+        Player* player = static_cast<Player*>(GetGameObject("player").get());
+        player->SetPosition({});  // 玩家位置复原
+        player->SetVelocity({});
+        GetCamera("main")->LookAt({});  // 相机位置复原
     }
 
     void OnUpdate() override

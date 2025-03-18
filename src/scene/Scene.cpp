@@ -134,6 +134,18 @@ std::vector<Scene::GameObjectPtr> Scene::GetGameObjects(const std::string& id)
     return game_objects;
 }
 
+Scene::GameObjectPtr Scene::GetGameObject(const std::string& id)
+{
+    if (!m_gameObjects) return nullptr;
+    for (auto& object : (*m_gameObjects)) {
+        if (object->GetName() == id) {
+            return object;
+        }
+    }
+
+    return nullptr;
+}
+
 bool Scene::AddCamera(const std::string& camera_id, CameraPtr camera)
 {
     if (m_cameras.count(camera_id) != 0) return false;

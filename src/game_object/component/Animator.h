@@ -107,6 +107,12 @@ public:
     /// @brief 设置所有动画的图像大小比例
     void SetSizeScale(const Vector2& scale);
 
+    /// @brief 设置锚点模式
+    /// @param mod 锚点模式
+    /// @param anchor_position 如果自定义,
+    /// 请自由的设置锚点在x方向所占的比例和在y方向所占的比例(单位矩形).值的取值在[0,1]
+    void SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position = {0.0f, 0.0f});
+
 private:
     std::unordered_map<std::string, Animation> m_animations;
     std::string m_current_animation_id;

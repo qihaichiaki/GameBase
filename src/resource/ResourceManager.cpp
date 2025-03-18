@@ -19,7 +19,7 @@ ResourceManager& ResourceManager::GetInstance()
 }
 
 bool ResourceManager::NewImage(const std::string& image_path, const std::string& image_name,
-                               int rows, int cols, size_t spriteN)
+                               int rows, int cols, size_t spriteN, float pivotXScale)
 {
     if (m_images.count(image_name) != 0) {
         gameaf::log("[error][LoadImage] 图像名字:{}, 图像id重名惹......", image_name);
@@ -27,7 +27,7 @@ bool ResourceManager::NewImage(const std::string& image_path, const std::string&
     }
 
     TImage* load_img = new TImage();
-    if (!load_img->Load(image_path, rows, cols, spriteN)) {
+    if (!load_img->Load(image_path, rows, cols, spriteN, pivotXScale)) {
         gameaf::log("[error][loadImage] 位置: \"{}\", 图像加载失败惹......", image_path);
         delete load_img;
         return false;

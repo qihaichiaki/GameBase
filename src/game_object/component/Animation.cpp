@@ -10,7 +10,7 @@ void Animation::TimerInit()
         ++m_frame_index;
         if (m_frame_index >= m_frames.size()) {
             m_frame_index = m_is_loop ? 0 : m_frames.size() - 1;
-            if (m_on_finished) m_on_finished();
+            if (m_on_finished) m_on_finished(this);
         }
     });
 }
@@ -58,7 +58,10 @@ bool Animation::IsFrameLastIndex() const { return m_frames.size() == m_frame_ind
 
 void Animation::SetInterval(float interval) { timer.SetWaitTime(interval); }
 
-void Animation::SetOnFinished(std::function<void()> onFinished) { m_on_finished = onFinished; }
+void Animation::SetOnFinished(std::function<void(Animation*)> onFinished)
+{
+    m_on_finished = onFinished;
+}
 
 bool Animation::AddFrame(const Image& img)
 {
@@ -98,6 +101,13 @@ void Animation::SetSizeScale(const Vector2& scale)
 {
     for (auto& frame : m_frames) {
         frame.img.SetSizeScale(scale);
+    }
+}
+
+void Animation::SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position)
+{
+    for (auto& frame : m_frames) {
+        frame.img.SetAnchorMode(mod, anchor_position);
     }
 }
 

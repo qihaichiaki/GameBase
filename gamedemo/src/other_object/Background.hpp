@@ -60,7 +60,6 @@ public:
     {
         Vector2 currentPos = player->GetPosition();
         if (lastPos != currentPos) {
-            gameaf::log("111");
             lastPos = currentPos;
             // 右边情况
             if (currentPos.X >= right->GetPosition().X) {
@@ -100,8 +99,19 @@ public:
     void OnAwake() override
     {
         auto img = CreateComponent<Image>(std::string{"ground"});
-        img->SetSizeScale({1.08f, 0.84f});
+        img->SetSizeScale({2.08f, 0.84f});
         img->SetAnchorMode(ImageAnchorMode::BottomCentered);
-        Translate({0.0f, GameAf::GetScreenHeight() * 0.5f + 100.0f});
+        Translate({0.0f, GameAf::GetScreenHeight() * 0.5f + 150.0f});  //
+
+        collisionBox = CreateComponent<CollisionBox>(
+            Vector2{0.0f, -img->GetSize().Y / 2});  //给 Ground 创建碰撞box, 防止玩家掉下去
+        collisionBox->SetSrcLayer(CollisionLayerTool::wall);
+        collisionBox->AddDstLayer(CollisionLayerTool::player |
+                                  CollisionLayerTool::enemy);  // 目标包含player、enemy对象
     }
+
+    void OnDraw(const Camera& camera) override { collisionBox->OnDebugRender(camera); }
+
+public:
+    CollisionBox* collisionBox;
 };
