@@ -27,12 +27,16 @@ struct InputKey
     static KeyValue moveLeft;
     static KeyValue moveRight;
     static KeyValue jump;
+    static KeyValue crouch;
 
     /// @brief 尝试移动
     static bool TryMove() { return input.GetKey(moveLeft) || input.GetKey(moveRight); }
 
     /// @brief 尝试跳跃
     static bool TryJump() { return input.IsKeyDown(jump); }
+
+    /// @brief 尝试蹲下
+    static bool TryCrouch() { return input.GetKey(crouch); }
 
     /// @brief 返回水平移动的的方向
     static int GetHorizontalDir()
@@ -45,3 +49,4 @@ inline InputManager& InputKey::input = InputManager::GetInstance();
 inline KeyValue InputKey::moveLeft = KeyValue::A;
 inline KeyValue InputKey::moveRight = KeyValue::D;
 inline KeyValue InputKey::jump = KeyValue::Space;
+inline KeyValue InputKey::crouch = KeyValue::S;

@@ -38,7 +38,7 @@ const Vector2& Camera::GetPosition() const
 
 void Camera::SetFollowTarget(std::shared_ptr<GameObject> target_obj, FollowMode mode)
 {
-    m_target_obj = target_obj;
+    m_target_obj = target_obj.get();
     m_follow_mode = mode;
 }
 
@@ -62,25 +62,33 @@ void Camera::Shake(float duration, float shakeIntensity)
     m_shakeTimer.Restart();
 }
 
-inline void Camera::__onNormalFollow(float alpha, const Vector2& current_position)
+void Camera::SetFixdDeadZone(const Vector2& fixdDeadZonePos, const Vector2& fixdDeadZoneSize)
+{
+    m_fixedDeadZonePos = fixdDeadZonePos;
+    m_fixedDeadZoneSize = fixdDeadZoneSize;
+}
+
+inline Vector2 Camera::__onNormalFollow(float alpha, const Vector2& current_position)
 {
     // 正常模式
     switch (m_follow_mode) {
         case FollowMode::None:
             // 直接跟随
-            LookAt(current_position);
+            return current_position - m_size / 2.0f - m_position;
             break;
         case FollowMode::Smooth:
             // 平滑跟随
             m_target_position = current_position - m_size / 2.0f;
-            m_position = Vector2::Lerp(m_position, m_target_position, m_smooth_factor * alpha);
+            return Vector2::Lerp(m_position, m_target_position, m_smooth_factor * alpha) -
+                   m_position;
             break;
         default:
+            return Vector2{};
             break;
     }
 }
 
-inline void Camera::__onDeadZoneFollow(float alpha, const Vector2& current_position)
+inline Vector2 Camera::__onDeadZoneFollow(float alpha, const Vector2& current_position)
 {
     // 死区模式
     Vector2 delta = current_position - (m_position + m_deadZoneOffset);
@@ -94,28 +102,44 @@ inline void Camera::__onDeadZoneFollow(float alpha, const Vector2& current_posit
     switch (m_follow_mode) {
         case FollowMode::None:
             // 直接跟随
-            m_position += mvDelta;
+            return mvDelta;
             break;
         case FollowMode::Smooth:
             // 平滑跟随
             m_target_position = m_position + mvDelta;
-            m_position = Vector2::Lerp(m_position, m_target_position, m_smooth_factor * alpha);
+            return Vector2::Lerp(m_position, m_target_position, m_smooth_factor * alpha) -
+                   m_position;
             break;
         default:
+            return Vector2{};
             break;
     }
 }
 
 void Camera::OnFixUpdate(float alpha)
 {
-    if (auto obj = m_target_obj.lock()) {
-        const Vector2& current_position = obj->GetPosition();
+    if (m_target_obj) {
+        const Vector2& current_position = m_target_obj->GetPosition();
 
+        Vector2 delta;
         if (m_deadZoneSize != Vector2{}) {
-            __onDeadZoneFollow(alpha, current_position);
+            delta = __onDeadZoneFollow(alpha, current_position);
         } else {
-            __onNormalFollow(alpha, current_position);
+            delta = __onNormalFollow(alpha, current_position);
         }
+
+        // 固定死区限制
+        if (m_fixedDeadZoneSize) {
+            if (current_position.X < m_fixedDeadZonePos.X - m_fixedDeadZoneSize.X / 2 ||
+                current_position.X > m_fixedDeadZonePos.X + m_fixedDeadZoneSize.X / 2) {
+                delta.X = 0.0f;
+            }
+            if (current_position.Y < m_fixedDeadZonePos.Y - m_fixedDeadZoneSize.Y / 2 ||
+                current_position.Y > m_fixedDeadZonePos.Y + m_fixedDeadZoneSize.Y / 2) {
+                delta.Y = 0.0f;
+            }
+        }
+        m_position += delta;
     }
 }
 
@@ -135,15 +159,33 @@ void Camera::OnUpdate(float delta)
 void Camera::OnDebugRender()
 {
     // 死区渲染
-    int left = static_cast<int>(m_deadZoneOffset.X);
-    int top = static_cast<int>(m_deadZoneOffset.Y);
-    int right = static_cast<int>(m_deadZoneOffset.X + m_deadZoneSize.X);
-    int bottom = static_cast<int>(m_deadZoneOffset.Y + m_deadZoneSize.Y);
+    if (m_deadZoneSize) {
+        int left = static_cast<int>(m_deadZoneOffset.X);
+        int top = static_cast<int>(m_deadZoneOffset.Y);
+        int right = static_cast<int>(m_deadZoneOffset.X + m_deadZoneSize.X);
+        int bottom = static_cast<int>(m_deadZoneOffset.Y + m_deadZoneSize.Y);
+
 #ifdef GAMEAF_USE_EASYX
-    setlinecolor(RGB(255, 0, 0));
-    rectangle(left, top, right, bottom);
+        setlinecolor(RGB(255, 0, 0));
+        rectangle(left, top, right, bottom);
 #else
 #endif
+    }
+
+    // 固定死区
+    if (m_fixedDeadZoneSize) {
+        Vector2 screenPos = m_fixedDeadZonePos - m_position;
+        int left = static_cast<int>(screenPos.X - m_fixedDeadZoneSize.X / 2);
+        int top = static_cast<int>(screenPos.Y - m_fixedDeadZoneSize.Y / 2);
+        int right = static_cast<int>(screenPos.X + m_fixedDeadZoneSize.X / 2);
+        int bottom = static_cast<int>(screenPos.Y + m_fixedDeadZoneSize.Y / 2);
+
+#ifdef GAMEAF_USE_EASYX
+        setlinecolor(RGB(0, 0, 255));
+        rectangle(left, top, right, bottom);
+#else
+#endif
+    }
 }
 
 }  // namespace gameaf

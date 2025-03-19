@@ -104,14 +104,19 @@ public:
         Translate({0.0f, GameAf::GetScreenHeight() * 0.5f + 150.0f});  //
 
         collisionBox = CreateComponent<CollisionBox>(
-            Vector2{0.0f, -img->GetSize().Y / 2});  //给 Ground 创建碰撞box, 防止玩家掉下去
+            Vector2{15.0f, -img->GetSize().Y / 2 + 10.0f});  //给 Ground 创建碰撞box, 防止玩家掉下去
+        collisionBox->SetSize({collisionBox->GetSize().X - 180.0f, collisionBox->GetSize().Y});
         collisionBox->SetSrcLayer(CollisionLayerTool::wall);
         collisionBox->AddDstLayer(CollisionLayerTool::player |
                                   CollisionLayerTool::enemy);  // 目标包含player、enemy对象
     }
 
-    void OnDraw(const Camera& camera) override { collisionBox->OnDebugRender(camera); }
+    void OnDraw(const Camera& camera) override
+    {
+        if (isDebug) collisionBox->OnDebugRender(camera);
+    }
 
 public:
     CollisionBox* collisionBox;
+    bool isDebug = false;
 };

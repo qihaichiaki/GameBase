@@ -16,13 +16,19 @@ void Player::OnAwake()
     // === 加载角色动画 ===
     auto animator = CreateComponent<Animator>();
 
-    animator->AddAnimationForAtlas("idle", "player_idle", true, 0.063f);
+    animator->AddAnimationForAtlas("idle", "player_idle", true, 0.05f);
     animator->AddAnimationForAtlas("idleToRun", "player_idleToRun", false, 0.1f);
     animator->AddAnimationForAtlas("run", "player_run", true, 0.1f);
     animator->AddAnimationForAtlas("runToIdle", "player_runToIdle", false, 0.1f);
     animator->AddAnimationForAtlas("jump", "player_jump", false, 0.1f);
     animator->AddAnimationForAtlas("falling", "player_falling", false, 0.1f);
     animator->AddAnimationForAtlas("landing", "player_landing", false, 0.1f);
+    {
+        animator->AddAnimationForAtlas("crouch", "player_crouch", true, 0.1f);
+        // crouch 设置，循环帧在4~4
+        animator->GetAnimation("crouch").SetLoopBeginFrameIndex(4);
+    }
+    animator->AddAnimationForAtlas("crouchingToIdle", "player_crouchingToIdle", false, 0.1f);
 
     animator->SetAnchorMode(ImageAnchorMode::BottomCentered);
     animator->SetSizeScale({2.5f, 2.5f});
@@ -38,13 +44,15 @@ void Player::OnAwake()
     Flip();
 
     // 注册状态
-    m_stateMachine.RegisterState("idle", std::make_shared<Idle>(this));
-    m_stateMachine.RegisterState("run", std::make_shared<Run>(this));
-    m_stateMachine.RegisterState("runToIdle", std::make_shared<RunToIdle>(this));
-    m_stateMachine.RegisterState("jump", std::make_shared<Jump>(this));
-    m_stateMachine.RegisterState("fall", std::make_shared<Fall>(this));
-    m_stateMachine.RegisterState("land", std::make_shared<Land>(this));
-    m_stateMachine.SetEntry("idle");
+    m_stateMachine.RegisterState("Idle", std::make_shared<Idle>(this));
+    m_stateMachine.RegisterState("Run", std::make_shared<Run>(this));
+    m_stateMachine.RegisterState("RunToIdle", std::make_shared<RunToIdle>(this));
+    m_stateMachine.RegisterState("Jump", std::make_shared<Jump>(this));
+    m_stateMachine.RegisterState("Falling", std::make_shared<Falling>(this));
+    m_stateMachine.RegisterState("Landing", std::make_shared<Landing>(this));
+    m_stateMachine.RegisterState("Crouch", std::make_shared<Crouch>(this));
+    m_stateMachine.RegisterState("CrouchingToIdle", std::make_shared<CrouchingToIdle>(this));
+    m_stateMachine.SetEntry("Idle");
 
     // 对过渡动画注入执行回调
     // 回调中转动画可以不用新建状态
@@ -55,19 +63,27 @@ void Player::OnAwake()
     });
 
     animator->GetAnimation("runToIdle").SetOnFinished([this](Animation* animation) {
-        m_stateMachine.SwitchTo("idle");
+        m_stateMachine.SwitchTo("Idle");
         animation->Restart();
     });
 
     animator->GetAnimation("landing").SetOnFinished([this](Animation* animation) {
-        m_stateMachine.SwitchTo("idle");
+        m_stateMachine.SwitchTo("Idle");
+        animation->Restart();
+    });
+
+    animator->GetAnimation("crouchingToIdle").SetOnFinished([this](Animation* animation) {
+        m_stateMachine.SwitchTo("Idle");
         animation->Restart();
     });
 }
 
 void Player::OnUpdate() { Character::OnUpdate(); }
 
-void Player::OnDraw(const Camera& camera) { collisionBox->OnDebugRender(camera); }
+void Player::OnDraw(const Camera& camera)
+{
+    if (isDebug) collisionBox->OnDebugRender(camera);
+}
 
 void Player::SetVelocityX(float x) { SetVelocity({x, rb->Velocity().Y}); }
 
@@ -83,3 +99,10 @@ void Player::SetVelocity(const Vector2& v)
 }
 
 const Vector2& Player::GetVelocity() { return rb->Velocity(); }
+
+void Player::ReStart()
+{
+    SwitchState("Idle");
+    SetPosition({});  // 玩家位置复原
+    SetVelocity({});  // 速度恢复
+}

@@ -42,9 +42,14 @@ public:
     /// @brief 获得当前的速率
     const Vector2& GetVelocity();
 
+    /// @brief 玩家状态重新开始 恢复初始位置, 速度等
+    void ReStart();
+
 public:
     float xSpeed = 300.0f;     //水平方向的速度
     float jumpSpeed = 600.0f;  // 跳跃力
+
+    bool isDebug = false;
 
 private:
     Rigidbody2D* rb;

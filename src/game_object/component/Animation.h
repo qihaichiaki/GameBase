@@ -80,12 +80,19 @@ public:
     /// 请自由的设置锚点在x方向所占的比例和在y方向所占的比例(单位矩形).值的取值在[0,1]
     void SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position = {0.0f, 0.0f});
 
+    /// @brief 设置循环从多少帧开始
+    void SetLoopBeginFrameIndex(int startLoopFrameIndex)
+    {
+        m_startLoopFrameIndex = startLoopFrameIndex;
+    }
+
 private:
     void TimerInit();
 
 private:
     std::vector<Frame> m_frames;
     int m_frame_index = 0;
+    int m_startLoopFrameIndex = 0;  // 从多少帧开始循环, 默认一开始就循环
     Timer timer;
     bool m_is_loop = false;                         // 是否是循环动画
     std::function<void(Animation*)> m_on_finished;  // 驱动力

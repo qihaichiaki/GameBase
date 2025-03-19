@@ -9,7 +9,7 @@ void Animation::TimerInit()
     timer.SetOnTimeout([&]() {
         ++m_frame_index;
         if (m_frame_index >= m_frames.size()) {
-            m_frame_index = m_is_loop ? 0 : m_frames.size() - 1;
+            m_frame_index = m_is_loop ? m_startLoopFrameIndex : m_frames.size() - 1;
             if (m_on_finished) m_on_finished(this);
         }
     });

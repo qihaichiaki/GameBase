@@ -89,6 +89,11 @@ public:
     /// @param shakeIntensity 震动强度
     void Shake(float duration, float shakeIntensity = 19.8);
 
+    /// @brief 设置相机的固定死区, 相机不会在追随时向死区外移动
+    /// @param fixdDeadZonePos 固定死区的世界坐标(中心点)
+    /// @param fixdDeadZoneSize 固定死区大小
+    void SetFixdDeadZone(const Vector2& fixdDeadZonePos, const Vector2& fixdDeadZoneSize);
+
 public:
     /// @brief 相机物理更新
     /// @param alpha 物理频率更新
@@ -102,16 +107,16 @@ public:
 
 private:
     /// @brief 正常模式跟随
-    void __onNormalFollow(float alpha, const Vector2& current_position);
+    Vector2 __onNormalFollow(float alpha, const Vector2& current_position);
 
     /// @brief 死区模式跟随
-    void __onDeadZoneFollow(float alpha, const Vector2& current_position);
+    Vector2 __onDeadZoneFollow(float alpha, const Vector2& current_position);
 
 private:
     Vector2 m_position;                               // 相机的左上角的世界坐标
     Vector2 m_size;                                   // 相机的大小(宽高)
     Vector2 m_target_position;                        // 目标位置
-    std::weak_ptr<GameObject> m_target_obj;           // 目标对象
+    GameObject* m_target_obj;                         // 目标对象
     Vector2 m_deadZoneOffset;                         // 死区偏移
     Vector2 m_deadZoneSize;                           // 死区大小
     float m_smooth_factor = 9.8f;                     // 平滑因子系数, 控制跟随效果
@@ -123,7 +128,9 @@ private:
     Vector2 m_shakePosition;                          // 当前震动位置, 方便使用
     float m_shakeIntensity;                           // 震动强度
     bool is_shaking = false;                          // 控制是否执行shake行为
-    // TODO: 摄像机之间的优先级?
+    // 固定死区, 即拥有世界坐标的死区, 摄像机不会往该死区外移动
+    Vector2 m_fixedDeadZonePos;   // 固定死区位置
+    Vector2 m_fixedDeadZoneSize;  // 固定死区大小
 };
 
 }  // namespace gameaf

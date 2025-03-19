@@ -59,20 +59,39 @@ public:
 };
 
 // 浮空状态
-class Fall : public PlayerStateNode
+class Falling : public PlayerStateNode
 {
 public:
-    Fall(Player* player) : PlayerStateNode(player) {}
+    Falling(Player* player) : PlayerStateNode(player) {}
 
     void OnEnter() override;
     void OnUpdate() override;
 };
 
 // 着落效果
-class Land : public PlayerStateNode
+class Landing : public PlayerStateNode
 {
 public:
-    Land(Player* player) : PlayerStateNode(player) {}
+    Landing(Player* player) : PlayerStateNode(player) {}
+
+    void OnEnter() override;
+};
+
+// 蹲下状态
+class Crouch : public PlayerStateNode
+{
+public:
+    Crouch(Player* player) : PlayerStateNode(player) {}
+
+    void OnEnter() override;
+    void OnUpdate() override;
+};
+
+// 过渡状态 蹲下->idle
+class CrouchingToIdle : public PlayerStateNode
+{
+public:
+    CrouchingToIdle(Player* player) : PlayerStateNode(player) {}
 
     void OnEnter() override;
 };

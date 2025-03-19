@@ -21,6 +21,12 @@ public:
     {
         return std::abs(X - other.X) < epsilon && std::abs(Y - other.Y) < epsilon;
     }
+    Vector2 operator+(float num) const { return Vector2(X + num, Y + num); }
+    void operator+=(float num)
+    {
+        X += num;
+        Y += num;
+    }
     Vector2 operator+(const Vector2& vec) const { return Vector2(X + vec.X, Y + vec.Y); }
     void operator+=(const Vector2& vec)
     {
@@ -28,7 +34,17 @@ public:
         Y += vec.Y;
     }
     Vector2 operator-(const Vector2& vec) const { return Vector2(X - vec.X, Y - vec.Y); }
+    void operator-=(const Vector2& vec)
+    {
+        X -= vec.X;
+        Y -= vec.Y;
+    }
     Vector2 operator/(float num) const { return Vector2(X / num, Y / num); }
+    Vector2 operator/=(float num)
+    {
+        X /= num;
+        Y /= num;
+    }
     Vector2 operator*(float num) const { return Vector2(X * num, Y * num); }
     void operator*=(float num)
     {
@@ -61,6 +77,8 @@ public:
         result.Normalize();
         return result;
     }
+
+    operator bool() { return X != 0.0f || Y != 0.0f; }
 
 public:
     static Vector2 Lerp(const Vector2& v_start, const Vector2& v_end, float smoothing)

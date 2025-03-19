@@ -55,6 +55,10 @@ int main()
                                       "player_falling");
             resourceManager.LoadAtlas(ASSETS_PATH "character/player/landing/%d.png", 3,
                                       "player_landing");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/crouch/%d.png", 5,
+                                      "player_crouch");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/crouchingToIdle/%d.png", 1,
+                                      "player_crouchingToIdle");
 
             // 加载游戏背景
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");

@@ -17,13 +17,16 @@ void Idle::OnEnter()
 void Idle::OnUpdate()
 {
     if (InputKey::TryMove()) {
-        player->SwitchState("run");
+        player->SwitchState("Run");
     }
     if (InputKey::TryJump()) {
-        player->SwitchState("jump");
+        player->SwitchState("Jump");
     }
     if (player->GetVelocity().Y > 0) {
-        player->SwitchState("fall");
+        player->SwitchState("Falling");
+    }
+    if (InputKey::TryCrouch()) {
+        player->SwitchState("Crouch");
     }
 }
 
@@ -35,13 +38,16 @@ void Run::OnUpdate()
     player->SetVelocityX(player->xSpeed * dir);
 
     if (!dir) {
-        player->SwitchState("runToIdle");
+        player->SwitchState("RunToIdle");
     }
     if (InputKey::TryJump()) {
-        player->SwitchState("jump");
+        player->SwitchState("Jump");
     }
     if (player->GetVelocity().Y > 0) {
-        player->SwitchState("fall");
+        player->SwitchState("Falling");
+    }
+    if (InputKey::TryCrouch()) {
+        player->SwitchState("Crouch");
     }
 }
 
@@ -58,23 +64,41 @@ void Jump::OnUpdate()
 {
     player->SetVelocityX(player->xSpeed * InputKey::GetHorizontalDir());
     if (player->GetVelocity().Y > 0) {
-        player->SwitchState("fall");
+        player->SwitchState("Falling");
     }
 }
 
-// === fall ===
-void Fall::OnEnter() { animator->SwitchToAnimation("falling"); }
-void Fall::OnUpdate()
+// === Falling ===
+void Falling::OnEnter() { animator->SwitchToAnimation("falling"); }
+void Falling::OnUpdate()
 {
     player->SetVelocityX(player->xSpeed * InputKey::GetHorizontalDir());
     if (player->GetVelocity().Y == 0) {
-        player->SwitchState("land");
+        player->SwitchState("Landing");
     }
 }
 
 // === landing ===
-void Land::OnEnter()
+void Landing::OnEnter()
 {
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("landing");
 }
+
+// === crouch ===
+void Crouch::OnEnter()
+{
+    player->SetVelocity({});  // 静止
+    animator->SwitchToAnimation("crouch");
+    animator->GetAnimation("crouch").Restart();
+}
+
+void Crouch::OnUpdate()
+{
+    if (!InputKey::TryCrouch()) {
+        player->SwitchState("CrouchingToIdle");
+    }
+}
+
+// === CrouchToIdle
+void CrouchingToIdle::OnEnter() { animator->SwitchToAnimation("crouchingToIdle"); }
