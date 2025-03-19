@@ -116,7 +116,7 @@ private:
     Vector2 m_position;                               // 相机的左上角的世界坐标
     Vector2 m_size;                                   // 相机的大小(宽高)
     Vector2 m_target_position;                        // 目标位置
-    GameObject* m_target_obj;                         // 目标对象
+    GameObject* m_target_obj = nullptr;               // 目标对象
     Vector2 m_deadZoneOffset;                         // 死区偏移
     Vector2 m_deadZoneSize;                           // 死区大小
     float m_smooth_factor = 9.8f;                     // 平滑因子系数, 控制跟随效果

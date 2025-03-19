@@ -356,16 +356,16 @@ void GameObject::Flip()
         m_animator->Flip();
     }
 
-    if (m_child_gameObjects) {
-        for (auto& game_object : *m_child_gameObjects) {
-            game_object->Flip();
-        }
-    }
-
     // debug render
     if (m_collisions) {
         for (auto collision : *m_collisions) {
             collision->Flip();
+        }
+    }
+
+    if (m_child_gameObjects) {
+        for (auto& game_object : *m_child_gameObjects) {
+            game_object->Flip();
         }
     }
 }

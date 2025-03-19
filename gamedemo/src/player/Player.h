@@ -46,13 +46,16 @@ public:
     void ReStart();
 
 public:
+    float dir = 1.0f;          // 默认情况下是朝右的
     float xSpeed = 300.0f;     //水平方向的速度
     float jumpSpeed = 600.0f;  // 跳跃力
+    float rollSpeed = 500.0f;  // 翻滚力
 
-    bool isDebug = false;
+    bool isGround = false;  // 是否在地面上
+    bool isDebug = false;   // 是否开启开发者模式
 
 private:
     Rigidbody2D* rb;
     CollisionBox* collisionBox;
-    bool isRight = true;  // 默认情况下是朝右的
+    CollisionBox* groundDetectionCollision;
 };

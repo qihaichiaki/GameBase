@@ -10,7 +10,6 @@ Collision::Collision(GameObject* game_object, const Vector2& offset)
 }
 Collision::~Collision() {}
 
-void Collision::SetOnCollide(ColliideCallback on_collision) { m_on_collide = on_collision; }
 void Collision::SetSrcLayer(Collisionlayer src_layer) { m_src_layer = src_layer; }
 void Collision::AddDstLayer(Collisionlayer dst_layer)
 {

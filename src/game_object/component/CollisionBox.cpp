@@ -16,6 +16,30 @@ CollisionBox::CollisionBox(GameObject* object, const Vector2& offset) : Collisio
 
 CollisionBox::~CollisionBox() {}
 
+// 物理修正，解决冲突
+static inline bool ResolveCollisions(GameObject* gameObject, float left, float right,
+                                     float dst_left, float dst_right, float top, float bottom,
+                                     float dst_top, float dst_bottom)
+{
+    // 存在刚体进行物理位置修正
+    // 使用mtv(Minimum Translation Vector)最小位移矢量进行位置修正
+    if (auto rb = gameObject->GetComponent<Rigidbody2D>()) {
+        float collided_delta_x = min(right - dst_left, dst_right - left);
+        float collided_delta_y = min(bottom - dst_top, dst_bottom - top);
+
+        if (collided_delta_x <= collided_delta_y) {
+            rb->Velocity().X = 0.0f;
+            gameObject->Translate({left < dst_left ? -collided_delta_x : collided_delta_x, 0.0f});
+        } else {
+            rb->Velocity().Y = 0.0f;
+            gameObject->Translate(
+                {0.0f, bottom < dst_bottom ? -collided_delta_y : collided_delta_y});
+        }
+        return true;
+    }
+    return false;
+}
+
 void CollisionBox::ProcessCollide(Collision* dst, float delta)
 {
     if (!m_enabled || !dst->Enabled()) return;
@@ -41,28 +65,16 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
             (max(bottom, dst_bottom) - min(top, dst_top)) < (m_size.Y + dst_box->GetSize().Y);
 
         if (collide_x && collide_y) {
-            // 碰撞回调调用
-            // 将对方的游戏对象传入进去
-            if (m_on_collide) {
-                m_on_collide(dst);
-            }
             m_isCollided = true;
+            dst_box->m_isCollided = true;
 
-            // 存在刚体进行物理位置修正
-            // 使用mtv(Minimum Translation Vector)最小位移矢量进行位置修正
-            if (auto rb = m_gameObject->GetComponent<Rigidbody2D>()) {
-                float collided_delta_x = min(right - dst_left, dst_right - left);
-                float collided_delta_y = min(bottom - dst_top, dst_bottom - top);
-
-                if (collided_delta_x <= collided_delta_y) {
-                    rb->Velocity().X = 0.0f;
-                    m_gameObject->Translate(
-                        {left < dst_left ? -collided_delta_x : collided_delta_x, 0.0f});
-                } else {
-                    rb->Velocity().Y = 0.0f;
-                    m_gameObject->Translate(
-                        {0.0f, bottom < dst_bottom ? -collided_delta_y : collided_delta_y});
-                }
+            if (m_isTrigger) return;
+            // 本身存在刚体解决冲突
+            if (!ResolveCollisions(m_gameObject, left, right, dst_left, dst_right, top, bottom,
+                                   dst_top, dst_bottom)) {
+                // 如果当前没修正成功, 尝试另一个对象
+                ResolveCollisions(dst_box->m_gameObject, dst_left, dst_right, left, right, dst_top,
+                                  dst_bottom, top, bottom);  // 注意需要反过来
             }
         }
     }

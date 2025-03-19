@@ -10,6 +10,7 @@ CollisionRaycaster::CollisionRaycaster(GameObject* object, const Vector2& offset
     : Collision(object, offset)
 {
     SetType(CollisionType::Ray);
+    m_isTrigger = true;
 }
 CollisionRaycaster::~CollisionRaycaster() {}
 
@@ -42,7 +43,6 @@ void CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
 
             if (max(right, boxRight) - min(left, boxLeft) < (dst_box->GetSize().X + m_length)) {
                 // 触发射线检测
-                if (m_on_collide) m_on_collide(dst);
                 m_isCollided = true;
             }
         } else {
@@ -54,7 +54,6 @@ void CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
 
             if (max(bottom, boxBottom) - min(top, boxTop) < (dst_box->GetSize().Y + m_length)) {
                 // 触发射线检测
-                if (m_on_collide) m_on_collide(dst);
                 m_isCollided = true;
             }
         }

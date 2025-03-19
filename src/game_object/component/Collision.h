@@ -17,6 +17,8 @@ class GameObject;
 class Camera;
 class Collision : public Component
 {
+    friend class CollisionManager;
+
 public:
     using ColliideCallback = std::function<void(Collision*)>;
 
@@ -24,9 +26,29 @@ public:
     ~Collision();
 
 public:
-    /// @brief 设置碰撞回调
+    /// @brief 设置碰撞回调, 发生碰撞后会调用的函数, 碰撞过程中只会调用一次
     /// @param on_collision 碰撞后的执行函数
-    void SetOnCollide(ColliideCallback on_collision);
+    void SetOnCollideEnter(ColliideCallback on_collision) { m_onCollideEnter = on_collision; }
+
+    /// @brief 设置碰撞回调, 发生碰撞后会调用的函数
+    /// @param on_collision 碰撞后的执行函数
+    void SetOnCollideStay(ColliideCallback on_collision) { m_onCollideStay = on_collision; }
+
+    /// @brief 设置碰撞回调, 碰撞退出后会调用的函数
+    /// @param on_collision 碰撞结束后的执行函数
+    void SetOnCollideExit(ColliideCallback on_collision) { m_onCollideExit = on_collision; }
+
+    /// @brief 设置触发器回调, 发生碰撞后会调用的函数, 碰撞过程中只会触发一次
+    /// @param on_collision 碰撞后的执行函数
+    void SetOnTriggerEnter(ColliideCallback on_collision) { m_onTriggerEnter = on_collision; }
+
+    /// @brief 设置触发器回调, 发生碰撞后会调用的函数
+    /// @param on_collision 碰撞后的执行函数
+    void SetOnTriggerStay(ColliideCallback on_collision) { m_onTriggerStay = on_collision; }
+
+    /// @brief 设置触发器回调, 碰撞退出后会调用的函数
+    /// @param on_collision 碰撞结束后的执行函数
+    void SetOnTriggerExit(ColliideCallback on_collision) { m_onTriggerExit = on_collision; }
 
     /// @brief 设置当前碰撞体的层级
     /// @param src_layer 碰撞层级
@@ -56,6 +78,10 @@ public:
     /// @brief 清除碰撞状态
     void ClearCollided() { m_isCollided = false; }
 
+    /// @brief 设置是否触发器
+    /// @note 如果设置为触发器, 则不会影响物理行为, 只触发回调
+    void SetTrigger(bool isTrigger) { m_isTrigger = isTrigger; }
+
 public:
     /// @brief 碰撞检测和修正
     /// @param collision_component 对方的碰撞器
@@ -73,8 +99,14 @@ protected:
     CollisionType m_type = CollisionType::None;
     Collisionlayer m_src_layer = CollisionLayerTool::none;  // 当前碰撞组件层级
     Collisionlayer m_dst_layer = CollisionLayerTool::none;  // 目标碰撞组件层级
-    ColliideCallback m_on_collide;                          // 发生碰撞后触发回调
+    ColliideCallback m_onCollideEnter;                      // 发生碰撞后触发一次回调
+    ColliideCallback m_onCollideStay;                       // 发生碰撞后持续触发回调
+    ColliideCallback m_onCollideExit;                       // 碰撞离开后触发回调
+    ColliideCallback m_onTriggerEnter;                      // 触发后回调
+    ColliideCallback m_onTriggerStay;                       // 触发后持续回调
+    ColliideCallback m_onTriggerExit;                       // 触发离开发生回调
     bool m_enabled = true;
     bool m_isCollided = false;  // 是否触发碰撞
+    bool m_isTrigger = false;   // 是否触发器
 };
 }  // namespace gameaf

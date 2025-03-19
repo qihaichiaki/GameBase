@@ -33,6 +33,12 @@ public:
         X += vec.X;
         Y += vec.Y;
     }
+    Vector2 operator-(float num) const { return Vector2(X - num, Y - num); }
+    void operator-=(float num)
+    {
+        X -= num;
+        Y -= num;
+    }
     Vector2 operator-(const Vector2& vec) const { return Vector2(X - vec.X, Y - vec.Y); }
     void operator-=(const Vector2& vec)
     {

@@ -41,7 +41,7 @@ public:
     {
         s_w = GameAf::GetScreenWidth() * 1.0f;
 
-        auto middle1 = std::make_shared<GameObject>();
+        auto middle1 = std::make_shared<GameObject>("_BackgroundMiddle");
         auto img = middle1->CreateComponent<Image>(std::string{"background_layer2"});
         img->SetSizeScale({4.0f, 4.0f});
         img->SetAnchorMode(ImageAnchorMode::BottomCentered);

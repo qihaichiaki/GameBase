@@ -119,25 +119,24 @@ inline Vector2 Camera::__onDeadZoneFollow(float alpha, const Vector2& current_po
 void Camera::OnFixUpdate(float alpha)
 {
     if (m_target_obj) {
-        const Vector2& current_position = m_target_obj->GetPosition();
+        Vector2 current_position = m_target_obj->GetPosition();
+
+        // 固定死区限制
+        if (m_fixedDeadZoneSize) {
+            current_position.X =
+                std::clamp(current_position.X, m_fixedDeadZonePos.X - m_fixedDeadZoneSize.X / 2,
+                           m_fixedDeadZonePos.X + m_fixedDeadZoneSize.X / 2);
+
+            current_position.Y =
+                std::clamp(current_position.Y, m_fixedDeadZonePos.Y - m_fixedDeadZoneSize.Y / 2,
+                           m_fixedDeadZonePos.Y + m_fixedDeadZoneSize.Y / 2);
+        }
 
         Vector2 delta;
         if (m_deadZoneSize != Vector2{}) {
             delta = __onDeadZoneFollow(alpha, current_position);
         } else {
             delta = __onNormalFollow(alpha, current_position);
-        }
-
-        // 固定死区限制
-        if (m_fixedDeadZoneSize) {
-            if (current_position.X < m_fixedDeadZonePos.X - m_fixedDeadZoneSize.X / 2 ||
-                current_position.X > m_fixedDeadZonePos.X + m_fixedDeadZoneSize.X / 2) {
-                delta.X = 0.0f;
-            }
-            if (current_position.Y < m_fixedDeadZonePos.Y - m_fixedDeadZoneSize.Y / 2 ||
-                current_position.Y > m_fixedDeadZonePos.Y + m_fixedDeadZoneSize.Y / 2) {
-                delta.Y = 0.0f;
-            }
         }
         m_position += delta;
     }

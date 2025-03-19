@@ -130,6 +130,7 @@ public:
     void SetName(const std::string& name) { m_name = name; }
 
     /// @brief 设置当前对象的世界坐标
+    /// @note 如果当前对象是子对象, 此时对象的pos变为了相对位移
     void SetPosition(const Vector2& position) { m_position = position; }
 
     /// @brief 设置当前对象的X坐标
@@ -139,7 +140,11 @@ public:
     void SetPositionY(float y) { m_position.Y = y; }
 
     /// @brief 获取当前对象的世界坐标
-    const Vector2& GetPosition() const { return m_position; }
+    /// @note 如果当前对象是子对象, 则是相对于父对象的坐标进行计算
+    Vector2 GetPosition() const
+    {
+        return m_parent ? m_parent->GetPosition() + m_position : m_position;
+    }
 
     /// @brief 游戏对象位置进行位移
     /// @param offset 位移大小

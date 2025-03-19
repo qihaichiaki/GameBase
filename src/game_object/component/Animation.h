@@ -45,6 +45,9 @@ public:
     /// @brief 是否为动画帧的最后一帧?
     bool IsFrameLastIndex() const;
 
+    /// @brief 播放是否结束
+    bool IsEndOfPlay() const;
+
     /// @brief 设置动画在多少s后播放一帧
     /// @param interval s
     void SetInterval(float interval);
@@ -95,6 +98,7 @@ private:
     int m_startLoopFrameIndex = 0;  // 从多少帧开始循环, 默认一开始就循环
     Timer timer;
     bool m_is_loop = false;                         // 是否是循环动画
+    bool m_isEndOfPlay = false;                     // 是否播放结束
     std::function<void(Animation*)> m_on_finished;  // 驱动力
 };
 }  // namespace gameaf

@@ -53,9 +53,7 @@ public:
 
         ui_chooseLeft = std::make_shared<UIChooseAnimator>();
 
-        ui_chooseLeft->SetPosition(
-            {GetPosition().X - GetTextComponent()->GetRenderBoxSize().X / 2 - 40.0f,
-             GetPosition().Y - 5.0f});
+        ui_chooseLeft->SetPosition({-GetTextComponent()->GetRenderBoxSize().X / 2 - 40.0f, -5.0f});
         AddChildObject(ui_chooseLeft);
 
         ui_chooseRight = ui_chooseLeft->Clone();

@@ -59,6 +59,35 @@ int main()
                                       "player_crouch");
             resourceManager.LoadAtlas(ASSETS_PATH "character/player/crouchingToIdle/%d.png", 1,
                                       "player_crouchingToIdle");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/roll/%d.png", 5, "player_roll");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/rollToIdle/%d.png", 4,
+                                      "player_rollToIdle");
+            // attack_twoHanded_standing
+            resourceManager.LoadAtlas(ASSETS_PATH
+                                      "character/player/attack_twoHanded_standing/%d.png",
+                                      19, "player_attack_twoHanded_standing");
+            // attack_twoHanded_aerial
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/attack_twoHanded_aerial/%d.png",
+                                      19, "player_attack_twoHanded_aerial");
+            // attack_twoHanded_crouching
+            resourceManager.LoadAtlas(ASSETS_PATH
+                                      "character/player/attack_twoHanded_crouching/%d.png",
+                                      19, "player_attack_twoHanded_crouching");
+            // attack block
+            resourceManager.NewImage(ASSETS_PATH "character/player/attackBlocked.png",
+                                     "player_attackBlocked");
+            resourceManager.NewImage(ASSETS_PATH "character/player/attackBlocked_crouching.png",
+                                     "player_attackBlocked_crouching");
+            // shield 盾
+            resourceManager.NewImage(ASSETS_PATH "character/player/blockingWithShield.png",
+                                     "player_blockingWithShield");  // 盾格挡
+            resourceManager.NewImage(ASSETS_PATH "character/player/hitWhileBlocking.png",
+                                     "player_hitWhileBlocking");  // 盾格挡成功
+            // damageTaken
+            resourceManager.NewImage(ASSETS_PATH "character/player/damageTaken.png",
+                                     "player_damageTaken");  // 受到伤害
+            // dead
+            resourceManager.LoadAtlas(ASSETS_PATH "character/player/dead/%d.png", 9, "player_dead");
 
             // 加载游戏背景
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");

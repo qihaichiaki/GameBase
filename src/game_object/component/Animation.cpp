@@ -9,8 +9,15 @@ void Animation::TimerInit()
     timer.SetOnTimeout([&]() {
         ++m_frame_index;
         if (m_frame_index >= m_frames.size()) {
-            m_frame_index = m_is_loop ? m_startLoopFrameIndex : m_frames.size() - 1;
-            if (m_on_finished) m_on_finished(this);
+            if (m_is_loop) {
+                m_frame_index = m_startLoopFrameIndex;
+            } else {
+                m_frame_index = m_frames.size() - 1;
+                if (m_on_finished && !m_isEndOfPlay) {
+                    m_on_finished(this);
+                }
+                m_isEndOfPlay = true;
+            }
         }
     });
 }
@@ -48,6 +55,7 @@ void Animation::Restart()
 {
     timer.Restart();
     m_frame_index = 0;
+    m_isEndOfPlay = false;
 }
 
 void Animation::SetLoop(bool isLoop) { m_is_loop = isLoop; }
@@ -55,6 +63,8 @@ void Animation::SetLoop(bool isLoop) { m_is_loop = isLoop; }
 bool Animation::IsLoop() const { return m_is_loop; }
 
 bool Animation::IsFrameLastIndex() const { return m_frames.size() == m_frame_index + 1; }
+
+bool Animation::IsEndOfPlay() const { return m_isEndOfPlay; }
 
 void Animation::SetInterval(float interval) { timer.SetWaitTime(interval); }
 

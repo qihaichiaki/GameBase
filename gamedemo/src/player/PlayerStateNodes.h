@@ -33,7 +33,7 @@ public:
 class Run : public PlayerStateNode
 {
 public:
-    Run(Player* player) : PlayerStateNode(player) {}
+    Run(Player* player);
 
     void OnEnter() override;
     void OnUpdate() override;
@@ -46,6 +46,7 @@ public:
     RunToIdle(Player* player) : PlayerStateNode(player) {}
 
     void OnEnter() override;
+    void OnUpdate() override;
 };
 
 // 跳跃状态
@@ -75,6 +76,7 @@ public:
     Landing(Player* player) : PlayerStateNode(player) {}
 
     void OnEnter() override;
+    void OnUpdate() override;
 };
 
 // 蹲下状态
@@ -85,6 +87,10 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
+
+private:
+    float offset = 30.0f;
 };
 
 // 过渡状态 蹲下->idle
@@ -94,41 +100,27 @@ public:
     CrouchingToIdle(Player* player) : PlayerStateNode(player) {}
 
     void OnEnter() override;
+    void OnUpdate() override;
 };
 
-// 冲刺状态 dash
-class Dash : public PlayerStateNode
+// 翻滚状态 roll
+class Roll : public PlayerStateNode
 {
 public:
-    Dash(Player* player) : PlayerStateNode(player) {}
+    Roll(Player* player) : PlayerStateNode(player) {}
+
+    void OnEnter() override;
+    void OnUpdate() override;
 };
 
-// 滑铲状态 slide
-class Slide : public PlayerStateNode
+// 翻滚状态->idle
+class RollToIdle : public PlayerStateNode
 {
 public:
-    Slide(Player* player) : PlayerStateNode(player) {}
-};
+    RollToIdle(Player* player) : PlayerStateNode(player) {}
 
-// 悬挂状态 hang
-class Hang : public PlayerStateNode
-{
-public:
-    Hang(Player* player) : PlayerStateNode(player) {}
-};
-
-// 滑墙状态 WallSlide
-class WallSlide : public PlayerStateNode
-{
-public:
-    WallSlide(Player* player) : PlayerStateNode(player) {}
-};
-
-// 爬墙状态 WallClimb
-class WallClimb : public PlayerStateNode
-{
-public:
-    WallClimb(Player* player) : PlayerStateNode(player) {}
+    void OnEnter() override;
+    void OnUpdate() override;
 };
 
 // 攻击状态
