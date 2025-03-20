@@ -40,9 +40,9 @@ static inline bool ResolveCollisions(GameObject* gameObject, float left, float r
     return false;
 }
 
-void CollisionBox::ProcessCollide(Collision* dst, float delta)
+bool CollisionBox::ProcessCollide(Collision* dst, float delta)
 {
-    if (!m_enabled || !dst->Enabled()) return;
+    if (!m_enabled || !dst->Enabled()) return false;
     // 实现 碰撞盒子的碰撞检测
     if (dst->Type() == CollisionType::Box) {
         CollisionBox* dst_box = static_cast<CollisionBox*>(dst);
@@ -67,8 +67,11 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
         if (collide_x && collide_y) {
             m_isCollided = true;
             dst_box->m_isCollided = true;
+            // if (dst_box->m_gameObject->GetName() == "GameObject") {
+            //     gameaf::log("size: {}", dst_box->GetSize());
+            // }
 
-            if (m_isTrigger) return;
+            if (m_isTrigger) return true;
             // 本身存在刚体解决冲突
             if (!ResolveCollisions(m_gameObject, left, right, dst_left, dst_right, top, bottom,
                                    dst_top, dst_bottom)) {
@@ -76,8 +79,10 @@ void CollisionBox::ProcessCollide(Collision* dst, float delta)
                 ResolveCollisions(dst_box->m_gameObject, dst_left, dst_right, left, right, dst_top,
                                   dst_bottom, top, bottom);  // 注意需要反过来
             }
+            return true;
         }
     }
+    return false;
 }
 
 void CollisionBox::OnDebugRender(const Camera& camera)

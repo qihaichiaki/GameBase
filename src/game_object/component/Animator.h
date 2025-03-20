@@ -113,9 +113,32 @@ public:
     /// 请自由的设置锚点在x方向所占的比例和在y方向所占的比例(单位矩形).值的取值在[0,1]
     void SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position = {0.0f, 0.0f});
 
+    /// @brief 新增过渡动画
+    /// @param firstAnimationId 上一个动画名
+    /// @param secondAnimationId 下一个动画名
+    /// @param transitionAnimationId 过渡动画名
+    bool AddTransitionAnimation(const std::string& firstAnimationId,
+                                const std::string& secondAnimationId,
+                                const std::string& transitionAnimationId);
+
 private:
     std::unordered_map<std::string, Animation> m_animations;
     std::string m_current_animation_id;
     std::string m_initial_animation_id;
+
+private:
+    struct PairHash
+    {
+        template <typename T1, typename T2>
+        size_t operator()(const std::pair<T1, T2>& p) const
+        {
+            return std::hash<T1>()(p.first) ^ (std::hash<T2>()(p.second) << 1);
+        }
+    };
+
+    std::unordered_map<std::pair<std::string, std::string>, std::string, PairHash>
+        m_transitionAnimations;     // 记载的过渡动画缓存
+    bool m_isTransition = false;    // 是否过渡
+    std::string m_nextAnimationId;  // 过渡状态后的下一个动画id
 };
 }  // namespace gameaf

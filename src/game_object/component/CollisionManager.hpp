@@ -1,5 +1,6 @@
 #pragma once
 
+#include <game_object/GameObject.h>
 #include <game_object/component/CollisionBox.h>
 #include <game_object/component/CollisionRaycaster.h>
 
@@ -31,9 +32,10 @@ public:
             for (size_t j = i + 1; j < m_collide_components.size(); ++j) {
                 Collision* dst_collide = m_collide_components[j];
                 if (src_collide == dst_collide || !src_collide->CheckLayer(*dst_collide)) continue;
-                src_collide->ProcessCollide(dst_collide, delta);
                 CollidedInfo key = {src_collide, dst_collide};
-                if (src_collide->m_isCollided) {
+                if (src_collide->ProcessCollide(dst_collide, delta)) {
+                    // gameaf::log("{} 和 {} 发生碰撞", src_collide->m_gameObject->GetName(),
+                    //             dst_collide->m_gameObject->GetName());
                     if (m_previousCollisions.count(key)) {
                         if (src_collide->m_isTrigger && src_collide->m_onTriggerStay)
                             src_collide->m_onTriggerStay(dst_collide);

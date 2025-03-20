@@ -120,3 +120,32 @@ public:
     CollisionBox* collisionBox;
     bool isDebug = false;
 };
+
+class Wall : public GameObject
+{
+public:
+    Wall() : GameObject(RenderZOrder::WALL, "Wall") {}
+
+    void OnAwake() override
+    {
+        auto img = CreateComponent<Image>(std::string{"wall"});
+        // img->SetSizeScale({2.08f, 0.84f});
+        img->SetAnchorMode(ImageAnchorMode::TopCentered);
+        // Translate({0.0f, GameAf::GetScreenHeight() * 0.5f + 150.0f});  //
+
+        collisionBox = CreateComponent<CollisionBox>(Vector2{0.0f, img->GetSize().Y / 2});
+        // collisionBox->SetSize({collisionBox->GetSize().X - 180.0f, collisionBox->GetSize().Y});
+        collisionBox->SetSrcLayer(CollisionLayerTool::wall);
+        collisionBox->AddDstLayer(CollisionLayerTool::player |
+                                  CollisionLayerTool::enemy);  // 目标包含player、enemy对象
+    }
+
+    void OnDraw(const Camera& camera) override
+    {
+        if (isDebug) collisionBox->OnDebugRender(camera);
+    }
+
+public:
+    CollisionBox* collisionBox;
+    bool isDebug = false;
+};

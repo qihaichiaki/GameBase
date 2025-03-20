@@ -12,7 +12,18 @@ namespace gameaf {
 Animator::Animator(GameObject* obj) : Component(obj, Vector2{}) {};
 Animator::~Animator() = default;
 
-void Animator::OnUpdate(float delta) { m_animations.at(m_current_animation_id).OnUpdate(delta); }
+void Animator::OnUpdate(float delta)
+{
+    auto& currentAnimation = m_animations.at(m_current_animation_id);
+    currentAnimation.OnUpdate(delta);
+    if (m_isTransition) {
+        if (currentAnimation.IsEndOfPlay()) {
+            m_current_animation_id = m_nextAnimationId;
+            m_animations.at(m_current_animation_id).Restart();  // 重放
+            m_isTransition = false;                             // 不再过渡
+        }
+    }
+}
 
 void Animator::OnRender(const Camera& camera)
 {
@@ -123,6 +134,15 @@ bool Animator::DelAnimation(const std::string& animation_id)
     if (m_animations.count(animation_id) == 0) return false;
 
     m_animations.erase(animation_id);
+    // 删除相应缓存相关过渡动画信息
+    for (auto it = m_transitionAnimations.begin(); it != m_transitionAnimations.end();) {
+        if (it->first.first == animation_id || it->first.second == animation_id ||
+            it->second == animation_id) {
+            it = m_transitionAnimations.erase(it);
+        } else {
+            ++it;
+        }
+    }
     return true;
 }
 
@@ -151,12 +171,19 @@ const Animation& Animator::GetInitialAnimation() const
 bool Animator::SwitchToAnimation(const std::string& animation_id)
 {
     if (m_animations.count(animation_id) == 0) return false;
-    // 变换处理?
-    m_current_animation_id = animation_id;
-    auto& animation = m_animations.at(animation_id);
-    if (!animation.IsLoop() && animation.IsFrameLastIndex()) {
-        animation.Restart();
+    // 过渡播放
+    auto key = std::make_pair(m_current_animation_id, animation_id);
+    if (m_transitionAnimations.count(key)) {
+        // 存在过渡
+        m_isTransition = true;
+        m_nextAnimationId = animation_id;
+        m_current_animation_id = m_transitionAnimations[key];
+    } else {
+        m_current_animation_id = animation_id;
+        m_isTransition = false;
     }
+
+    m_animations.at(m_current_animation_id).Restart();  // 重新播放
     return true;
 }
 
@@ -186,6 +213,27 @@ void Animator::SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_position
     for (auto& [_, animation] : m_animations) {
         animation.SetAnchorMode(mod, anchor_position);
     }
+}
+
+bool Animator::AddTransitionAnimation(const std::string& firstAnimationId,
+                                      const std::string& secondAnimationId,
+                                      const std::string& transitionAnimationId)
+{
+    if (m_animations.count(firstAnimationId) == 0 || m_animations.count(secondAnimationId) == 0 ||
+        m_animations.count(transitionAnimationId) == 0) {
+        gameaf::log("[warring][AddTransitionAnimation] 存在未加载动画");
+        return false;
+    }
+    // 过渡动画不允许重复动画
+    if (m_animations.at(transitionAnimationId).IsLoop()) {
+        gameaf::log("[error][AddTransitionAnimation] 过渡动画:{} 不允许循环",
+                    transitionAnimationId);
+        return false;
+    }
+
+    m_transitionAnimations[std::make_pair(firstAnimationId, secondAnimationId)] =
+        transitionAnimationId;
+    return true;
 }
 
 }  // namespace gameaf

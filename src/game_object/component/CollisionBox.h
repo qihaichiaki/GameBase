@@ -25,7 +25,7 @@ public:
     float BottomY() const { return Position().Y + m_size.Y / 2; }
 
 public:
-    void ProcessCollide(Collision* dst, float delta) override;
+    bool ProcessCollide(Collision* dst, float delta) override;
 
     void OnDebugRender(const Camera& camera) override;
 

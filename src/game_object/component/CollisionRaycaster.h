@@ -19,7 +19,7 @@ public:
     ~CollisionRaycaster();
 
 public:
-    void ProcessCollide(Collision* dst, float delta) override;
+    bool ProcessCollide(Collision* dst, float delta) override;
     void OnDebugRender(const Camera& camera) override;
     void Flip() override;
 

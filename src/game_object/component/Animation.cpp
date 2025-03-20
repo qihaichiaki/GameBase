@@ -62,8 +62,6 @@ void Animation::SetLoop(bool isLoop) { m_is_loop = isLoop; }
 
 bool Animation::IsLoop() const { return m_is_loop; }
 
-bool Animation::IsFrameLastIndex() const { return m_frames.size() == m_frame_index + 1; }
-
 bool Animation::IsEndOfPlay() const { return m_isEndOfPlay; }
 
 void Animation::SetInterval(float interval) { timer.SetWaitTime(interval); }

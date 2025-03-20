@@ -48,7 +48,7 @@ public:
 public:
     float dir = 1.0f;          // 默认情况下是朝右的
     float xSpeed = 300.0f;     //水平方向的速度
-    float jumpSpeed = 600.0f;  // 跳跃力
+    float jumpSpeed = 650.0f;  // 跳跃力
     float rollSpeed = 500.0f;  // 翻滚力
 
     bool isGround = false;  // 是否在地面上

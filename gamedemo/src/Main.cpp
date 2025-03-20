@@ -93,6 +93,8 @@ int main()
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");
             resourceManager.NewImage(ASSETS_PATH "background/layer_2.png", "background_layer2");
             resourceManager.NewImage(ASSETS_PATH "platform/TearCity/Floor_1.png", "ground");
+            resourceManager.NewImage(ASSETS_PATH "platform/TearCity/ruin_plat_float_02.png",
+                                     "wall");
             sceneManager.SetLoadProgress(1.0f);
 
             // 等待2秒缓冲

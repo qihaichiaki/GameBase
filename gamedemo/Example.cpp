@@ -72,7 +72,7 @@ public:
         collisionBox->SetSize({50.0f, collisionBox->GetSize().Y});
         collisionBox->SetSrcLayer(CollisionLayerTool::player);
         collisionBox->AddDstLayer(CollisionLayerTool::wall);
-        collisionBox->SetOnCollide([this](Collision*) {});
+        // collisionBox->SetOnCollide([this](Collision*) {});
         rigidbody2D = CreateComponent<Rigidbody2D>();
         // rigidbody2D->gravityScale() = 10.5f;
 

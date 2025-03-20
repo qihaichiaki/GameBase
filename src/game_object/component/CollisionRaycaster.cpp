@@ -22,9 +22,9 @@ void CollisionRaycaster::BuildEndPos()
                                               : Vector2{Position().X - m_length, Position().Y};
 }
 
-void CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
+bool CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
 {
-    if (!m_enabled || !dst->Enabled()) return;
+    if (!m_enabled || !dst->Enabled()) return false;
     BuildEndPos();
     if (dst->Type() == CollisionType::Box) {
         CollisionBox* dst_box = static_cast<CollisionBox*>(dst);
@@ -36,7 +36,7 @@ void CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
         float boxRight = dst_box->RightX();
 
         if (m_dir == RaycasterDir::Left || m_dir == RaycasterDir::Right) {
-            if (position.Y < boxTop || position.Y > boxBottom) return;
+            if (position.Y < boxTop || position.Y > boxBottom) return false;
             // x方向上
             float left = min(position.X, m_endPos.X);
             float right = max(position.X, m_endPos.X);
@@ -44,10 +44,11 @@ void CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
             if (max(right, boxRight) - min(left, boxLeft) < (dst_box->GetSize().X + m_length)) {
                 // 触发射线检测
                 m_isCollided = true;
+                return true;
             }
         } else {
             // y方向上
-            if (position.X < boxLeft || position.X > boxRight) return;
+            if (position.X < boxLeft || position.X > boxRight) return false;
 
             float top = min(position.Y, m_endPos.Y);
             float bottom = max(position.Y, m_endPos.Y);
@@ -55,9 +56,12 @@ void CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
             if (max(bottom, boxBottom) - min(top, boxTop) < (dst_box->GetSize().Y + m_length)) {
                 // 触发射线检测
                 m_isCollided = true;
+                return true;
             }
         }
     }
+
+    return false;
 }
 
 void CollisionRaycaster::OnDebugRender(const Camera& camera)

@@ -33,17 +33,7 @@ public:
 class Run : public PlayerStateNode
 {
 public:
-    Run(Player* player);
-
-    void OnEnter() override;
-    void OnUpdate() override;
-};
-
-// 奔跑转idle
-class RunToIdle : public PlayerStateNode
-{
-public:
-    RunToIdle(Player* player) : PlayerStateNode(player) {}
+    Run(Player* player) : PlayerStateNode(player) {}
 
     void OnEnter() override;
     void OnUpdate() override;
@@ -93,31 +83,11 @@ private:
     float offset = 30.0f;
 };
 
-// 过渡状态 蹲下->idle
-class CrouchingToIdle : public PlayerStateNode
-{
-public:
-    CrouchingToIdle(Player* player) : PlayerStateNode(player) {}
-
-    void OnEnter() override;
-    void OnUpdate() override;
-};
-
 // 翻滚状态 roll
 class Roll : public PlayerStateNode
 {
 public:
     Roll(Player* player) : PlayerStateNode(player) {}
-
-    void OnEnter() override;
-    void OnUpdate() override;
-};
-
-// 翻滚状态->idle
-class RollToIdle : public PlayerStateNode
-{
-public:
-    RollToIdle(Player* player) : PlayerStateNode(player) {}
 
     void OnEnter() override;
     void OnUpdate() override;

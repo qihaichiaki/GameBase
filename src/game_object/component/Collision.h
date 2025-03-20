@@ -86,7 +86,8 @@ public:
     /// @brief 碰撞检测和修正
     /// @param collision_component 对方的碰撞器
     /// @param delta
-    virtual void ProcessCollide(Collision* collision_component, float delta) = 0;
+    /// @return 返回当前检测是否碰撞
+    virtual bool ProcessCollide(Collision* collision_component, float delta) = 0;
 
     /// @brief 通过摄像机debug渲染碰撞盒子
     virtual void OnDebugRender(const Camera& camera) {}

@@ -21,7 +21,7 @@ void Player::OnAwake()
     animator->AddAnimationForAtlas("run", "player_run", true, 0.1f);
     animator->AddAnimationForAtlas("runToIdle", "player_runToIdle", false, 0.1f);
     animator->AddAnimationForAtlas("jump", "player_jump", false, 0.1f);
-    animator->AddAnimationForAtlas("falling", "player_falling", true, 0.1f);
+    animator->AddAnimationForAtlas("falling", "player_falling", false, 0.1f);
     animator->AddAnimationForAtlas("landing", "player_landing", false, 0.1f);
     {
         animator->AddAnimationForAtlas("crouch", "player_crouch", true, 0.1f);
@@ -31,6 +31,14 @@ void Player::OnAwake()
     animator->AddAnimationForAtlas("crouchingToIdle", "player_crouchingToIdle", false, 0.1f);
     animator->AddAnimationForAtlas("roll", "player_roll", false, 0.1f);
     animator->AddAnimationForAtlas("rollToIdle", "player_rollToIdle", false, 0.1f);
+
+    {
+        // 设置过渡动画
+        animator->AddTransitionAnimation("idle", "run", "idleToRun");
+        animator->AddTransitionAnimation("run", "idle", "runToIdle");
+        animator->AddTransitionAnimation("crouch", "idle", "crouchingToIdle");
+        animator->AddTransitionAnimation("roll", "idle", "rollToIdle");
+    }
 
     animator->SetAnchorMode(ImageAnchorMode::BottomCentered);
     animator->SetSizeScale({2.5f, 2.5f});
@@ -42,6 +50,7 @@ void Player::OnAwake()
         Vector2{0.0f, -animator->GetInitialAnimation().CurrentFrameSize().Y / 2});
     collisionBox->SetSrcLayer(CollisionLayerTool::player);
     collisionBox->AddDstLayer(CollisionLayerTool::wall);
+    collisionBox->SetSize({40.0f, collisionBox->GetSize().Y});
 
     // 创建一个子对象用来角色检测地面碰撞体(创建子对象是因为不会影响父对象的刚体)
     auto groundDetection = std::make_shared<GameObject>();
@@ -50,7 +59,7 @@ void Player::OnAwake()
     groundDetectionCollision->SetSrcLayer(CollisionLayerTool::player);
     groundDetectionCollision->AddDstLayer(CollisionLayerTool::wall);
     groundDetectionCollision->SetSize(Vector2{40.0f, 5.0f});
-    groundDetectionCollision->SetOffset(Vector2{0.0f, -2.5f});
+    groundDetectionCollision->SetOffset(Vector2{0.0f, -1.5f});
     groundDetectionCollision->SetTrigger(true);  // 作为触发器使用, 用来检测地面
     groundDetectionCollision->SetOnTriggerEnter([&](Collision* dst) { isGround = true; });
     groundDetectionCollision->SetOnTriggerExit([&](Collision* dst) { isGround = false; });
@@ -61,14 +70,11 @@ void Player::OnAwake()
     // 注册状态
     m_stateMachine.RegisterState("Idle", std::make_shared<Idle>(this));
     m_stateMachine.RegisterState("Run", std::make_shared<Run>(this));
-    m_stateMachine.RegisterState("RunToIdle", std::make_shared<RunToIdle>(this));
     m_stateMachine.RegisterState("Jump", std::make_shared<Jump>(this));
     m_stateMachine.RegisterState("Falling", std::make_shared<Falling>(this));
     m_stateMachine.RegisterState("Landing", std::make_shared<Landing>(this));
     m_stateMachine.RegisterState("Crouch", std::make_shared<Crouch>(this));
-    m_stateMachine.RegisterState("CrouchingToIdle", std::make_shared<CrouchingToIdle>(this));
     m_stateMachine.RegisterState("Roll", std::make_shared<Roll>(this));
-    m_stateMachine.RegisterState("RollToIdle", std::make_shared<RollToIdle>(this));
     m_stateMachine.SetEntry("Idle");
 }
 

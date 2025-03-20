@@ -11,9 +11,9 @@ PlayerStateNode::PlayerStateNode(Player* player)
 // === idle ===
 void Idle::OnEnter()
 {
+    gameaf::log("idle");
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("idle");
-    animator->GetCurrentAnimation().Restart();
 }
 void Idle::OnUpdate()
 {
@@ -35,21 +35,18 @@ void Idle::OnUpdate()
 }
 
 // === run ===
-Run::Run(Player* player) : PlayerStateNode(player)
+void Run::OnEnter()
 {
-    animator->GetAnimation("idleToRun").SetOnFinished([this](Animation* animation) {
-        animator->SwitchToAnimation("run");
-    });
+    gameaf::log("run");
+    animator->SwitchToAnimation("run");
 }
-
-void Run::OnEnter() { animator->SwitchToAnimation("idleToRun"); }
 void Run::OnUpdate()
 {
     int dir = InputKey::GetHorizontalDir();
     player->SetVelocityX(player->xSpeed * dir);
 
     if (!dir) {
-        player->SwitchState("RunToIdle");
+        player->SwitchState("Idle");
     }
     if (InputKey::TryJump()) {
         player->SwitchState("Jump");
@@ -65,25 +62,17 @@ void Run::OnUpdate()
     }
 }
 
-// === run to idle ===
-void RunToIdle::OnEnter() { animator->SwitchToAnimation("runToIdle"); }
-void RunToIdle::OnUpdate()
-{
-    if (animator->GetCurrentAnimation().IsEndOfPlay()) {
-        player->SwitchState("Idle");
-    }
-}
-
 // === jump ===
 void Jump::OnEnter()
 {
+    gameaf::log("jump");
     animator->SwitchToAnimation("jump");
     player->SetVelocityY(-player->jumpSpeed);
 }
 void Jump::OnUpdate()
 {
     player->SetVelocityX(player->xSpeed * InputKey::GetHorizontalDir());
-    if (player->GetVelocity().Y > 0) {
+    if (player->GetVelocity().Y >= 0) {
         player->SwitchState("Falling");
     }
     if (InputKey::TryRoll()) {
@@ -92,7 +81,12 @@ void Jump::OnUpdate()
 }
 
 // === Falling ===
-void Falling::OnEnter() { animator->SwitchToAnimation("falling"); }
+void Falling::OnEnter()
+{
+    gameaf::log("falling");
+    animator->SwitchToAnimation("falling");
+}
+
 void Falling::OnUpdate()
 {
     player->SetVelocityX(player->xSpeed * InputKey::GetHorizontalDir());
@@ -107,6 +101,7 @@ void Falling::OnUpdate()
 // === landing ===
 void Landing::OnEnter()
 {
+    gameaf::log("landing");
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("landing");
 }
@@ -121,9 +116,9 @@ void Landing::OnUpdate()
 // === crouch ===
 void Crouch::OnEnter()
 {
+    gameaf::log("crouch");
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("crouch");
-    animator->GetAnimation("crouch").Restart();
     auto collisionBox = player->GetComponent<CollisionBox>();
     collisionBox->SetSize({collisionBox->GetSize().X, collisionBox->GetSize().Y - offset});
     collisionBox->SetOffset(
@@ -133,7 +128,7 @@ void Crouch::OnEnter()
 void Crouch::OnUpdate()
 {
     if (!InputKey::TryCrouch()) {
-        player->SwitchState("CrouchingToIdle");
+        player->SwitchState("Idle");
     }
 }
 
@@ -145,19 +140,10 @@ void Crouch::OnExit()
         {collisionBox->GetOffset().X, collisionBox->GetOffset().Y - offset / 2});
 }
 
-// === CrouchToIdle ===
-void CrouchingToIdle::OnEnter() { animator->SwitchToAnimation("crouchingToIdle"); }
-
-void CrouchingToIdle::OnUpdate()
-{
-    if (animator->GetCurrentAnimation().IsEndOfPlay()) {
-        player->SwitchState("Idle");
-    }
-}
-
 // === roll ===
 void Roll::OnEnter()
 {
+    gameaf::log("roll");
     player->SetVelocityX(player->dir * player->rollSpeed);
     animator->SwitchToAnimation("roll");
 }
@@ -168,21 +154,7 @@ void Roll::OnUpdate()
         if (!player->isGround) {
             player->SwitchState("Falling");
         } else {
-            player->SwitchState("RollToIdle");
+            player->SwitchState("Idle");
         }
-    }
-}
-
-// === RollToIdle ===
-void RollToIdle::OnEnter()
-{
-    player->SetVelocityX(InputKey::GetHorizontalDir() * player->xSpeed);
-    animator->SwitchToAnimation("rollToIdle");
-}
-
-void RollToIdle::OnUpdate()
-{
-    if (animator->GetCurrentAnimation().IsEndOfPlay()) {
-        player->SwitchState("Idle");
     }
 }

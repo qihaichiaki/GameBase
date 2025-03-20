@@ -42,9 +42,6 @@ public:
     /// @brief 查询是否循环
     bool IsLoop() const;
 
-    /// @brief 是否为动画帧的最后一帧?
-    bool IsFrameLastIndex() const;
-
     /// @brief 播放是否结束
     bool IsEndOfPlay() const;
 

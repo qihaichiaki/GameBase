@@ -49,8 +49,11 @@ public:
         auto backgroundMiddle = std::make_shared<BackgroundMiddle>(player.get());  // 世界坐标渲染
         // 创建地板
         auto ground = std::make_shared<Ground>();
+        // 创建墙面
+        auto wall = std::make_shared<Wall>();
+        wall->Translate({0.0f, 150.0f});
 
-        AddGameObjects({test, backgroundBottom, backgroundMiddle, ground, player});
+        AddGameObjects({test, backgroundBottom, backgroundMiddle, ground, wall, player});
 
         // 主相机跟随玩家
         mainCamera->SetFollowTarget(player, Camera::FollowMode::Smooth);
@@ -77,6 +80,7 @@ public:
             _player->isDebug = isDebug;
             SetDebugRenderCamera(isDebug);
             static_cast<Ground*>(GetGameObject("Ground").get())->isDebug = isDebug;
+            static_cast<Wall*>(GetGameObject("Wall").get())->isDebug = isDebug;
             if (isDebug) {
                 _testText->SetText(L"调试模式");
             } else {
