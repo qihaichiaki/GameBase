@@ -63,16 +63,18 @@ int main()
             resourceManager.LoadAtlas(ASSETS_PATH "character/player/rollToIdle/%d.png", 4,
                                       "player_rollToIdle");
             // attack_twoHanded_standing
-            resourceManager.LoadAtlas(ASSETS_PATH
-                                      "character/player/attack_twoHanded_standing/%d.png",
-                                      19, "player_attack_twoHanded_standing");
-            // attack_twoHanded_aerial
-            resourceManager.LoadAtlas(ASSETS_PATH "character/player/attack_twoHanded_aerial/%d.png",
-                                      19, "player_attack_twoHanded_aerial");
-            // attack_twoHanded_crouching
-            resourceManager.LoadAtlas(ASSETS_PATH
-                                      "character/player/attack_twoHanded_crouching/%d.png",
-                                      19, "player_attack_twoHanded_crouching");
+            resourceManager.NewImage(
+                ASSETS_PATH "character/player/attack_twoHanded_standing/attack_standing.png",
+                "player_attack_standing", 1, 19);
+            // attack_aerial
+            resourceManager.NewImage(ASSETS_PATH
+                                     "character/player/attack_oneHanded_aerial/attack_aerial.png",
+                                     "player_attack_aerial", 1, 19);
+            // attack_crouching
+            resourceManager.NewImage(
+                ASSETS_PATH
+                "character/player/attack_missileLauncher_crouching/attack_crouching.png",
+                "player_attack_crouching", 1, 12);
             // attack block
             resourceManager.NewImage(ASSETS_PATH "character/player/attackBlocked.png",
                                      "player_attackBlocked");

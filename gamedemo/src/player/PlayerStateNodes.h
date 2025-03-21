@@ -14,7 +14,12 @@ class PlayerStateNode : public StateNode
 public:
     PlayerStateNode(Player* player);
 
+public:
+    // 提供公共修改玩家竖直方向上box的方法(设计位移等)
+    void SetSizeY(float offsetY);
+
 protected:
+    // 保护属性
     Player* player;
     Animator* animator;
 };
@@ -59,16 +64,6 @@ public:
     void OnUpdate() override;
 };
 
-// 着落效果
-class Landing : public PlayerStateNode
-{
-public:
-    Landing(Player* player) : PlayerStateNode(player) {}
-
-    void OnEnter() override;
-    void OnUpdate() override;
-};
-
 // 蹲下状态
 class Crouch : public PlayerStateNode
 {
@@ -91,6 +86,10 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
+
+private:
+    float offset = 30.0f;
 };
 
 // 攻击状态
@@ -98,6 +97,47 @@ class Attack : public PlayerStateNode
 {
 public:
     Attack(Player* player) : PlayerStateNode(player) {}
+
+    void OnEnter() override;
+};
+
+// 地面攻击状态
+class AttackStanding : public Attack
+{
+public:
+    AttackStanding(Player* player) : Attack(player) {}
+
+    void OnEnter() override;
+    void OnUpdate() override;
+};
+
+// 空中攻击状态
+class AttackAerial : public Attack
+{
+public:
+    AttackAerial(Player* player) : Attack(player) {}
+
+    void OnEnter() override;
+    void OnUpdate() override;
+};
+
+// 蹲下攻击状态
+class AttackCrouching : public Attack
+{
+public:
+    AttackCrouching(Player* player) : Attack(player) {}
+
+    void OnEnter() override;
+    void OnUpdate() override;
+};
+
+class Blocking : public PlayerStateNode
+{
+public:
+    Blocking(Player* player) : PlayerStateNode(player) {}
+
+    void OnEnter() override;
+    void OnUpdate() override;
 };
 
 // 受击状态

@@ -35,9 +35,6 @@ public:
     /// @brief 获取图像大小
     const Vector2& GetSize() const;
 
-    /// @brief 设置图像大小
-    void SetSize(const Vector2& size);
-
     /// @brief 设置图像大小比例
     void SetSizeScale(const Vector2& size);
 
@@ -63,9 +60,16 @@ public:
     /// @param renderSpriteIndex 从0开头
     void SetRenderSpriteIndex(size_t renderSpriteIndex);
 
+    /// @brief 旋转图像
+    /// @param radian 逆时针旋转角度弧度值
+    /// @note 默认根据锚点位置进行旋转
+    void Rotate(double radian);
+
 private:
+    // 由于使用的是easyx, 为了增加效率, 缓存量会非常大(确信)
     TImage* m_img;                      // 图像元
-    Vector2 m_size;                     // 图像大小
+    Vector2 m_scale;                    // 图像元变化为当前图像大小的值, 用于计算最终渲染图像大小
+    Vector2 m_size;                     // 当前的图像大小
     std::shared_ptr<TImage> m_flipImg;  // 辅助翻转使用的新图元, 生命周期共享于使用对应图元
     TImage* m_currentImg = nullptr;     // 辅助切换正常和翻转的图元
 

@@ -132,7 +132,7 @@ private:
 #else
 #endif
 
-private:
+public:
     int m_width = 0;
     int m_height = 0;
     int m_pivotX;         // 对称轴相对于左上角的水平偏移距离

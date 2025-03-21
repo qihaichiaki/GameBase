@@ -16,7 +16,7 @@ void Player::OnAwake()
     // === 加载角色动画 ===
     auto animator = CreateComponent<Animator>();
 
-    animator->AddAnimationForAtlas("idle", "player_idle", true, 0.05f);
+    animator->AddAnimationForAtlas("idle", "player_idle", true, 0.045f);
     animator->AddAnimationForAtlas("idleToRun", "player_idleToRun", false, 0.1f);
     animator->AddAnimationForAtlas("run", "player_run", true, 0.1f);
     animator->AddAnimationForAtlas("runToIdle", "player_runToIdle", false, 0.1f);
@@ -31,6 +31,13 @@ void Player::OnAwake()
     animator->AddAnimationForAtlas("crouchingToIdle", "player_crouchingToIdle", false, 0.1f);
     animator->AddAnimationForAtlas("roll", "player_roll", false, 0.1f);
     animator->AddAnimationForAtlas("rollToIdle", "player_rollToIdle", false, 0.1f);
+    animator->AddAnimationForImage("attack_standing", "player_attack_standing", false,
+                                   0.06f);  // 地面双手武器攻击
+    animator->AddAnimationForImage("attack_aerial", "player_attack_aerial", false,
+                                   0.048f);  // 空中单手武器攻击
+    animator->AddAnimationForImage("attack_crouching", "player_attack_crouching", false,
+                                   0.1f);  // 蹲下火箭攻击
+    animator->AddAnimationForImage("blocking", "player_blockingWithShield", false, 0.1f);  // 盾格挡
 
     {
         // 设置过渡动画
@@ -38,6 +45,7 @@ void Player::OnAwake()
         animator->AddTransitionAnimation("run", "idle", "runToIdle");
         animator->AddTransitionAnimation("crouch", "idle", "crouchingToIdle");
         animator->AddTransitionAnimation("roll", "idle", "rollToIdle");
+        animator->AddTransitionAnimation("falling", "idle", "landing");
     }
 
     animator->SetAnchorMode(ImageAnchorMode::BottomCentered);
@@ -72,10 +80,17 @@ void Player::OnAwake()
     m_stateMachine.RegisterState("Run", std::make_shared<Run>(this));
     m_stateMachine.RegisterState("Jump", std::make_shared<Jump>(this));
     m_stateMachine.RegisterState("Falling", std::make_shared<Falling>(this));
-    m_stateMachine.RegisterState("Landing", std::make_shared<Landing>(this));
     m_stateMachine.RegisterState("Crouch", std::make_shared<Crouch>(this));
     m_stateMachine.RegisterState("Roll", std::make_shared<Roll>(this));
+    m_stateMachine.RegisterState("AttackStanding", std::make_shared<AttackStanding>(this));
+    m_stateMachine.RegisterState("AttackAerial", std::make_shared<AttackAerial>(this));
+    m_stateMachine.RegisterState("AttackCrouching", std::make_shared<AttackCrouching>(this));
+    m_stateMachine.RegisterState("Blocking", std::make_shared<Blocking>(this));
     m_stateMachine.SetEntry("Idle");
+
+    // 角色状态相关辅助更新
+    isOnFloorLastFrameTimer.SetWaitTime(0.1f);
+    isOnFloorLastFrameTimer.SetOnTimeout([&]() { isJumpForgiveExit = false; });
 }
 
 void Player::OnUpdate() { Character::OnUpdate(); }

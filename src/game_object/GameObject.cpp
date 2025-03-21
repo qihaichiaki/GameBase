@@ -237,7 +237,6 @@ void GameObject::OnUpdate(float delta)
     if (m_isChildrenActive && m_child_gameObjects) {
         for (auto& game_object : *m_child_gameObjects) {
             if (game_object->GetActive()) {
-                game_object->OnUpdate();
                 game_object->OnUpdate(delta);
             }
         }

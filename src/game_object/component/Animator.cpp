@@ -49,7 +49,7 @@ bool Animator::AddAnimationForImage(const std::string& animation_id, const std::
                                     bool isLoop, float interval)
 {
     if (m_animations.count(animation_id) != 0) {
-        gameaf::log("[warring][AddAnimation] animation重名了...");
+        gameaf::log("[warring][AddAnimation] {}-{} 重名了...", animation_id, imgID);
         return false;
     }
     auto timg = ResourceManager::GetInstance().GetTImage(imgID);
@@ -72,7 +72,7 @@ bool Animator::AddAnimationForImage(const std::string& animation_id, const std::
                                     const std::vector<size_t>& indexs, bool isLoop, float interval)
 {
     if (m_animations.count(animation_id) != 0) {
-        gameaf::log("[warring][AddAnimation] animation重名了...");
+        gameaf::log("[warring][AddAnimation] {}-{} 重名了...", animation_id, imgID);
         return false;
     }
     auto timg = ResourceManager::GetInstance().GetTImage(imgID);
@@ -107,7 +107,7 @@ bool Animator::AddAnimationForAtlas(const std::string& animation_id, const std::
                                     bool isLoop, float interval)
 {
     if (m_animations.count(animation_id) != 0) {
-        gameaf::log("[warring][AddAnimation] animation重名了...");
+        gameaf::log("[warring][AddAnimation] {}-{} 重名了...", animation_id, atlasID);
         return false;
     }
     auto atlas = ResourceManager::GetInstance().GetAtlas(atlasID);

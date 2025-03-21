@@ -37,7 +37,7 @@ void Image::OnRender(const Camera& camera) const { OnRender(camera, m_renderSpri
 void Image::OnRender(const Camera& camera, size_t spriteIndex) const
 {
     PutImageEx(camera, m_currentImg, BuildRender(Position(), m_size, m_anchorPosition),
-               m_img->GetSpriteRect(spriteIndex));
+               m_currentImg->GetSpriteRect(spriteIndex));
 }
 
 void Image::Flip()
@@ -55,9 +55,11 @@ void Image::Flip()
 
 const Vector2& Image::GetSize() const { return m_size; }
 
-void Image::SetSize(const Vector2& size) { m_size = size; }
-
-void Image::SetSizeScale(const Vector2& scale) { m_size *= scale; }
+void Image::SetSizeScale(const Vector2& scale)
+{
+    m_size = Vector2{m_img->GetSpriteRect(0).w * 1.0f, m_img->GetSpriteRect(0).h * 1.0f} * scale;
+    m_scale = scale;
+}
 
 size_t Image::GetSpriteNum() const { return m_img->GetSpriteNum(); }
 
@@ -91,6 +93,20 @@ bool Image::ContainsScreenPoint(const Camera& camera, const Vector2& pos) const
     dst.x -= camera.GetPosition().X;
     dst.y -= camera.GetPosition().Y;
     return (pos.X >= dst.x && pos.X <= dst.x + dst.w) && (pos.Y >= dst.y && pos.Y <= dst.y + dst.h);
+}
+
+void Image::SetRenderSpriteIndex(size_t renderSpriteIndex)
+{
+    m_renderSpriteIndex = renderSpriteIndex;
+}
+
+// 测试旋转 debug 存在问题, 先不使用旋转
+void Image::Rotate(double radian)
+{
+    // 存在内存泄露(替换后的m_img 为new出来对象, img组件删除时, 不会携带释放其内存)
+    // m_currentImg = RotateImageEx(m_img, radian);
+    // m_size = {m_currentImg->GetWidth() * 1.0f, m_currentImg->GetHeight() * 1.0f};
+    // m_size *= m_scale;
 }
 
 }  // namespace gameaf

@@ -30,6 +30,8 @@ struct InputKey
     static KeyValue jump;
     static KeyValue crouch;
     static KeyValue roll;
+    static KeyValue attack;
+    static KeyValue block;
 
     /// @brief 尝试移动
     static bool TryMove() { return input.GetKey(moveLeft) || input.GetKey(moveRight); }
@@ -42,6 +44,12 @@ struct InputKey
 
     /// @brief 尝试翻滚
     static bool TryRoll() { return input.IsKeyDown(roll); }
+
+    /// @brief 尝试攻击
+    static bool TryAttack() { return input.IsKeyDown(attack); }
+
+    /// @brief 尝试格挡
+    static bool TryBlock() { return input.GetKey(block); }
 
     /// @brief 返回水平移动的的方向
     static int GetHorizontalDir()
@@ -56,3 +64,5 @@ inline KeyValue InputKey::moveRight = KeyValue::D;
 inline KeyValue InputKey::jump = KeyValue::Space;
 inline KeyValue InputKey::crouch = KeyValue::S;
 inline KeyValue InputKey::roll = KeyValue::Shift;
+inline KeyValue InputKey::attack = KeyValue::J;
+inline KeyValue InputKey::block = KeyValue::K;

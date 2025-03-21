@@ -45,6 +45,74 @@ inline void PutImageEx(const Camera& camera, TImage* img, const Rect& dst, const
 #endif
 }
 
+/// @brief 旋转图像
+/// @param img 待旋转图像
+/// @param radian 旋转弧度
+/// @return 旋转后的新图像(注意别内存泄露)
+inline TImage* RotateImageEx(TImage* img, double radian)
+{
+    // 目前先不支持精灵图的旋转
+    if (img->GetSpriteNum() > 1) return nullptr;
+
+#ifdef GAMEAF_USE_EASYX
+    radian = -radian;  // 由于 y 轴翻转，旋转角度需要变负
+    IMAGE* pImg = img->GetSrc();
+    float fSin = (float)sin(radian), fCos = (float)cos(radian);
+    float fNSin = (float)sin(-radian), fNCos = (float)cos(-radian);
+
+    int w = pImg->getwidth(), h = pImg->getheight();
+    DWORD* pBuf = GetImageBuffer(pImg);
+
+    int left = 0, top = 0, right = 0, bottom = 0;        // 旋转后图像顶点
+    POINT points[4] = {{0, 0}, {w, 0}, {0, h}, {w, h}};  // 存储图像顶点
+    for (int j = 0; j < 4; j++)                          // 旋转图像顶点，搜索旋转后的图像边界
+    {
+        points[j] = {(int)(points[j].x * fCos - points[j].y * fSin),
+                     (int)(points[j].x * fSin + points[j].y * fCos)};
+        if (points[j].x < points[left].x) left = j;
+        if (points[j].y > points[top].y) top = j;
+        if (points[j].x > points[right].x) right = j;
+        if (points[j].y < points[bottom].y) bottom = j;
+    }
+
+    int nw = points[right].x - points[left].x;  // 旋转后的图像尺寸
+    int nh = points[top].y - points[bottom].y;
+    int nSize = nw * nh;
+    int offset_x = points[left].x < 0 ? points[left].x
+                                      : 0;  // 旋转后图像超出第一象限的位移（据此调整图像位置）
+    int offset_y = points[bottom].y < 0 ? points[bottom].y : 0;
+
+    TImage* result = new TImage();
+    IMAGE* rImg = result->GetSrc();
+    Resize(rImg, nw, nh);
+    DWORD* pNewBuf = GetImageBuffer(rImg);
+
+    for (int i = offset_x, ni = 0; ni < nw;
+         i++, ni++)  // i 用于映射原图像坐标，ni 用于定位旋转后图像坐标
+    {
+        for (int j = offset_y, nj = 0; nj < nh; j++, nj++) {
+            int nx = (int)(i * fNCos - j * fNSin);  // 从旋转后的图像坐标向原图像坐标映射
+            int ny = (int)(i * fNSin + j * fNCos);
+            if (nx >= 0 && nx < w && ny >= 0 && ny < h)  // 若目标映射在原图像范围内，则拷贝色值
+                pNewBuf[nj * nw + ni] = pBuf[ny * w + nx];
+        }
+    }
+
+    // 信息存储
+    result->m_width = rImg->getwidth();
+    result->m_height = rImg->getheight();
+    result->m_spriteN = 1;
+    result->m_spriteRegion = {0.0f, 0.0f, result->m_width, result->m_height};
+
+    gameaf::log("({}, {}) -> ({}, {})", img->GetWidth(), img->GetHeight(), result->GetWidth(),
+                result->GetHeight());
+    return result;
+#else
+    // ......
+    return nullptr;
+#endif
+}
+
 /// @brief 加载字体
 /// @param path 字体路径
 /// @note 注意后续字体的名字就是后缀.ttf前面的name
