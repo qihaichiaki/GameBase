@@ -36,6 +36,7 @@ void Image::OnRender(const Camera& camera) const { OnRender(camera, m_renderSpri
 
 void Image::OnRender(const Camera& camera, size_t spriteIndex) const
 {
+    if (!m_enabled) return;
     PutImageEx(camera, m_currentImg, BuildRender(Position(), m_size, m_anchorPosition),
                m_currentImg->GetSpriteRect(spriteIndex));
 }

@@ -66,12 +66,6 @@ public:
     /// @brief 获取碰撞体类型
     CollisionType Type() const;
 
-    /// @brief 设置是否启动碰撞
-    void SetEnabled(bool flag);
-
-    /// @brief 检查是否启动碰撞
-    bool Enabled() const;
-
     /// @brief 是否触发碰撞
     bool IsCollided() const { return m_isCollided; }
 
@@ -106,8 +100,7 @@ protected:
     ColliideCallback m_onTriggerEnter;                      // 触发后回调
     ColliideCallback m_onTriggerStay;                       // 触发后持续回调
     ColliideCallback m_onTriggerExit;                       // 触发离开发生回调
-    bool m_enabled = true;
-    bool m_isCollided = false;  // 是否触发碰撞
-    bool m_isTrigger = false;   // 是否触发器
+    bool m_isCollided = false;                              // 是否触发碰撞
+    bool m_isTrigger = false;                               // 是否触发器
 };
 }  // namespace gameaf

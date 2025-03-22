@@ -11,6 +11,7 @@
 #include <common/Log.hpp>
 
 #include "../Common.hpp"
+#include "../enemy/Hornet.h"
 #include "../other_object/Background.hpp"
 #include "../player/Player.h"
 
@@ -44,6 +45,9 @@ public:
         // 添加player对象
         auto player = std::make_shared<Player>();
         _player = player.get();
+        // 添加hornet对象
+        auto hornet = std::make_shared<Hornet>(_player);
+        _hornet = hornet.get();
 
         // 创建中间层背景
         auto backgroundMiddle = std::make_shared<BackgroundMiddle>(player.get());  // 世界坐标渲染
@@ -53,7 +57,7 @@ public:
         auto wall = std::make_shared<Wall>();
         wall->Translate({0.0f, 150.0f});
 
-        AddGameObjects({test, backgroundBottom, backgroundMiddle, ground, wall, player});
+        AddGameObjects({test, backgroundBottom, backgroundMiddle, ground, wall, player, hornet});
 
         // 主相机跟随玩家
         mainCamera->SetFollowTarget(player, Camera::FollowMode::Smooth);
@@ -76,8 +80,9 @@ public:
 
         if (InputKey::input.IsKeyDown(KeyValue::P)) {
             // 进入开发者模式 debug
-            bool isDebug = !_player->isDebug;
-            _player->isDebug = isDebug;
+            bool isDebug = !_player->IsDebug();
+            _player->SetDebug(isDebug);
+            _hornet->SetDebug(isDebug);
             SetDebugRenderCamera(isDebug);
             static_cast<Ground*>(GetGameObject("Ground").get())->isDebug = isDebug;
             static_cast<Wall*>(GetGameObject("Wall").get())->isDebug = isDebug;
@@ -96,5 +101,6 @@ public:
 
 private:
     Player* _player;
+    Hornet* _hornet;
     Text* _testText;
 };

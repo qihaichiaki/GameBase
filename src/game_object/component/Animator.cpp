@@ -14,6 +14,7 @@ Animator::~Animator() = default;
 
 void Animator::OnUpdate(float delta)
 {
+    if (!m_enabled) return;
     auto& currentAnimation = m_animations.at(m_current_animation_id);
     currentAnimation.OnUpdate(delta);
     if (m_isTransition) {
@@ -27,6 +28,7 @@ void Animator::OnUpdate(float delta)
 
 void Animator::OnRender(const Camera& camera)
 {
+    if (!m_enabled) return;
     m_animations.at(m_current_animation_id).OnRender(camera);
 }
 

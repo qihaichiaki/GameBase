@@ -21,6 +21,4 @@ bool Collision::CheckLayer(const Collision& collision)
 }
 CollisionType Collision::Type() const { return m_type; }
 void Collision::SetType(CollisionType type) { m_type = type; }
-void Collision::SetEnabled(bool flag) { m_enabled = flag; }
-bool Collision::Enabled() const { return m_enabled; }
 }  // namespace gameaf

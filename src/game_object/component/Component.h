@@ -38,8 +38,15 @@ public:
     /// @brief 判断在对应摄像机下, 窗口坐标是否位于组件上
     virtual bool ContainsScreenPoint(const Camera&, const Vector2&) const { return false; }
 
+    /// @brief 设置是否启动组件
+    void SetEnabled(bool flag) { m_enabled = flag; }
+
+    /// @brief 检查是否启动组件
+    bool Enabled() const { return m_enabled; }
+
 protected:
     GameObject* m_gameObject = nullptr;  // 弱引用
     Vector2 m_offset;
+    bool m_enabled = true;  // 是否启用
 };
 }  // namespace gameaf

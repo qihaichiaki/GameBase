@@ -8,6 +8,7 @@
  * 玩家状态节点
  * idle闲置状态
  */
+namespace player {
 
 class PlayerStateNode : public StateNode
 {
@@ -153,3 +154,5 @@ class Dead : public PlayerStateNode
 public:
     Dead(Player* player) : PlayerStateNode(player) {}
 };
+
+}  // namespace player

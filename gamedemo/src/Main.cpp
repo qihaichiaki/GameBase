@@ -34,11 +34,11 @@ int main()
             sceneManager.SetLoadProgress(0.0f);
             // bug 飞蝶图集
             resourceManager.LoadAtlas(ASSETS_PATH "effect/bug/%d.png", 8, "bug");
-            sceneManager.SetLoadProgress(1.0f / 3);
+            sceneManager.SetLoadProgress(1.0f / 4);
             std::this_thread::sleep_for(std::chrono::seconds(2));
             // ui_choose图集
             resourceManager.LoadAtlas(ASSETS_PATH "effect/ui_choose/%d.png", 11, "ui_choose");
-            sceneManager.SetLoadProgress(2.0f / 3);
+            sceneManager.SetLoadProgress(2.0f / 4);
             std::this_thread::sleep_for(std::chrono::seconds(2));
             // 加载测试背景
             resourceManager.NewImage(ASSETS_PATH "background/test.jpg", "test");
@@ -91,14 +91,45 @@ int main()
             // dead
             resourceManager.LoadAtlas(ASSETS_PATH "character/player/dead/%d.png", 9, "player_dead");
 
+            sceneManager.SetLoadProgress(3.0f / 4);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            // 加载大黄蜂图集
+            // idle
+            resourceManager.NewImage(ASSETS_PATH "character/hornet/other/SitDown.png",
+                                     "hornet_sit");
+            resourceManager.NewImage(ASSETS_PATH "character/hornet/other/StandUp.png",
+                                     "hornet_sitToIdle");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Idle/%d.png", 6,
+                                      "hornet_idle");
+            // walk
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/WalkStart/%d.png", 6,
+                                      "hornet_walkStart");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Walk/%d.png", 8,
+                                      "hornet_walk");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/WalkEnd/%d.png", 3,
+                                      "hornet_walkEnd");
+            // jump
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Jump/%d.png", 6,
+                                      "hornet_jump");
+            // fall
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Fall/%d.png", 4,
+                                      "hornet_fall");
+            // rushJump
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/RushJump/%d.png", 14,
+                                      "hornet_rushJump");
+            // dash
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Dash/%d.png", 9,
+                                      "hornet_dash");
+
             // 加载游戏背景
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");
             resourceManager.NewImage(ASSETS_PATH "background/layer_2.png", "background_layer2");
             resourceManager.NewImage(ASSETS_PATH "platform/TearCity/Floor_1.png", "ground");
             resourceManager.NewImage(ASSETS_PATH "platform/TearCity/ruin_plat_float_02.png",
                                      "wall");
-            sceneManager.SetLoadProgress(1.0f);
 
+            sceneManager.SetLoadProgress(1.0f);
             // 等待2秒缓冲
             std::this_thread::sleep_for(std::chrono::seconds(2));
             gameaf::log("资源加载完毕");

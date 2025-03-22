@@ -4,6 +4,7 @@
 #include <game_object/component/Animator.h>
 #include <game_object/component/CollisionBox.h>
 
+namespace player {
 PlayerStateNode::PlayerStateNode(Player* player)
     : player(player), animator(player->GetComponent<Animator>())
 {
@@ -255,3 +256,4 @@ void Blocking::OnUpdate()
         player->SwitchState("Idle");
     }
 }
+}  // namespace player

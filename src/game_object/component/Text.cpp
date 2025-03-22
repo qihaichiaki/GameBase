@@ -171,6 +171,7 @@ void Text::SetAlignMode(TextAlignMode alignMode)
 
 void Text::OnRender(const Camera& camera)
 {
+    if (!m_enabled) return;
     gameaf::SetFontSize(m_fontName, m_fontSize);
 
     int lineHeight = 0;

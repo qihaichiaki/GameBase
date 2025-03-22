@@ -1,9 +1,7 @@
 #include "Player.h"
 
 #include <game_object/component/Animator.h>
-#include <game_object/component/CollisionBox.h>
 #include <game_object/component/Image.h>
-#include <game_object/component/Rigidbody2D.h>
 #include <game_object/component/Text.h>
 #include <input/InputManager.h>
 
@@ -13,6 +11,12 @@
 
 void Player::OnAwake()
 {
+    Character::OnAwake();
+
+    dir = 1.0;  // 玩家默认朝右边
+    xSpeed = 300.0f;
+    jumpSpeed = 650.0f;
+
     // === 加载角色动画 ===
     auto animator = CreateComponent<Animator>();
 
@@ -51,8 +55,6 @@ void Player::OnAwake()
     animator->SetAnchorMode(ImageAnchorMode::BottomCentered);
     animator->SetSizeScale({2.5f, 2.5f});
 
-    // 创建角色刚体
-    rb = CreateComponent<Rigidbody2D>();
     // 创建角色自身碰撞体
     collisionBox = CreateComponent<CollisionBox>(
         Vector2{0.0f, -animator->GetInitialAnimation().CurrentFrameSize().Y / 2});
@@ -76,17 +78,17 @@ void Player::OnAwake()
     Flip();
 
     // 注册状态
-    m_stateMachine.RegisterState("Idle", std::make_shared<Idle>(this));
-    m_stateMachine.RegisterState("Run", std::make_shared<Run>(this));
-    m_stateMachine.RegisterState("Jump", std::make_shared<Jump>(this));
-    m_stateMachine.RegisterState("Falling", std::make_shared<Falling>(this));
-    m_stateMachine.RegisterState("Crouch", std::make_shared<Crouch>(this));
-    m_stateMachine.RegisterState("Roll", std::make_shared<Roll>(this));
-    m_stateMachine.RegisterState("AttackStanding", std::make_shared<AttackStanding>(this));
-    m_stateMachine.RegisterState("AttackAerial", std::make_shared<AttackAerial>(this));
-    m_stateMachine.RegisterState("AttackCrouching", std::make_shared<AttackCrouching>(this));
-    m_stateMachine.RegisterState("Blocking", std::make_shared<Blocking>(this));
-    m_stateMachine.SetEntry("Idle");
+    stateMachine.RegisterState("Idle", std::make_shared<player::Idle>(this));
+    stateMachine.RegisterState("Run", std::make_shared<player::Run>(this));
+    stateMachine.RegisterState("Jump", std::make_shared<player::Jump>(this));
+    stateMachine.RegisterState("Falling", std::make_shared<player::Falling>(this));
+    stateMachine.RegisterState("Crouch", std::make_shared<player::Crouch>(this));
+    stateMachine.RegisterState("Roll", std::make_shared<player::Roll>(this));
+    stateMachine.RegisterState("AttackStanding", std::make_shared<player::AttackStanding>(this));
+    stateMachine.RegisterState("AttackAerial", std::make_shared<player::AttackAerial>(this));
+    stateMachine.RegisterState("AttackCrouching", std::make_shared<player::AttackCrouching>(this));
+    stateMachine.RegisterState("Blocking", std::make_shared<player::Blocking>(this));
+    stateMachine.SetEntry("Idle");
 
     // 角色状态相关辅助更新
     isOnFloorLastFrameTimer.SetWaitTime(0.1f);
@@ -97,26 +99,11 @@ void Player::OnUpdate() { Character::OnUpdate(); }
 
 void Player::OnDraw(const Camera& camera)
 {
+    Character::OnDraw(camera);
     if (isDebug) {
-        collisionBox->OnDebugRender(camera);
         groundDetectionCollision->OnDebugRender(camera);
     }
 }
-
-void Player::SetVelocityX(float x) { SetVelocity({x, rb->Velocity().Y}); }
-
-void Player::SetVelocityY(float y) { SetVelocity({rb->Velocity().X, y}); }
-
-void Player::SetVelocity(const Vector2& v)
-{
-    rb->Velocity() = v;
-    if (v.X < 0 && dir == 1.0f || v.X > 0 && dir == -1.0f) {
-        dir = -1.0f * dir;
-        Flip();  // 灵活
-    }
-}
-
-const Vector2& Player::GetVelocity() { return rb->Velocity(); }
 
 void Player::ReStart()
 {
