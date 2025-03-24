@@ -32,8 +32,8 @@ public:
     /// @brief 组件的世界坐标
     Vector2 Position() const;
 
-    /// @brief 翻转组件
-    virtual void Flip() {};
+    /// @brief 水平翻转组件
+    virtual void Flip() { m_offset = Vector2{m_offset.X * -1.0f, m_offset.Y}; };
 
     /// @brief 判断在对应摄像机下, 窗口坐标是否位于组件上
     virtual bool ContainsScreenPoint(const Camera&, const Vector2&) const { return false; }

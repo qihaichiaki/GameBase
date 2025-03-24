@@ -28,6 +28,13 @@ public:
         debugText = CreateComponent<Text>(std::wstring{L"Syne Mono"});
         debugText->SetAlignMode(TextAlignMode::CenterTop);
         debugText->SetEnabled(false);
+
+        auto groundDetection = std::make_shared<GameObject>();
+        AddChildObject(groundDetection);
+        groundDetectionCollision = groundDetection->CreateComponent<CollisionBox>();
+        groundDetectionCollision->SetTrigger(true);  // 作为触发器使用, 用来检测地面
+        groundDetectionCollision->SetOnTriggerEnter([&](Collision* dst) { isGround = true; });
+        groundDetectionCollision->SetOnTriggerExit([&](Collision* dst) { isGround = false; });
     }
 
     void OnUpdate() override
@@ -46,6 +53,7 @@ public:
     {
         if (isDebug) {
             collisionBox->OnDebugRender(camera);
+            groundDetectionCollision->OnDebugRender(camera);
         }
     }
 
@@ -61,14 +69,7 @@ public:
     void SetVelocityY(float y) { SetVelocity({rb->Velocity().X, y}); }
 
     /// @brief 设置速率
-    void SetVelocity(const Vector2& v)
-    {
-        rb->Velocity() = v;
-        if (v.X < 0 && dir == 1.0f || v.X > 0 && dir == -1.0f) {
-            dir = -1.0f * dir;
-            Flip();  // 灵活
-        }
-    }
+    virtual void SetVelocity(const Vector2& v) { rb->Velocity() = v; }
 
     /// @brief 获得当前的速率
     const Vector2& GetVelocity() { return rb->Velocity(); }
@@ -86,15 +87,15 @@ public:
     bool IsDebug() const { return isDebug; }
 
 public:
-    float dir;        // 朝向
-    float xSpeed;     //水平方向的速度
-    float jumpSpeed;  // 跳跃力
+    float dir;              // 朝向
+    bool isGround = false;  // 是否在地面上
 
 protected:
     StateMachine stateMachine;
     Rigidbody2D* rb;
-    CollisionBox* collisionBox;  // 受击碰撞箱
-    bool isDebug = false;        // 是否开启开发者模式
+    CollisionBox* collisionBox;              // 受击碰撞箱
+    CollisionBox* groundDetectionCollision;  // 地面碰撞箱
+    bool isDebug = false;                    // 是否开启开发者模式
 
 private:
     // debug 测试

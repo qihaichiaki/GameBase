@@ -68,6 +68,7 @@ public:
     void OnEnter() override
     {
         _player->ReStart();
+        _hornet->ReStart();
         GetCamera("main")->LookAt({});  // 相机位置复原
     }
 

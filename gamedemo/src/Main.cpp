@@ -113,7 +113,7 @@ int main()
             resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Jump/%d.png", 6,
                                       "hornet_jump");
             // fall
-            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Fall/%d.png", 4,
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/fall/%d.png", 4,
                                       "hornet_fall");
             // rushJump
             resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/RushJump/%d.png", 14,
@@ -121,6 +121,12 @@ int main()
             // dash
             resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Dash/%d.png", 9,
                                       "hornet_dash");
+            // air dash
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/AirDash/%d.png", 8,
+                                      "hornet_airDash");
+            // evade
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Evade/%d.png", 7,
+                                      "hornet_evade");
 
             // 加载游戏背景
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");

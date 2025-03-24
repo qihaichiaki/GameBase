@@ -21,7 +21,7 @@ void PlayerStateNode::SetSizeY(float offsetY)
 // === idle ===
 void Idle::OnEnter()
 {
-    gameaf::log("idle");
+    // gameaf::log("idle");
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("idle");
     player->attackAerialNum = player->maxAttackAerialNum;  // 恢复空中攻击数
@@ -55,7 +55,7 @@ void Idle::OnUpdate()
 // === run ===
 void Run::OnEnter()
 {
-    gameaf::log("run");
+    // gameaf::log("run");
     animator->SwitchToAnimation("run");
 }
 
@@ -93,7 +93,7 @@ void Run::OnUpdate()
 // === jump ===
 void Jump::OnEnter()
 {
-    gameaf::log("jump");
+    // gameaf::log("jump");
     animator->SwitchToAnimation("jump");
     player->SetVelocityY(-player->jumpSpeed);
 }
@@ -119,7 +119,7 @@ void Jump::OnUpdate()
 // === Falling ===
 void Falling::OnEnter()
 {
-    gameaf::log("falling");
+    // gameaf::log("falling");
     animator->SwitchToAnimation("falling");
 }
 
@@ -153,7 +153,7 @@ void Falling::OnUpdate()
 // === crouch ===
 void Crouch::OnEnter()
 {
-    gameaf::log("crouch");
+    // gameaf::log("crouch");
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("crouch");
     SetSizeY(offset);
@@ -177,7 +177,7 @@ void Crouch::OnExit() { SetSizeY(-offset); }
 // === roll ===
 void Roll::OnEnter()
 {
-    gameaf::log("roll");
+    // gameaf::log("roll");
     player->SetVelocityX(player->dir * player->rollSpeed);
     animator->SwitchToAnimation("roll");
     SetSizeY(offset);
@@ -202,7 +202,7 @@ void Attack::OnEnter() {}
 void AttackStanding::OnEnter()
 {
     Attack::OnEnter();
-    gameaf::log("AttackStanding");
+    // gameaf::log("AttackStanding");
     player->SetVelocityX(0.0f);
     animator->SwitchToAnimation("attack_standing");
 }
@@ -217,7 +217,7 @@ void AttackStanding::OnUpdate()
 void AttackAerial::OnEnter()
 {
     Attack::OnEnter();
-    gameaf::log("AttackAerial");
+    // gameaf::log("AttackAerial");
     animator->SwitchToAnimation("attack_aerial");
 }
 void AttackAerial::OnUpdate()
@@ -232,7 +232,7 @@ void AttackAerial::OnUpdate()
 void AttackCrouching::OnEnter()
 {
     Attack::OnEnter();
-    gameaf::log("AttackCrouching");
+    // gameaf::log("AttackCrouching");
     animator->SwitchToAnimation("attack_crouching");
 }
 void AttackCrouching::OnUpdate()
@@ -245,7 +245,7 @@ void AttackCrouching::OnUpdate()
 // === block ===
 void Blocking::OnEnter()
 {
-    gameaf::log("block");
+    // gameaf::log("block");
     player->SetVelocityX(0.0f);
     animator->SwitchToAnimation("blocking");
 }

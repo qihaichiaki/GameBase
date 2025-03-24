@@ -81,6 +81,8 @@ bool CollisionBox::ProcessCollide(Collision* dst, float delta)
             }
             return true;
         }
+    } else if (dst->Type() == CollisionType::Ray) {
+        return dst->ProcessCollide(this, delta);
     }
     return false;
 }

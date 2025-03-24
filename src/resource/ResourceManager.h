@@ -23,24 +23,23 @@ public:
     /// @param rows 切分精灵图的行数
     /// @param cols 切分精灵图的列数
     /// @param spriteN 实际精灵图总个数
-    /// @param pivotXScale 图像翻转时对称轴相对于左上角的水平距离占精灵图宽度的占比(默认0.5f 表示中心对称)
+    /// @param isFlip 是否翻转后加载
     /// @return 是否创建成功
     bool NewImage(const std::string& image_path, const std::string& image_name, int rows = 1,
-                  int cols = 1, size_t spriteN = 0, float pivotXScale = 0.5);
+                  int cols = 1, size_t spriteN = 0, bool isFlip = false);
+    /// @brief 加载图集资源
+    /// @param atlas_path "xxx%dxxx.png/jpg", 注意下标从0开始
+    /// @param n_images 几张图集
+    /// @param atlas_name 加载后图集名称
+    /// @param isFlip 是否翻转后加载
+    bool LoadAtlas(const std::string& atlas_path, size_t n_images, const std::string& atlas_name,
+                   bool isFlip = false);
 
     /// @brief 加载字体资源
     bool LoadFont(const std::string& font_path);
 
-    /// @brief 加载图集资源
-    /// @param atlas_path "xxx%dxxx.png/jpg", 注意下标从0开始
-    bool LoadAtlas(const std::string& atlas_path, size_t n_images, const std::string& atlas_name);
     /// @brief 加载音频资源
     bool LoadAudio(const std::string& audio_path, const std::string& audio_name);
-
-    /// @brie 翻转图像, 产生新的图像
-    bool FlipImage(const std::string& image_name, const std::string& flip_image_name);
-    /// @brief 翻转图集, 产生新的图集
-    bool FlipAtlas(const std::string& atlas_name, const std::string& flip_atlas_name);
 
     /// @brief 卸载图像资源
     void UnloadImage(const std::string& image_name);

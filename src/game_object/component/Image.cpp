@@ -43,6 +43,7 @@ void Image::OnRender(const Camera& camera, size_t spriteIndex) const
 
 void Image::Flip()
 {
+    Component::Flip();
     if (m_currentImg == m_img) {
         if (m_flipImg == nullptr) {
             m_flipImg = std::make_shared<TImage>(*m_img);

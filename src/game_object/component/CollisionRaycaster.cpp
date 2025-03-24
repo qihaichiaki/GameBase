@@ -3,6 +3,8 @@
 #include <common/Macros.h>
 #include <scene/Camera.h>
 
+#include <common/Log.hpp>
+
 #include "CollisionBox.h"
 
 namespace gameaf {
@@ -66,6 +68,7 @@ bool CollisionRaycaster::ProcessCollide(Collision* dst, float delta)
 
 void CollisionRaycaster::OnDebugRender(const Camera& camera)
 {
+    BuildEndPos();
 #ifdef GAMEAF_USE_EASYX
     setlinecolor(m_enabled ? RGB(255, 195, 195) : RGB(115, 115, 175));
     line(Position().X - camera.GetPosition().X, Position().Y - camera.GetPosition().Y,
@@ -76,6 +79,7 @@ void CollisionRaycaster::OnDebugRender(const Camera& camera)
 
 void CollisionRaycaster::Flip()
 {
+    Component::Flip();
     if (m_dir == RaycasterDir::Right || m_dir == RaycasterDir::Left) {
         m_dir = m_dir == RaycasterDir::Right ? RaycasterDir::Left : RaycasterDir::Right;
         BuildEndPos();

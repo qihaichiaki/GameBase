@@ -14,8 +14,6 @@ void Player::OnAwake()
     Character::OnAwake();
 
     dir = 1.0;  // 玩家默认朝右边
-    xSpeed = 300.0f;
-    jumpSpeed = 650.0f;
 
     // === 加载角色动画 ===
     auto animator = CreateComponent<Animator>();
@@ -63,16 +61,10 @@ void Player::OnAwake()
     collisionBox->SetSize({40.0f, collisionBox->GetSize().Y});
 
     // 创建一个子对象用来角色检测地面碰撞体(创建子对象是因为不会影响父对象的刚体)
-    auto groundDetection = std::make_shared<GameObject>();
-    AddChildObject(groundDetection);
-    groundDetectionCollision = groundDetection->CreateComponent<CollisionBox>();
     groundDetectionCollision->SetSrcLayer(CollisionLayerTool::player);
     groundDetectionCollision->AddDstLayer(CollisionLayerTool::wall);
     groundDetectionCollision->SetSize(Vector2{40.0f, 5.0f});
     groundDetectionCollision->SetOffset(Vector2{0.0f, -1.5f});
-    groundDetectionCollision->SetTrigger(true);  // 作为触发器使用, 用来检测地面
-    groundDetectionCollision->SetOnTriggerEnter([&](Collision* dst) { isGround = true; });
-    groundDetectionCollision->SetOnTriggerExit([&](Collision* dst) { isGround = false; });
 
     Flip();  // 缓存翻转状态(后续可优化)
     Flip();
@@ -97,17 +89,20 @@ void Player::OnAwake()
 
 void Player::OnUpdate() { Character::OnUpdate(); }
 
-void Player::OnDraw(const Camera& camera)
-{
-    Character::OnDraw(camera);
-    if (isDebug) {
-        groundDetectionCollision->OnDebugRender(camera);
-    }
-}
+void Player::OnDraw(const Camera& camera) { Character::OnDraw(camera); }
 
 void Player::ReStart()
 {
     SwitchState("Idle");
     SetPosition({});  // 玩家位置复原
     SetVelocity({});  // 速度恢复
+}
+
+void Player::SetVelocity(const Vector2& v)
+{
+    Character::SetVelocity(v);
+    if (v.X < 0 && dir == 1.0f || v.X > 0 && dir == -1.0f) {
+        dir = -1.0f * dir;
+        Flip();  // 灵活
+    }
 }
