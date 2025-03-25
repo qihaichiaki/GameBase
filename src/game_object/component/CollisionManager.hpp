@@ -5,7 +5,7 @@
 #include <game_object/component/CollisionRaycaster.h>
 
 #include <common/Log.hpp>
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 /**
@@ -26,17 +26,39 @@ public:
 
     void ProcessCollide(float delta)
     {
+        // 下面的缓存机制并没有删除, 后续可添加惰性删除来减少缓存
         for (size_t i = 0; i < m_collide_components.size(); ++i) {
             Collision* src_collide = m_collide_components[i];
-            if (!src_collide->Enabled()) continue;
+            if (!src_collide->Enabled()) {
+                // 如果目标没有启动
+                // 遍历缓存中存在的碰撞组合
+                for (auto& [key, isEnabled] : m_previousCollisions) {
+                    if (!isEnabled) continue;
+                    if (key.first == src_collide) {
+                        auto dst_collide = key.second;
+                        if (src_collide->m_isTrigger && src_collide->m_onTriggerExit)
+                            src_collide->m_onTriggerExit(dst_collide);
+                        if (dst_collide->m_isTrigger && dst_collide->m_onTriggerExit)
+                            dst_collide->m_onTriggerExit(src_collide);
+                        if (!src_collide->m_isTrigger && !dst_collide->m_isTrigger) {
+                            if (src_collide->m_onCollideExit)
+                                src_collide->m_onCollideExit(dst_collide);
+                            if (dst_collide->m_onCollideExit)
+                                dst_collide->m_onCollideExit(src_collide);
+                        }
+                        isEnabled = false;
+                    }
+                }
+                continue;
+            }
             for (size_t j = i + 1; j < m_collide_components.size(); ++j) {
                 Collision* dst_collide = m_collide_components[j];
-                if (src_collide == dst_collide || !src_collide->CheckLayer(*dst_collide)) continue;
+                if (!src_collide->CheckLayer(*dst_collide)) continue;
                 CollidedInfo key = {src_collide, dst_collide};
                 if (src_collide->ProcessCollide(dst_collide, delta)) {
                     // gameaf::log("{} 和 {} 发生碰撞", src_collide->m_gameObject->GetName(),
                     //             dst_collide->m_gameObject->GetName());
-                    if (m_previousCollisions.count(key)) {
+                    if (m_previousCollisions.count(key) && m_previousCollisions.at(key)) {
                         if (src_collide->m_isTrigger && src_collide->m_onTriggerStay)
                             src_collide->m_onTriggerStay(dst_collide);
                         if (dst_collide->m_isTrigger && dst_collide->m_onTriggerStay)
@@ -58,10 +80,10 @@ public:
                             if (dst_collide->m_onCollideEnter)
                                 dst_collide->m_onCollideEnter(src_collide);
                         }
-                        m_previousCollisions.insert(key);
+                        m_previousCollisions[key] = true;
                     }
                 } else {
-                    if (m_previousCollisions.count(key)) {
+                    if (m_previousCollisions.count(key) && m_previousCollisions.at(key)) {
                         if (src_collide->m_isTrigger && src_collide->m_onTriggerExit)
                             src_collide->m_onTriggerExit(dst_collide);
                         if (dst_collide->m_isTrigger && dst_collide->m_onTriggerExit)
@@ -72,7 +94,7 @@ public:
                             if (dst_collide->m_onCollideExit)
                                 dst_collide->m_onCollideExit(src_collide);
                         }
-                        m_previousCollisions.erase(key);
+                        m_previousCollisions[key] = false;
                     }
                 }
             }
@@ -97,7 +119,7 @@ public:
         // 删除碰撞缓存
         // TODO: 是否判断执行缓存回调?
         for (auto it = m_previousCollisions.begin(); it != m_previousCollisions.end();) {
-            if (it->first == del_coll_component || it->second == del_coll_component) {
+            if (it->first.first == del_coll_component || it->first.second == del_coll_component) {
                 it = m_previousCollisions.erase(it);
             } else
                 ++it;
@@ -165,6 +187,6 @@ private:
     };
 
     // 缓存是否碰撞信息
-    std::unordered_set<CollidedInfo, CollidedInfoHash> m_previousCollisions;
+    std::unordered_map<CollidedInfo, bool, CollidedInfoHash> m_previousCollisions;
 };
 }  // namespace gameaf

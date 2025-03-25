@@ -10,14 +10,6 @@ PlayerStateNode::PlayerStateNode(Player* player)
 {
 }
 
-void PlayerStateNode::SetSizeY(float offsetY)
-{
-    auto collisionBox = player->GetComponent<CollisionBox>();
-    collisionBox->SetSize({collisionBox->GetSize().X, collisionBox->GetSize().Y - offsetY});
-    collisionBox->SetOffset(
-        {collisionBox->GetOffset().X, collisionBox->GetOffset().Y + offsetY / 2});
-}
-
 // === idle ===
 void Idle::OnEnter()
 {
@@ -96,6 +88,7 @@ void Jump::OnEnter()
     // gameaf::log("jump");
     animator->SwitchToAnimation("jump");
     player->SetVelocityY(-player->jumpSpeed);
+    player->OnJumpVfx();
 }
 void Jump::OnUpdate()
 {
@@ -140,6 +133,7 @@ void Falling::OnUpdate()
 
     if (player->isGround) {
         player->SwitchState("Idle");
+        player->OnLandVfx();
     }
     if (InputKey::TryRoll()) {
         player->SwitchState("Roll");
@@ -156,7 +150,7 @@ void Crouch::OnEnter()
     // gameaf::log("crouch");
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("crouch");
-    SetSizeY(offset);
+    player->SetCollisonBoxOffsetY(offset);
 }
 
 void Crouch::OnUpdate()
@@ -172,7 +166,7 @@ void Crouch::OnUpdate()
     }
 }
 
-void Crouch::OnExit() { SetSizeY(-offset); }
+void Crouch::OnExit() { player->SetCollisonBoxOffsetY(-offset); }
 
 // === roll ===
 void Roll::OnEnter()
@@ -180,7 +174,8 @@ void Roll::OnEnter()
     // gameaf::log("roll");
     player->SetVelocityX(player->dir * player->rollSpeed);
     animator->SwitchToAnimation("roll");
-    SetSizeY(offset);
+    player->SetCollisonBoxOffsetY(offset);
+    player->isInvincible = true;  // 无敌时间
 }
 
 void Roll::OnUpdate()
@@ -194,44 +189,58 @@ void Roll::OnUpdate()
     }
 }
 
-void Roll::OnExit() { SetSizeY(-offset); }
-
-void Attack::OnEnter() {}
+void Roll::OnExit()
+{
+    player->SetCollisonBoxOffsetY(-offset);
+    player->isInvincible = false;
+}
 
 // === AttackStanding ===
 void AttackStanding::OnEnter()
 {
-    Attack::OnEnter();
     // gameaf::log("AttackStanding");
     player->SetVelocityX(0.0f);
     animator->SwitchToAnimation("attack_standing");
 }
 void AttackStanding::OnUpdate()
 {
+    if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 8) {
+        player->AttackStart({player->dir * 350.0f, -150.0f}, 50);
+    }
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
         player->SwitchState("Idle");
     }
 }
 
+void AttackStanding::OnExit() { player->AttackEnd(); }
+
 // === AttackAerial ===
 void AttackAerial::OnEnter()
 {
-    Attack::OnEnter();
     // gameaf::log("AttackAerial");
     animator->SwitchToAnimation("attack_aerial");
+    player->SetAttackBoxOffsetX(-50.0f);
 }
 void AttackAerial::OnUpdate()
 {
     player->SetVelocity({});  // 空中静止!
+    if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 9) {
+        player->AttackStart({player->dir * 150.0f, 80.0f}, 30);
+    }
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
         player->SwitchState("Falling");
     }
 }
 
+void AttackAerial::OnExit()
+{
+    player->AttackEnd();
+    player->SetAttackBoxOffsetX(50.0f);
+}
+
 // === AttackCrouching ===
 void AttackCrouching::OnEnter()
 {
-    Attack::OnEnter();
     // gameaf::log("AttackCrouching");
     animator->SwitchToAnimation("attack_crouching");
 }
@@ -241,6 +250,8 @@ void AttackCrouching::OnUpdate()
         player->SwitchState("Crouch");
     }
 }
+
+void AttackCrouching::OnExit() {}
 
 // === block ===
 void Blocking::OnEnter()

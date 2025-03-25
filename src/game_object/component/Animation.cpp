@@ -1,6 +1,7 @@
 #include "Animation.h"
 
 #include <common/Log.hpp>
+#include <game_object/component/Atlas.hpp>
 
 namespace gameaf {
 
@@ -14,7 +15,7 @@ void Animation::TimerInit()
             } else {
                 m_frame_index = m_frames.size() - 1;
                 if (m_on_finished && !m_isEndOfPlay) {
-                    m_on_finished(this);
+                    m_on_finished();
                 }
                 m_isEndOfPlay = true;
             }
@@ -66,10 +67,7 @@ bool Animation::IsEndOfPlay() const { return m_isEndOfPlay; }
 
 void Animation::SetInterval(float interval) { timer.SetWaitTime(interval); }
 
-void Animation::SetOnFinished(std::function<void(Animation*)> onFinished)
-{
-    m_on_finished = onFinished;
-}
+void Animation::SetOnFinished(std::function<void()> onFinished) { m_on_finished = onFinished; }
 
 bool Animation::AddFrame(const Image& img)
 {
@@ -87,6 +85,14 @@ bool Animation::AddFrame(const Image& img, const std::vector<size_t>& indexs)
             return false;
         }
         m_frames.emplace_back(Frame{index, img});
+    }
+    return true;
+}
+
+bool Animation::AddFrame(Atlas* atlas)
+{
+    for (int i = 0; i < atlas->Size(); ++i) {
+        if (!AddFrame(Image{nullptr, atlas->GetTImg(i)})) return false;
     }
     return true;
 }
@@ -116,6 +122,13 @@ void Animation::SetAnchorMode(ImageAnchorMode mod, const Vector2& anchor_positio
 {
     for (auto& frame : m_frames) {
         frame.img.SetAnchorMode(mod, anchor_position);
+    }
+}
+
+void Animation::SetOffset(const Vector2& offset)
+{
+    for (auto& frame : m_frames) {
+        frame.img.SetOffset(offset);
     }
 }
 

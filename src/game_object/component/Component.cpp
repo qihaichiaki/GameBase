@@ -13,6 +13,12 @@ Component::Component(GameObject* obj, const Vector2& offset) : m_gameObject(obj)
 }
 Component::~Component() {}
 
-Vector2 Component::Position() const { return m_gameObject->GetPosition() + m_offset; }
+Vector2 Component::Position() const
+{
+    if (m_gameObject) {
+        return m_gameObject->GetPosition() + m_offset;
+    }
+    return m_offset;
+}
 
 }  // namespace gameaf

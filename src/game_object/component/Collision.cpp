@@ -17,7 +17,8 @@ void Collision::AddDstLayer(Collisionlayer dst_layer)
 }
 bool Collision::CheckLayer(const Collision& collision)
 {
-    return CollisionLayerTool::IsContain(m_dst_layer, collision.m_src_layer);
+    return CollisionLayerTool::IsContain(m_dst_layer, collision.m_src_layer) ||
+           CollisionLayerTool::IsContain(m_src_layer, collision.m_dst_layer);
 }
 CollisionType Collision::Type() const { return m_type; }
 void Collision::SetType(CollisionType type) { m_type = type; }

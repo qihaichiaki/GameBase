@@ -61,6 +61,10 @@ void Idle::OnUpdate()
     } else {
         playerInEvadeDuration = 0.0f;  // 重置
     }
+
+    if (hornet->GetVelocity().Y > 0) {
+        hornet->SwitchState("Fall");
+    }
 }
 
 void Idle::OnExit() { playerInEvadeDuration = 0.0f; }
@@ -96,6 +100,7 @@ void Jump::OnEnter()
     hornet->SetVelocity(
         Vector2{hornet->dir * jumpXSpeed,
                 -1.0f * gameAf.Random(hornet->minJumpYSpeed, hornet->maxJumpYSpeed)});
+    hornet->OnJumpVfx();
 }
 
 void Jump::OnUpdate()
@@ -113,8 +118,15 @@ void Fall::OnEnter() { animator->SwitchToAnimation("fall"); }
 
 void Fall::OnUpdate()
 {
+    // 超出地图底下了
+    if (hornet->GetPosition().Y >= 340.0f) {
+        // 猜测只有hurt的时候被这样搞
+        hornet->SwitchState("RushJump");
+    }
+
     if (hornet->isGround) {
         hornet->SwitchState("Idle");
+        hornet->OnLandVfx();
     }
 }
 
@@ -126,6 +138,7 @@ void Dash::OnEnter()
     // gameaf::log("dash dir: {}", hornet->dir);
     animator->SwitchToAnimation("dash");
     hornet->SetVelocityX(hornet->dir * hornet->dashSpeed);
+    hornet->isInvincible = true;
 }
 
 void Dash::OnUpdate()
@@ -153,6 +166,8 @@ void Dash::OnUpdate()
     }
 }
 
+void Dash::OnExit() { hornet->isInvincible = false; }
+
 // === Walk ===
 Walk::Walk(Hornet* hornet) : HornetStateNode(hornet) {}
 
@@ -170,16 +185,62 @@ void Walk::OnUpdate()
     walkDuration += gameAf.GetDeltaTime();
     // 如果即将坠落
     if (hornet->isAboutToFall || hornet->GetVelocity().X == 0.0f) {
-        hornet->Flip();
-
-        if (gameAf.Random(0, 100) <= 50) {
+        int chance = gameAf.Random(0, 100);
+        if (chance <= 50) {
+            hornet->SwitchState("Idle");
+        } else if (chance <= 65) {
+            hornet->Flip();
             hornet->SwitchState("Jump");
         } else {
+            hornet->Flip();
             hornet->SwitchState("Dash");
         }
     }
     if (walkDuration >= currentWalkMaxDuration) {
         hornet->SwitchState("Idle");
+    }
+}
+
+// === Hurt ===
+Hurt::Hurt(Hornet* hornet) : HornetStateNode(hornet) {}
+
+void Hurt::OnEnter()
+{
+    hornet->SetCollisonBoxOffsetY(100.0f);
+    hornet->SetVelocity(hornet->hurtAttackIntensity);
+    animator->SwitchToAnimation("hurt");
+}
+void Hurt::OnUpdate()
+{
+    if (animator->GetCurrentAnimation().IsEndOfPlay()) {
+        hornet->SwitchState("Fall");
+    }
+}
+
+void Hurt::OnExit() { hornet->SetCollisonBoxOffsetY(-100.0f); }
+
+// === RushJump ===
+RushJump::RushJump(Hornet* hornet) : HornetStateNode(hornet) {}
+
+void RushJump::OnEnter()
+{
+    gameaf::log("开始超级跳");
+    animator->SwitchToAnimation("rushJump");
+    jumpXSpeed = 0.0f;
+}
+void RushJump::OnUpdate()
+{
+    hornet->SetVelocityX(jumpXSpeed * hornet->dir);
+    if (animator->GetCurrentAnimation().GetCurrentFrameIndex() < 2) {
+        hornet->SetVelocityY(0.0f);
+    }
+    if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 1) {
+        // 开始起飞
+        jumpXSpeed = gameAf.Random(hornet->minRushJumpXSpeed, hornet->maxRushJumpXSpeed);
+        hornet->SetVelocityY(-gameAf.Random(hornet->minRushJumpYSpeed, hornet->maxRushJumpYSpeed));
+    }
+    if (animator->GetCurrentAnimation().IsEndOfPlay() && hornet->GetVelocity().Y >= 0) {
+        hornet->SwitchState("Fall");
     }
 }
 

@@ -85,6 +85,7 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
 };
 
 class Walk : public HornetStateNode
@@ -98,6 +99,32 @@ public:
 private:
     float walkDuration = 0.0f;
     float currentWalkMaxDuration = 0.0f;
+};
+
+class Hurt : public HornetStateNode
+{
+public:
+    Hurt(Hornet* hornet);
+
+    void OnEnter() override;
+    void OnUpdate() override;
+    void OnExit() override;
+
+private:
+    float walkDuration = 0.0f;
+    float currentWalkMaxDuration = 0.0f;
+};
+
+class RushJump : public HornetStateNode
+{
+public:
+    RushJump(Hornet* hornet);
+
+    void OnEnter() override;
+    void OnUpdate() override;
+
+private:
+    float jumpXSpeed;
 };
 
 }  // namespace hornet

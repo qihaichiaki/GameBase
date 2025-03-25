@@ -1,13 +1,18 @@
 #include "Player.h"
 
+#include <GameAf.h>
 #include <game_object/component/Animator.h>
+#include <game_object/component/CollisionBox.h>
 #include <game_object/component/Image.h>
 #include <game_object/component/Text.h>
 #include <input/InputManager.h>
+#include <resource/ResourceManager.h>
 
 #include <common/Log.hpp>
 
 #include "PlayerStateNodes.h"
+
+static GameAf& gameAf = GameAf::GetInstance();
 
 void Player::OnAwake()
 {
@@ -53,6 +58,10 @@ void Player::OnAwake()
     animator->SetAnchorMode(ImageAnchorMode::BottomCentered);
     animator->SetSizeScale({2.5f, 2.5f});
 
+    // 受伤特效添加
+    hurtVfx.AddFrame(ResourceManager::GetInstance().GetAtlas("player_vfxHurt"));
+    hurtVfx.SetSizeScale({1.5f, 1.5f});  // 放大一下
+
     // 创建角色自身碰撞体
     collisionBox = CreateComponent<CollisionBox>(
         Vector2{0.0f, -animator->GetInitialAnimation().CurrentFrameSize().Y / 2});
@@ -61,10 +70,15 @@ void Player::OnAwake()
     collisionBox->SetSize({40.0f, collisionBox->GetSize().Y});
 
     // 创建一个子对象用来角色检测地面碰撞体(创建子对象是因为不会影响父对象的刚体)
-    groundDetectionCollision->SetSrcLayer(CollisionLayerTool::player);
-    groundDetectionCollision->AddDstLayer(CollisionLayerTool::wall);
+
     groundDetectionCollision->SetSize(Vector2{40.0f, 5.0f});
     groundDetectionCollision->SetOffset(Vector2{0.0f, -1.5f});
+
+    // 初始化自身的攻击碰撞触发器
+    attackBox->AddDstLayer(CollisionLayerTool::enemy);  // 对敌人造成伤害
+    attackBox->SetSize(Vector2{200.0f, 100.0f});
+    attackBox->SetOffset(
+        Vector2{10.0f, -animator->GetInitialAnimation().CurrentFrameSize().Y / 2 - 50.0f});
 
     Flip();  // 缓存翻转状态(后续可优化)
     Flip();
@@ -105,4 +119,58 @@ void Player::SetVelocity(const Vector2& v)
         dir = -1.0f * dir;
         Flip();  // 灵活
     }
+}
+
+void Player::OnHurt(const Vector2& attackIntensity, int damage)
+{
+    if (isBlocking) {
+        isHitVfxRender = true;
+        hitVfx.Restart();
+        hitVfx.SetOffset(GetPosition());
+        if (hitDir * attackIntensity.X < 0.0f) {
+            hitDir *= -1.0f;
+            hitVfx.Flip();
+        }
+    } else {
+        isHurtVfxRender = true;
+        hurtVfx.Restart();
+        hurtVfx.SetOffset(GetPosition());
+        if (hurtDir * attackIntensity.X < 0.0f) {
+            hurtDir *= -1.0f;
+            hurtVfx.Flip();
+        }
+        gameaf::log("玩家受到伤害{}", damage);
+    }
+}
+
+void Player::OnAttack(Character* dstObj)
+{
+    gameaf::log("玩家击打到了对方");
+    Character::OnAttack(dstObj);
+}
+
+void Player::SetCollisonBoxOffsetY(float offsetY)
+{
+    collisionBox->SetSize({collisionBox->GetSize().X, collisionBox->GetSize().Y - offsetY});
+    collisionBox->SetOffset(
+        {collisionBox->GetOffset().X, collisionBox->GetOffset().Y + offsetY / 2});
+}
+
+void Player::SetAttackBoxOffsetX(float offsetX)
+{
+    attackBox->SetSize({attackBox->GetSize().X - offsetX, attackBox->GetSize().Y});
+}
+
+void Player::OnJumpVfx()
+{
+    isjumpVfxRender = true;
+    jumpVfx.Restart();
+    jumpVfx.SetOffset(GetPosition());
+}
+
+void Player::OnLandVfx()
+{
+    islandVfxRender = true;
+    landVfx.Restart();
+    landVfx.SetOffset(GetPosition());
 }

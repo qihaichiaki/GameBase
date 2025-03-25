@@ -21,7 +21,6 @@ Image::~Image() {}
 /// @param pos 世界坐标
 /// @param size 图像组件大小
 /// @param anchor_pos 在单位矩形中描述锚点位置
-/// @return
 inline static Rect BuildRender(const Vector2& pos, const Vector2& size, const Vector2& anchor_pos)
 {
     Rect dst;

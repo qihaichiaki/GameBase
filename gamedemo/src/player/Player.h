@@ -1,8 +1,8 @@
 #pragma once
 
-#include <game_object/component/Timer.hpp>
+#include <game_object/component/Animation.h>
 
-#include "../Character.hpp"
+#include "../Character.h"
 #include "../Common.hpp"
 /**
  * 玩家控制对象
@@ -25,6 +25,27 @@ public:
 
     void SetVelocity(const Vector2& v) override;
 
+    /// @brief 玩家受击
+    void OnHurt(const Vector2& attackIntensity, int damage) override;
+
+    /// @brief 玩家攻击
+    /// @param dstObj
+    void OnAttack(Character* dstObj) override;
+
+    /// @brief 缩小角色受击碰撞箱的Y方向上的大小
+    /// @param offsetY
+    void SetCollisonBoxOffsetY(float offsetY);
+
+    /// @brief 缩小角色攻击碰撞箱x方向上的大小
+    /// @param offsetX
+    void SetAttackBoxOffsetX(float offsetX);
+
+    /// @brief 播放跳跃特效
+    void OnJumpVfx();
+
+    /// @brief 播放落地特效
+    void OnLandVfx();
+
 public:
     float xSpeed = 300.0f;     //水平方向的速度
     float jumpSpeed = 650.0f;  // 跳跃力
@@ -38,4 +59,6 @@ public:
     // 跳跃宽限期
     Timer isOnFloorLastFrameTimer;
     bool isJumpForgiveExit = true;
+
+    bool isBlocking = false;  // 是否在格挡
 };

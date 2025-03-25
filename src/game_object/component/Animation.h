@@ -10,6 +10,7 @@ namespace gameaf {
 
 class Camera;
 class GameObject;
+class Atlas;
 class Animation
 {
 public:
@@ -51,7 +52,7 @@ public:
 
     /// @brief 设置动画最后一帧结束后执行的回调
     /// @param onFinished 执行回调逻辑
-    void SetOnFinished(std::function<void(Animation*)> onFinished);
+    void SetOnFinished(std::function<void()> onFinished);
 
     /// @brief 将动画的每帧的图像添加
     /// @return 添加帧是否成功
@@ -62,8 +63,15 @@ public:
     /// @param indexs 精灵图中每帧图在拆分中的编号(从0开始)
     bool AddFrame(const Image& img, const std::vector<size_t>& indexs);
 
+    /// @brief 通过图集对象中的每一张图片添加到帧当中去
+    /// @warning 临时创建自由动画组件api, 后续可能会改动, 不稳地, 里面的图像时空对象的
+    bool AddFrame(Atlas* atlas);
+
     /// @brief 获取当前帧
     const Frame& GetCurrentFrame() const;
+
+    /// @brief 获取当前帧下标
+    const int GetCurrentFrameIndex() const { return m_frame_index; }
 
     /// @brief 当前帧的大小
     const Vector2& CurrentFrameSize() const;
@@ -86,6 +94,9 @@ public:
         m_startLoopFrameIndex = startLoopFrameIndex;
     }
 
+    /// @brief 设置位移
+    void SetOffset(const Vector2& offset);
+
 private:
     void TimerInit();
 
@@ -94,8 +105,8 @@ private:
     int m_frame_index = 0;
     int m_startLoopFrameIndex = 0;  // 从多少帧开始循环, 默认一开始就循环
     Timer timer;
-    bool m_is_loop = false;                         // 是否是循环动画
-    bool m_isEndOfPlay = false;                     // 是否播放结束
-    std::function<void(Animation*)> m_on_finished;  // 驱动力
+    bool m_is_loop = false;               // 是否是循环动画
+    bool m_isEndOfPlay = false;           // 是否播放结束
+    std::function<void()> m_on_finished;  // 驱动力
 };
 }  // namespace gameaf

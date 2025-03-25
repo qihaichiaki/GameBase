@@ -91,6 +91,19 @@ int main()
             // dead
             resourceManager.LoadAtlas(ASSETS_PATH "character/player/dead/%d.png", 9, "player_dead");
 
+            // jump vfx
+            resourceManager.NewImage(ASSETS_PATH "effect/vfx_jump.png", "vfxJump", 1,
+                                     5);  // 跳起特效
+
+            // land vfx
+            resourceManager.NewImage(ASSETS_PATH "effect/vfx_land.png", "vfxLand", 1,
+                                     2);  // 跳起特效
+
+            // hit vfx 受击特效
+            resourceManager.LoadAtlas(ASSETS_PATH "effect/hit/%d.png", 4, "vfxHit");
+            // hurt vfx 玩家受伤特效
+            resourceManager.LoadAtlas(ASSETS_PATH "effect/hurt/%d.png", 18, "player_vfxHurt");
+
             sceneManager.SetLoadProgress(3.0f / 4);
             std::this_thread::sleep_for(std::chrono::seconds(1));
 
@@ -127,6 +140,16 @@ int main()
             // evade
             resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Evade/%d.png", 7,
                                       "hornet_evade");
+            // hurt
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Hurt/%d.png", 6,
+                                      "hornet_hurt");
+
+            // 大黄蜂相关特效
+            // 大黄蜂受伤特效?
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/HurtEffect/%d.png", 4,
+                                      "hornet_vfxHurt1");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/HurtEffect_/%d.png", 7,
+                                      "hornet_vfxHurt2");
 
             // 加载游戏背景
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");

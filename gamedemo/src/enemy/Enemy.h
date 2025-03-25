@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Character.hpp"
+#include "../Character.h"
 #include "../Common.hpp"
 
 /**
