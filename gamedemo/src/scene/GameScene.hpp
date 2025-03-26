@@ -2,6 +2,7 @@
 
 #include <GameAf.h>
 #include <game_object/component/Text.h>
+#include <game_object/widgets/ProgressBar.h>
 #include <input/InputManager.h>
 #include <resource/ResourceManager.h>
 #include <scene/Camera.h>
@@ -42,8 +43,21 @@ public:
         uiCamera->AddRenderObj("TestText");        // UI渲染
         mainCamera->DisableRenderObj("TestText");  // main相机不渲染
 
+        // 玩家血量ui对象
+        auto playerHpProgressBar = std::make_shared<ProgressBar>();
+        playerHpProgressBar->SetName("playerHp");
+        playerHpProgressBar->SetZOrder(RenderZOrder::UI_2);
+        playerHpProgressBar->SetPositionY(-GameAf::GetScreenHeight() / 2 +
+                                          playerHpProgressBar->GetBorderSize().Y / 2 + 20.0f);
+        playerHpProgressBar->SetPositionX(-300.0f);
+        playerHpProgressBar->SetGhostBar(true);
+        playerHpProgressBar->SetProgressBarColor(ColorRGB{"#f8312f"});
+        uiCamera->AddRenderObj("playerHp");        // UI渲染
+        mainCamera->DisableRenderObj("playerHp");  // main相机不渲染
+        AddGameObject(playerHpProgressBar);
+
         // 添加player对象
-        auto player = std::make_shared<Player>();
+        auto player = std::make_shared<Player>(playerHpProgressBar.get());
         _player = player.get();
         // 添加hornet对象
         auto hornet = std::make_shared<Hornet>(_player);
@@ -55,7 +69,7 @@ public:
         auto ground = std::make_shared<Ground>();
         // 创建墙面
         auto wall = std::make_shared<Wall>();
-        wall->Translate({0.0f, 150.0f});
+        wall->Translate({0.0f, 80.0f});
 
         AddGameObjects({test, backgroundBottom, backgroundMiddle, ground, wall, player, hornet});
 
@@ -94,9 +108,11 @@ public:
             }
         }
 
-        // 检查玩家位置用于修正
+        // 检查玩家位置 - 判断死亡
         if (_player->GetPosition().Y >= 1000.0f) {
-            _player->ReStart();
+            _player->SetVelocity({});
+            _player->SetPosition({});
+            _player->OnHurt({}, _player->maxHp);
         }
     }
 

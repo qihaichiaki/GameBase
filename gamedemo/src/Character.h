@@ -63,8 +63,12 @@ public:
     /// @brief 结束本次攻击(关闭攻击碰撞箱)
     void AttackEnd();
 
+    /// @brief 设置是否重力模拟
+    void SetGravityEnabled(bool isEnabled);
+
 public:
-    int hp = 0;  // 公共 hp
+    int hp = 0;     // 公共 hp
+    int maxHp = 0;  // 最大血量
 
     Vector2 currentAttackIntensity;
     int currentDamage = 0;
@@ -87,13 +91,14 @@ protected:
     bool islandVfxRender = false;
     bool isHitVfxRender = false;
     bool isHurtVfxRender = false;
-    Animation jumpVfx;    // 跳起特效 -> 公共使用, 会在此处初始化
-    Animation landVfx;    // 落下特效 -> 公共使用, 会在此处初始化
-    Animation attackVfx;  // 攻击特效?
-    int hitDir = -1.0f;   // 决定受击特效方向
-    int hurtDir = 1.0f;   // 决定受到伤害特效方向
-    Animation hitVfx;     // 被打击特效(格挡)
-    Animation hurtVfx;    // 被伤害特效
+    Animation jumpVfx;     // 跳起特效 -> 公共使用, 会在此处初始化
+    Animation landVfx;     // 落下特效 -> 公共使用, 会在此处初始化
+    Animation attackVfx;   // 攻击特效?
+    int hitDir = -1.0f;    // 决定受击特效方向
+    int hurtDir = 1.0f;    // 决定受到伤害特效方向
+    int attackDir = 1.0f;  // 攻击伤害特效方向
+    Animation hitVfx;      // 被打击特效(格挡)
+    Animation hurtVfx;     // 被伤害特效
 
 private:
     // debug 测试

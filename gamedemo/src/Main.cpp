@@ -143,6 +143,45 @@ int main()
             // hurt
             resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Hurt/%d.png", 6,
                                       "hornet_hurt");
+            // attack 1
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Attack_0/%d.png", 5,
+                                      "hornet_attack1");
+            // attack 2
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Attack_1/%d.png", 5,
+                                      "hornet_attack2");
+            // attack up
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/AttackUp/%d.png", 5,
+                                      "hornet_attackUp");
+            // attack down
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/AttackDown/%d.png", 5,
+                                      "hornet_attackDown");
+            // AttackBounce
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/AttackBounce/%d.png", 11,
+                                      "hornet_attackBounce");
+            // dash attack aim 需要放大1.2倍正常
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/aim/%d.png", 9,
+                                      "hornet_dashAttackAimAir", true);
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/squat/%d.png", 10,
+                                      "hornet_dashAttackAimFloor", true);
+            // dash attack floor 需要放大1.2倍正常
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/dash_on_floor/%d.png", 2,
+                                      "hornet_dashAttackFloor", true);
+            // dash attack air 需要放大1.2倍正常
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/dash_in_air/%d.png", 2,
+                                      "hornet_dashAttackAir", true);
+            // defend 格挡
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/DefendStart/%d.png", 3,
+                                      "hornet_idleToDefend");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/DefendEnd/%d.png", 2,
+                                      "hornet_defendToIdle");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/Defend/%d.png", 4,
+                                      "hornet_defend");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/DefendAttack/%d.png", 7,
+                                      "hornet_defendAttack");
+
+            // lowHealth
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/LowHealth/%d.png", 6,
+                                      "hornet_lowHealth");
 
             // 大黄蜂相关特效
             // 大黄蜂受伤特效?
@@ -150,6 +189,16 @@ int main()
                                       "hornet_vfxHurt1");
             resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/HurtEffect_/%d.png", 7,
                                       "hornet_vfxHurt2");
+            // 攻击特效
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/AttackEffect/%d.png", 4,
+                                      "hornet_vfxAttack1");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/other/AttackEffect_/%d.png", 3,
+                                      "hornet_vfxAttack2");
+            // dash attack 特效 需要放大1.2倍正常
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/vfx_dash_on_floor/%d.png", 6,
+                                      "hornet_vfxDashAttackFloor");
+            resourceManager.LoadAtlas(ASSETS_PATH "character/hornet/vfx_dash_in_air/%d.png", 5,
+                                      "hornet_vfxDashAttackAir");
 
             // 加载游戏背景
             resourceManager.NewImage(ASSETS_PATH "background/layer_1.png", "background_layer1");

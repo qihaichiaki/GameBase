@@ -4,6 +4,8 @@
 #include <game_object/component/Animator.h>
 #include <game_object/component/CollisionBox.h>
 
+static GameAf& gameAf = GameAf::GetInstance();
+
 namespace player {
 PlayerStateNode::PlayerStateNode(Player* player)
     : player(player), animator(player->GetComponent<Animator>())
@@ -205,7 +207,12 @@ void AttackStanding::OnEnter()
 void AttackStanding::OnUpdate()
 {
     if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 8) {
-        player->AttackStart({player->dir * 350.0f, -150.0f}, 50);
+        player->AttackStart({player->dir * 650.0f, -350.0f}, player->attackStandingDamge);
+        player->isHegemonicState = true;
+    }
+    if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 11) {
+        player->AttackEnd();
+        player->isHegemonicState = false;
     }
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
         player->SwitchState("Idle");
@@ -220,12 +227,16 @@ void AttackAerial::OnEnter()
     // gameaf::log("AttackAerial");
     animator->SwitchToAnimation("attack_aerial");
     player->SetAttackBoxOffsetX(-50.0f);
+    player->SetVelocity({});           // 空中静止!
+    player->SetGravityEnabled(false);  // 关闭重力模拟!
 }
 void AttackAerial::OnUpdate()
 {
-    player->SetVelocity({});  // 空中静止!
     if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 9) {
-        player->AttackStart({player->dir * 150.0f, 80.0f}, 30);
+        player->AttackStart({player->dir * 650.0f, 80.0f}, player->attackAirDamge);
+    }
+    if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 12) {
+        player->AttackEnd();
     }
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
         player->SwitchState("Falling");
@@ -236,6 +247,7 @@ void AttackAerial::OnExit()
 {
     player->AttackEnd();
     player->SetAttackBoxOffsetX(50.0f);
+    player->SetGravityEnabled(true);
 }
 
 // === AttackCrouching ===
@@ -259,12 +271,59 @@ void Blocking::OnEnter()
     // gameaf::log("block");
     player->SetVelocityX(0.0f);
     animator->SwitchToAnimation("blocking");
+    player->hitAttackIntensity.X = 0.0f;
+    player->isBlocking = true;
 }
 
 void Blocking::OnUpdate()
 {
+    if (player->hitAttackIntensity.X != 0.0f) {
+        if (hitDuration == 0.0f) {
+            animator->SwitchToAnimation("hitWhileBlocking");
+        }
+        if (hitDuration <= player->blockHitMaxDuration) {
+            player->Character::SetVelocity({player->hitAttackIntensity.X * 0.15f, 0.0f});
+            hitDuration += gameAf.GetDeltaTime();
+        } else {
+            hitDuration = 0.0f;
+            player->hitAttackIntensity = {};
+            player->SetVelocityX(0.0f);
+            animator->SwitchToAnimation("blocking");
+        }
+    }
     if (!InputKey::TryBlock()) {
         player->SwitchState("Idle");
     }
+}
+
+void Blocking::OnExit()
+{
+    player->isBlocking = false;
+    hitDuration = 0.0f;
+    player->hitAttackIntensity = {};
+}
+
+// === hurt ===
+void Hurt::OnEnter()
+{
+    player->Character::SetVelocity(player->hitAttackIntensity);
+    animator->SwitchToAnimation("hurt");
+}
+
+void Hurt::OnUpdate()
+{
+    hurtDuration += gameAf.GetDeltaTime();
+    if (hurtDuration > player->hurtMaxDuration) {
+        player->SwitchState("Idle");
+    }
+}
+
+void Hurt::OnExit() { hurtDuration = 0.0f; }
+
+// === Dead ===
+void Dead::OnEnter()
+{
+    animator->SwitchToAnimation("dead");
+    player->SetVelocity({});
 }
 }  // namespace player

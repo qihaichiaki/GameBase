@@ -129,13 +129,24 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
+
+private:
+    float hitDuration = 0.0f;  // 受击持续时间
 };
 
 // 受击状态
-class Hit : public PlayerStateNode
+class Hurt : public PlayerStateNode
 {
 public:
-    Hit(Player* player) : PlayerStateNode(player) {}
+    Hurt(Player* player) : PlayerStateNode(player) {}
+
+    void OnEnter() override;
+    void OnUpdate() override;
+    void OnExit() override;
+
+private:
+    float hurtDuration = 0.0f;  // 受伤持续时间
 };
 
 // 死亡状态
@@ -143,6 +154,8 @@ class Dead : public PlayerStateNode
 {
 public:
     Dead(Player* player) : PlayerStateNode(player) {}
+
+    void OnEnter() override;
 };
 
 }  // namespace player

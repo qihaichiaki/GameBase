@@ -45,6 +45,11 @@ void Player::OnAwake()
     animator->AddAnimationForImage("attack_crouching", "player_attack_crouching", false,
                                    0.1f);  // 蹲下火箭攻击
     animator->AddAnimationForImage("blocking", "player_blockingWithShield", false, 0.1f);  // 盾格挡
+    animator->AddAnimationForImage("hitWhileBlocking", "player_hitWhileBlocking", false,
+                                   0.1f);  // 盾格挡成功
+    animator->AddAnimationForImage("hurt", "player_damageTaken", false,
+                                   0.1f);  // 受到伤害
+    animator->AddAnimationForAtlas("dead", "player_dead", false, 0.1f);
 
     {
         // 设置过渡动画
@@ -61,6 +66,7 @@ void Player::OnAwake()
     // 受伤特效添加
     hurtVfx.AddFrame(ResourceManager::GetInstance().GetAtlas("player_vfxHurt"));
     hurtVfx.SetSizeScale({1.5f, 1.5f});  // 放大一下
+    hurtVfx.SetOnFinished([this]() { isHurtVfxRender = false; });
 
     // 创建角色自身碰撞体
     collisionBox = CreateComponent<CollisionBox>(
@@ -71,12 +77,12 @@ void Player::OnAwake()
 
     // 创建一个子对象用来角色检测地面碰撞体(创建子对象是因为不会影响父对象的刚体)
 
-    groundDetectionCollision->SetSize(Vector2{40.0f, 5.0f});
+    groundDetectionCollision->SetSize(Vector2{30.0f, 5.0f});
     groundDetectionCollision->SetOffset(Vector2{0.0f, -1.5f});
 
     // 初始化自身的攻击碰撞触发器
     attackBox->AddDstLayer(CollisionLayerTool::enemy);  // 对敌人造成伤害
-    attackBox->SetSize(Vector2{200.0f, 100.0f});
+    attackBox->SetSize(Vector2{220.0f, 100.0f});
     attackBox->SetOffset(
         Vector2{10.0f, -animator->GetInitialAnimation().CurrentFrameSize().Y / 2 - 50.0f});
 
@@ -94,6 +100,9 @@ void Player::OnAwake()
     stateMachine.RegisterState("AttackAerial", std::make_shared<player::AttackAerial>(this));
     stateMachine.RegisterState("AttackCrouching", std::make_shared<player::AttackCrouching>(this));
     stateMachine.RegisterState("Blocking", std::make_shared<player::Blocking>(this));
+    stateMachine.RegisterState("Hurt", std::make_shared<player::Hurt>(this));
+    stateMachine.RegisterState("Dead", std::make_shared<player::Dead>(this));
+
     stateMachine.SetEntry("Idle");
 
     // 角色状态相关辅助更新
@@ -110,6 +119,8 @@ void Player::ReStart()
     SwitchState("Idle");
     SetPosition({});  // 玩家位置复原
     SetVelocity({});  // 速度恢复
+    hp = maxHp;
+    hpProgressBar->SetTargetProgressValue(1.0);
 }
 
 void Player::SetVelocity(const Vector2& v)
@@ -123,23 +134,41 @@ void Player::SetVelocity(const Vector2& v)
 
 void Player::OnHurt(const Vector2& attackIntensity, int damage)
 {
-    if (isBlocking) {
+    if (isInvincible) {
+        gameaf::log("我是无敌的!");
+        return;
+    }
+
+    Vector2 pos = GetPosition();
+    hitAttackIntensity = attackIntensity;
+    if (isBlocking && attackIntensity.X * dir < 0.0f) {
         isHitVfxRender = true;
-        hitVfx.Restart();
-        hitVfx.SetOffset(GetPosition());
         if (hitDir * attackIntensity.X < 0.0f) {
             hitDir *= -1.0f;
             hitVfx.Flip();
         }
+        hitVfx.Restart();
+        hitVfx.SetOffset({pos.X, pos.Y - collisionBox->GetSize().Y});
     } else {
         isHurtVfxRender = true;
-        hurtVfx.Restart();
-        hurtVfx.SetOffset(GetPosition());
         if (hurtDir * attackIntensity.X < 0.0f) {
             hurtDir *= -1.0f;
             hurtVfx.Flip();
         }
-        gameaf::log("玩家受到伤害{}", damage);
+        hurtVfx.Restart();
+        hurtVfx.SetOffset({pos.X, pos.Y - collisionBox->GetSize().Y});
+
+        if (hp > 0) {
+            hp -= damage;
+            hpProgressBar->SetTargetProgressValue(hp * 1.0f / maxHp);
+            gameaf::log("玩家受到伤害{}, 玩家剩余血量{}", damage, hp);
+
+            if (hp <= 0) {
+                SwitchState("Dead");
+                return;
+            }
+            if (!isHegemonicState) SwitchState("Hurt");
+        }
     }
 }
 

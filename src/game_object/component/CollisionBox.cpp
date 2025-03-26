@@ -71,7 +71,7 @@ bool CollisionBox::ProcessCollide(Collision* dst, float delta)
             //     gameaf::log("size: {}", dst_box->GetSize());
             // }
 
-            if (m_isTrigger) return true;
+            if (m_isTrigger || dst_box->m_isTrigger) return true;
             // 本身存在刚体解决冲突
             if (!ResolveCollisions(m_gameObject, left, right, dst_left, dst_right, top, bottom,
                                    dst_top, dst_bottom)) {

@@ -23,8 +23,7 @@ void Character::OnAwake()
     attackBox->SetOnTriggerEnter([this](Collision* dst) {
         // 触发回调
         auto dstObj = static_cast<Character*>(dst->GetGameObject());
-        gameaf::log("触发回调");
-        if (!dstObj->isInvincible) OnAttack(dstObj);
+        OnAttack(dstObj);
     });
 
     // 地面检测碰撞器
@@ -53,13 +52,15 @@ void Character::OnAwake()
         hitVfx.AddFrame(ResourceManager::GetInstance().GetAtlas("vfxHit"));
         // 被伤害特效帧各自添加(可能会不一样)
         hitVfx.SetOnFinished([this]() { isHitVfxRender = false; });
-        hurtVfx.SetOnFinished([this]() { isHurtVfxRender = false; });
 
         hitVfx.SetInterval(0.1f);
         hurtVfx.SetInterval(0.1f);
         hitVfx.SetAnchorMode(ImageAnchorMode::Centered);
         hurtVfx.SetAnchorMode(ImageAnchorMode::Centered);
     }
+
+    hp = 100;  // 初始均为100点
+    maxHp = hp;
 }
 
 void Character::OnUpdate()
@@ -119,3 +120,5 @@ void Character::AttackStart(const Vector2& attackIntensity, int damage)
 }
 
 void Character::AttackEnd() { attackBox->SetEnabled(false); }
+
+void Character::SetGravityEnabled(bool isEnabled) { rb->SetGravityEnabled(isEnabled); }

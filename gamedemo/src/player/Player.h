@@ -1,6 +1,7 @@
 #pragma once
 
 #include <game_object/component/Animation.h>
+#include <game_object/widgets/ProgressBar.h>
 
 #include "../Character.h"
 #include "../Common.hpp"
@@ -11,7 +12,7 @@
 class Player : public Character
 {
 public:
-    Player() : Character(RenderZOrder::PLAYER, "player") {}
+    Player(ProgressBar* hp) : Character(RenderZOrder::PLAYER, "player"), hpProgressBar(hp) {}
 
     void OnAwake() override;
 
@@ -60,5 +61,17 @@ public:
     Timer isOnFloorLastFrameTimer;
     bool isJumpForgiveExit = true;
 
-    bool isBlocking = false;  // 是否在格挡
+    Vector2 hitAttackIntensity;         // 受击攻击强度
+    bool isBlocking = false;            // 是否在格挡
+    float blockHitMaxDuration = 0.75f;  // 抵御攻击后退持续时间
+
+    float hurtMaxDuration = 0.15f;  // 受到伤害持续时间
+
+    bool isHegemonicState = false;  // 是否霸体状态
+
+    int attackStandingDamge = 8;
+    int attackAirDamge = 5;
+
+private:
+    ProgressBar* hpProgressBar;
 };

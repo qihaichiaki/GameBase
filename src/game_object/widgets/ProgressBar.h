@@ -21,6 +21,9 @@ public:
     /// @brief 设置外边框大小
     void SetBorderSize(const Vector2& borderSize) { m_borderSize = borderSize; }
 
+    /// @brief 返回外边框大小
+    const Vector2& GetBorderSize() const { return m_borderSize; }
+
     /// @brief 设置进度条大小
     void SetProgressBarSize(const Vector2& progressBarSize) { m_progressBarSize = progressBarSize; }
 
@@ -68,7 +71,7 @@ public:
     }
 
     /// @brief 设置外边框颜色
-    void SetBorderColorColor(const ColorRGB& borderColor) { m_borderColor = borderColor; }
+    void SetBorderColor(const ColorRGB& borderColor) { m_borderColor = borderColor; }
 
 public:
     GameObjectPtr Clone() override

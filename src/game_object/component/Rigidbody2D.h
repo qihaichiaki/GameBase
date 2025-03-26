@@ -31,8 +31,12 @@ public:
     /// @brief 刚体的物理强度
     float& GravityScale() { return m_gravity_scale; }
 
+    /// @brief 是否启动重力模拟
+    void SetGravityEnabled(bool isEnabled) { isGravityEnabled = isEnabled; }
+
 private:
     Vector2 m_velocity;             // 速率
     float m_gravity_scale = 980.5;  // 重力加速度规模
+    bool isGravityEnabled = true;   // 是否启用重力模拟?
 };
 }  // namespace gameaf
