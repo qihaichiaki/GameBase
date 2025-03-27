@@ -73,9 +73,7 @@ void SceneManager::OnUpdate(float delta)
 
 void SceneManager::OnFixUpdate(float alpha) { m_currentScene->OnFixUpdate(alpha); }
 
-/// @brief 屏幕颜色渐变效果
-/// @note 内容主要是[当前, 纯] 之间进行变换
-static void ApplyFadeEffect(float dstColorFactor, float progress)
+void SceneManager::ApplyFadeEffect(float dstColorFactor, float progress)
 {
 #ifdef GAMEAF_USE_EASYX
     DWORD* buffer = GetImageBuffer();  // 获取当前屏幕图像缓冲
@@ -88,7 +86,7 @@ static void ApplyFadeEffect(float dstColorFactor, float progress)
     for (int y = 0; y < h; y++) {
         DWORD* row_ptr = buffer + y * w;  // 逐行处理，提高缓存命中率
         for (int x = 0; x < w; x++, row_ptr++) {
-            DWORD color = *row_ptr;  // 降低 CPU 内存访问,.让其尽量放在寄存器?
+            DWORD color = *row_ptr;
             BYTE r = (BYTE)(GetBValue(color) * factor);
             BYTE g = (BYTE)(GetGValue(color) * factor);
             BYTE b = (BYTE)(GetRValue(color) * factor);
@@ -180,7 +178,7 @@ void SceneManager::LoadSceneAsync(LoadAsyncFuc loadFunc, const std::string& load
 
     // 开始异步加载
     std::thread([=]() {
-        loadFunc();
+        loadFunc(*this);
         // 执行完毕, 在主线程切换场景
         RunOnMainThread([=]() { SwitchTo(nextSceneId, isTransition); });
     }).detach();

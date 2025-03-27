@@ -45,7 +45,7 @@ public:
         auto img = middle1->CreateComponent<Image>(std::string{"background_layer2"});
         img->SetSizeScale({4.0f, 4.0f});
         img->SetAnchorMode(ImageAnchorMode::BottomCentered);
-        middle1->Translate({0.0f, GameAf::GetScreenHeight() * 1.0f / 2});
+        middle1->Translate({0.0f, GameAf::GetScreenHeight() * 1.0f / 2 + 100.0f});
         AddChildObject(middle1);
         center = middle1.get();
         left = middle1->Clone().get();

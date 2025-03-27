@@ -39,6 +39,7 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
 };
 
 // 跳跃状态
@@ -49,6 +50,7 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
 };
 
 // 浮空状态
@@ -59,6 +61,7 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
 };
 
 // 蹲下状态

@@ -2,6 +2,7 @@
 
 #include <GameAf.h>
 #include <game_object/component/Animator.h>
+#include <game_object/component/AudioManager.h>
 #include <game_object/component/CollisionBox.h>
 #include <resource/ResourceManager.h>
 
@@ -63,11 +64,12 @@ void Hornet::OnAwake()
 
     // 受伤特效添加
     hurtVfx.AddFrame(ResourceManager::GetInstance().GetAtlas("hornet_vfxHurt1"));
-    hurtVfx.SetSizeScale({0.5f, 0.5f});
+    hurtVfx.SetSizeScale({0.75f, 0.75f});
+    hurtVfx.SetOnFinished([this]() { isHurtVfxRender = false; });
     hurtVfx2.AddFrame(ResourceManager::GetInstance().GetAtlas("hornet_vfxHurt2"));
-    hurtVfx2.SetSizeScale({0.5f, 0.5f});
+    hurtVfx2.SetSizeScale({0.75f, 0.75f});
     hurtVfx2.SetInterval(0.1f);
-    hurtVfx2.SetOnFinished([this]() { isHurtVfxRender = false; });
+    hurtVfx2.SetOnFinished([this]() { isHurtVfx2Render = false; });
 
     // 攻击特效添加
     attackVfx.AddFrame(ResourceManager::GetInstance().GetAtlas("hornet_vfxAttack1"));
@@ -76,7 +78,19 @@ void Hornet::OnAwake()
     attackVfx2.SetSizeScale({0.25f, 0.25f});
     attackVfx.SetInterval(0.1f);
     attackVfx2.SetInterval(0.1f);
-    attackVfx.SetOnFinished([this]() { isAttackVfxRender = false; });
+    attackVfx.SetOnFinished([this]() { isAttackVfx1Render = false; });
+    attackVfx2.SetOnFinished([this]() { isAttackVfx2Render = false; });
+
+    // 冲刺攻击特效添加
+    dashAttackVfxFloor.AddFrame(
+        ResourceManager::GetInstance().GetAtlas("hornet_vfxDashAttackFloor"));
+    dashAttackVfxAir.AddFrame(ResourceManager::GetInstance().GetAtlas("hornet_vfxDashAttackAir"));
+    // dashAttackVfxFloor.SetSizeScale({1.2f, 1.2f});
+    // dashAttackVfxAir.SetSizeScale({1.2f, 1.2f});
+    dashAttackVfxFloor.SetInterval(0.1f);
+    dashAttackVfxAir.SetInterval(0.1f);
+    dashAttackVfxFloor.SetOnFinished([this]() { isdashAttackVfxFloorRender = false; });
+    dashAttackVfxAir.SetOnFinished([this]() { isdashAttackVfxAirRender = false; });
 
     // 初始化自身的攻击碰撞触发器
     attackBox->AddDstLayer(CollisionLayerTool::player);  // 对敌人造成伤害
@@ -133,21 +147,38 @@ void Hornet::OnAwake()
 void Hornet::OnUpdate()
 {
     Character::OnUpdate();
-    if (isHurtVfxRender) hurtVfx2.OnUpdate(gameAf.GetDeltaTime());
-    if (isAttackVfxRender) {
+    if (isHurtVfx2Render) hurtVfx2.OnUpdate(gameAf.GetDeltaTime());
+    if (isAttackVfx1Render) {
         attackVfx.OnUpdate(gameAf.GetDeltaTime());
+    }
+    if (isAttackVfx2Render) {
         attackVfx2.OnUpdate(gameAf.GetDeltaTime());
+    }
+    if (isdashAttackVfxFloorRender) {
+        dashAttackVfxFloor.OnUpdate(gameAf.GetDeltaTime());
+    }
+    if (isdashAttackVfxAirRender) {
+        dashAttackVfxAir.OnUpdate(gameAf.GetDeltaTime());
     }
 }
 
 void Hornet::OnDraw(const Camera& camera)
 {
     Character::OnDraw(camera);
-    if (isHurtVfxRender) hurtVfx2.OnRender(camera);
-    if (isAttackVfxRender) {
+    if (isHurtVfx2Render) hurtVfx2.OnRender(camera);
+    if (isAttackVfx1Render) {
         attackVfx.OnRender(camera);
+    }
+    if (isAttackVfx2Render) {
         attackVfx2.OnRender(camera);
     }
+    if (isdashAttackVfxFloorRender) {
+        dashAttackVfxFloor.OnRender(camera);
+    }
+    if (isdashAttackVfxAirRender) {
+        dashAttackVfxAir.OnRender(camera);
+    }
+
     if (isDebug) {
         ray->OnDebugRender(camera);
     }
@@ -182,6 +213,9 @@ void Hornet::ReStart()
     isHostileState = false;
     hp = maxHp;
     searchPlayerRange = 400.0f;
+    hpProgressBar->SetTargetProgressValue(1.0);
+    hpProgressBar->GetParent()->SetActive(false);
+    hpProgressBar->GetParent()->GetComponent<Animator>()->Restart();
 }
 
 void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
@@ -202,6 +236,8 @@ void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
         SwitchState("DefendAttack");  // 触发弹反
     } else {
         isHurtVfxRender = true;
+        isHurtVfx2Render = true;
+
         // if (hurtDir * attackIntensity.X < 0.0f) {
         //     hurtDir *= -1.0f;
         //     hurtVfx.Flip();
@@ -212,15 +248,9 @@ void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
         hurtVfx2.SetOffset(GetPosition());
 
         if (hp > 0) {
-            hp -= damage;
-            gameaf::log("大黄蜂受到攻击 {}, 当前血量 {}", damage, hp);
-            if (hp <= 0) {
-                SwitchState("Dead");
-                return;
-            }
-
             currentAttackIntensity = attackIntensity;
             currentDamage = damage;
+            Audio::PlayAudio("hornetHurt");
             if (!isHostileState) {
                 isHostileState = true;
                 searchPlayerRange = searchPlayerRangeHostile;
@@ -229,6 +259,18 @@ void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
                 }
                 // 立即切换到hurt状态 -> 假设只在第一次不存在霸体, 后续存在霸体值(韧性条?)
                 SwitchState("Hurt");
+
+                // 正式开始游戏
+                hpProgressBar->GetParent()->SetActive(true);
+                Audio::PlayAudio("game-bgm", true);
+            } else {
+                hp -= damage;
+                hpProgressBar->SetTargetProgressValue(hp * 1.0f / maxHp);
+                gameaf::log("大黄蜂受到攻击 {}, 当前血量 {}", damage, hp);
+                if (hp <= 0) {
+                    SwitchState("Dead");
+                    return;
+                }
             }
         }
     }
@@ -290,11 +332,11 @@ void Hornet::AdjustAttackUpBox(bool flag)
     Vector2 offset = attackBox->GetOffset();
     if (flag) {
         attackBox->SetSize(Vector2{100.0f, 250.0f});
-        attackBox->SetOffset(Vector2{offset.X + dir * -60.0f, offset.Y});
+        attackBox->SetOffset(Vector2{offset.X + dir * -60.0f, offset.Y - 50.0f});
 
     } else {
         attackBox->SetSize(Vector2{250.0f, 100.0f});
-        attackBox->SetOffset(Vector2{offset.X + dir * 60.0f, offset.Y});
+        attackBox->SetOffset(Vector2{offset.X + dir * 60.0f, offset.Y + 50.0f});
     }
 }
 
@@ -309,4 +351,31 @@ void Hornet::AdjustAttackDownBox(bool flag)
         attackBox->SetSize(Vector2{250.0f, 100.0f});
         attackBox->SetOffset(Vector2{offset.X + dir * 10.0f, offset.Y - 50.0f});
     }
+}
+
+void Hornet::OnDashAttackVfxFloor()
+{
+    static int oldDir = 1.0;
+    if (oldDir * dir < 0.0f) {
+        oldDir = dir;
+        dashAttackVfxFloor.Flip();
+    }
+
+    isdashAttackVfxFloorRender = true;
+    dashAttackVfxFloor.Restart();
+    Vector2 pos = GetPosition();
+    dashAttackVfxFloor.SetOffset({pos.X, pos.Y - 50.0f});
+}
+
+void Hornet::OnDashAttackVfxAir()
+{
+    static int oldDir = 1.0;
+    if (oldDir * dir < 0.0f) {
+        oldDir = dir;
+        dashAttackVfxAir.Flip();
+    }
+
+    isdashAttackVfxAirRender = true;
+    dashAttackVfxAir.Restart();
+    dashAttackVfxAir.SetOffset(GetPosition());
 }

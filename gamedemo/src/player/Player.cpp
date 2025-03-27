@@ -82,7 +82,7 @@ void Player::OnAwake()
 
     // 初始化自身的攻击碰撞触发器
     attackBox->AddDstLayer(CollisionLayerTool::enemy);  // 对敌人造成伤害
-    attackBox->SetSize(Vector2{220.0f, 100.0f});
+    attackBox->SetSize(Vector2{230.0f, 100.0f});
     attackBox->SetOffset(
         Vector2{10.0f, -animator->GetInitialAnimation().CurrentFrameSize().Y / 2 - 50.0f});
 
@@ -121,6 +121,8 @@ void Player::ReStart()
     SetVelocity({});  // 速度恢复
     hp = maxHp;
     hpProgressBar->SetTargetProgressValue(1.0);
+    hpProgressBar->GetComponent<Image>()->Load(
+        ResourceManager::GetInstance().GetTImage("playerState1"));
 }
 
 void Player::SetVelocity(const Vector2& v)
@@ -141,6 +143,7 @@ void Player::OnHurt(const Vector2& attackIntensity, int damage)
 
     Vector2 pos = GetPosition();
     hitAttackIntensity = attackIntensity;
+    mainCamera->Shake(gameAf.Random(0.05f, 0.15f), hurtShakeIntensity);
     if (isBlocking && attackIntensity.X * dir < 0.0f) {
         isHitVfxRender = true;
         if (hitDir * attackIntensity.X < 0.0f) {
@@ -163,7 +166,17 @@ void Player::OnHurt(const Vector2& attackIntensity, int damage)
             hpProgressBar->SetTargetProgressValue(hp * 1.0f / maxHp);
             gameaf::log("玩家受到伤害{}, 玩家剩余血量{}", damage, hp);
 
+            if (hp <= 0.5 * maxHp && hp > 0.2 * maxHp) {
+                hpProgressBar->GetComponent<Image>()->Load(
+                    ResourceManager::GetInstance().GetTImage("playerState2"));
+            } else if (hp <= 0.2 * maxHp) {
+                hpProgressBar->GetComponent<Image>()->Load(
+                    ResourceManager::GetInstance().GetTImage("playerState3"));
+            }
+
             if (hp <= 0) {
+                hpProgressBar->GetComponent<Image>()->Load(
+                    ResourceManager::GetInstance().GetTImage("playerState4"));
                 SwitchState("Dead");
                 return;
             }
@@ -176,6 +189,7 @@ void Player::OnAttack(Character* dstObj)
 {
     gameaf::log("玩家击打到了对方");
     Character::OnAttack(dstObj);
+    if (!dstObj->isInvincible) mainCamera->Shake(gameAf.Random(0.05f, 0.15f), attackShakeIntensity);
 }
 
 void Player::SetCollisonBoxOffsetY(float offsetY)

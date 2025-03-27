@@ -94,8 +94,8 @@ private:
 
     ColorRGB m_borderColor{255, 255, 255};   // 外边框颜色
     ColorRGB m_backgroundColor{45, 45, 45};  // 背景颜色
-    ColorRGB m_progressBarColor{"#c6ebff"};  // 进度条颜色
-    ColorRGB m_ghostBarColor{"#82d4ff"};     // 滞留条颜色
+    ColorRGB m_progressBarColor{"#82d4ff"};  // 进度条颜色
+    ColorRGB m_ghostBarColor{"#c6ebff"};     // 滞留条颜色
 
     // 是否启用滞留进度(减少时, 主进度条不在有动画效果, 存在滞留进度条有动画效果)
     bool m_isGhostBar = false;

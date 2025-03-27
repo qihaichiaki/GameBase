@@ -2,6 +2,7 @@
 
 #include <GameAf.h>
 #include <game_object/component/Animator.h>
+#include <game_object/component/AudioManager.h>
 
 #include "../player/Player.h"
 
@@ -120,6 +121,11 @@ void Evade::OnEnter()
 {
     animator->SwitchToAnimation("evade");
     hornet->SetVelocityX(-hornet->dir * hornet->evadeSpeed);
+    Audio::PlayAudio("hornetEvade");
+    if (gameAf.Random(0, 100) <= 50) {
+        int index = gameAf.Random(1, 2);
+        Audio::PlayAudio(std::string{"hornetEvade"} + std::to_string(index));
+    }
 }
 
 void Evade::OnUpdate()
@@ -146,6 +152,9 @@ void Jump::OnEnter()
         Vector2{hornet->dir * jumpXSpeed,
                 -1.0f * gameAf.Random(hornet->minJumpYSpeed, hornet->maxJumpYSpeed)});
     hornet->OnJumpVfx();
+    Audio::PlayAudio("jump");
+    int index = gameAf.Random(1, 3);
+    Audio::PlayAudio(std::string{"hornetJump"} + std::to_string(index));
 }
 
 void Jump::OnUpdate()
@@ -217,6 +226,7 @@ void Fall::OnUpdate()
     if (hornet->isGround) {
         hornet->SwitchState("Idle");
         hornet->OnLandVfx();
+        Audio::PlayAudio("land");
     }
     HornetStateNode::OnUpdate();
 }
@@ -233,6 +243,7 @@ void Dash::OnEnter()
     animator->SwitchToAnimation("dash");
     hornet->SetVelocityX(hornet->dir * hornet->dashSpeed);
     hornet->isInvincible = true;
+    Audio::PlayAudio("hornetDash");
 }
 
 void Dash::OnUpdate()
@@ -273,6 +284,7 @@ void AirDash::OnEnter()
     hornet->SetVelocityX(hornet->dir * hornet->dashSpeed);
     hornet->isInvincible = true;
     hornet->SetGravityEnabled(false);
+    Audio::PlayAudio("hornetDash");
 }
 
 void AirDash::OnUpdate()
@@ -303,6 +315,7 @@ void Walk::OnEnter()
     hornet->SetVelocityX(hornet->dir * hornet->walkSpeed);
     walkDuration = 0.0f;
     currentWalkMaxDuration = gameAf.Random(hornet->walkMinDuration, hornet->walkMaxDuration);
+    Audio::PlayAudio("run", true);
 }
 
 void Walk::OnUpdate()
@@ -325,6 +338,8 @@ void Walk::OnUpdate()
         hornet->SwitchState("Idle");
     }
 }
+
+void Walk::OnExit() { Audio::StopAudio("run"); }
 
 // === Hurt ===
 Hurt::Hurt(Hornet* hornet) : HornetStateNode(hornet) {}
@@ -382,6 +397,7 @@ void Attack::OnEnter()
     }
     hornet->SetVelocity({});
     hornet->SetGravityEnabled(false);
+    Audio::PlayAudio("hornetAttack");
 }
 
 void Attack::OnUpdate()
@@ -412,6 +428,7 @@ void AttackUp::OnEnter()
     hornet->SetGravityEnabled(false);
     hornet->AdjustAttackUpBox(true);
     animator->SwitchToAnimation("attackUp");
+    Audio::PlayAudio("hornetAttack");
 }
 
 void AttackUp::OnUpdate()
@@ -442,6 +459,7 @@ void AttackDown::OnEnter()
     hornet->SetGravityEnabled(false);
     hornet->AdjustAttackDownBox(true);
     animator->SwitchToAnimation("attackDown");
+    Audio::PlayAudio("hornetAttack");
 }
 
 void AttackDown::OnUpdate()
@@ -511,15 +529,22 @@ void DashAttackAim::OnUpdate()
         // 开始冲刺时, 决定冲刺方向和冲刺持续时间
         Vector2 playerPos = hornet->player->GetPosition();
         Vector2 hornetPos = hornet->GetPosition();
-        hornet->dashAttackDuration =
+        float dashAttacXDuration =
             (hornet->dashAttackPathScale * std::abs(playerPos.X - hornetPos.X)) /
             hornet->dashSpeed;  // 预留点距离
         if (hornet->isGround) {
             hornet->dashAttackDir = {hornet->dir, 0.0f};
+            hornet->dashAttackDuration = dashAttacXDuration;
             hornet->SwitchState("DashAttackFloor");
         } else {
             // 玩家处于大黄蜂的上方
             if (playerPos.Y <= hornetPos.Y) {
+                float dashAttacYDuration =
+                    (hornet->dashAttackPathScale * std::abs(playerPos.Y - hornetPos.Y)) /
+                    hornet->dashSpeed;
+                hornet->dashAttackDuration = dashAttacYDuration > dashAttacXDuration
+                                                 ? dashAttacYDuration
+                                                 : dashAttacXDuration;
                 hornet->SwitchState("AirDash");
             } else {
                 hornet->dashAttackDir = (playerPos - hornetPos).Normalized();
@@ -539,6 +564,8 @@ void DashAttackFloor::OnEnter()
     animator->SwitchToAnimation("dashAttackFloor");
     hornet->SetAttackBoxOffsetX(100);
     hornet->AttackStart({hornet->dir * 800.0f, 0.0f}, hornet->dashAttackDamge);
+    hornet->OnDashAttackVfxFloor();
+    Audio::PlayAudio("hornetRemoteSkill2");
 }
 
 void DashAttackFloor::OnUpdate()
@@ -565,6 +592,8 @@ void DashAttackAir::OnEnter()
     animator->SwitchToAnimation("dashAttackAir");
     hornet->AdjustAttackDownBox(true);
     hornet->AttackStart({hornet->dir * 800.0f, 0.0f}, hornet->dashAttackDamge);
+    hornet->OnDashAttackVfxAir();
+    Audio::PlayAudio("hornetRemoteSkill1");
 }
 
 void DashAttackAir::OnUpdate()
@@ -604,7 +633,12 @@ void Defend::OnExit() { hornet->isBlocking = false; }
 // === DefendAttack ===
 DefendAttack::DefendAttack(Hornet* hornet) : HornetStateNode(hornet) {}
 
-void DefendAttack::OnEnter() { animator->SwitchToAnimation("defendAttack"); }
+void DefendAttack::OnEnter()
+{
+    animator->SwitchToAnimation("defendAttack");
+    int index = gameAf.Random(1, 3);
+    Audio::PlayAudio(std::string{"block"} + std::to_string(index));
+}
 
 void DefendAttack::OnUpdate()
 {
@@ -626,6 +660,7 @@ void Dead::OnEnter()
 {
     animator->SwitchToAnimation("lowHealth");
     hornet->SetVelocity({});
+    Audio::PlayAudio("hornetDead");
 }
 
 }  // namespace hornet

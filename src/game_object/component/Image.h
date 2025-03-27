@@ -65,6 +65,9 @@ public:
     /// @note 默认根据锚点位置进行旋转
     void Rotate(double radian);
 
+    /// @brief 加载新的图元
+    void Load(TImage* timg);
+
 private:
     // 由于使用的是easyx, 为了增加效率, 缓存量会非常大(确信)
     TImage* m_img;                      // 图像元

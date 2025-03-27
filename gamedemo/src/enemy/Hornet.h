@@ -2,6 +2,7 @@
 
 #include <game_object/component/Animation.h>
 #include <game_object/component/CollisionRaycaster.h>
+#include <game_object/widgets/ProgressBar.h>
 
 #include "Enemy.h"
 
@@ -12,7 +13,7 @@
 class Hornet : public Enemy
 {
 public:
-    Hornet(Player* player) : Enemy("Horent", player) {}
+    Hornet(Player* player, ProgressBar* hp) : Enemy("Horent", player), hpProgressBar(hp) {}
 
     void OnAwake() override;
 
@@ -69,6 +70,12 @@ public:
     /// @brief 调整向下攻击时的攻击碰撞箱
     void AdjustAttackDownBox(bool flag);
 
+    /// @brief 播放水平冲刺攻击特效
+    void OnDashAttackVfxFloor();
+
+    /// @brief 播放空中冲刺攻击特效
+    void OnDashAttackVfxAir();
+
 public:
     bool isAboutToFall = false;  // 是否将要坠落
 
@@ -121,5 +128,13 @@ private:
 
     Animation hurtVfx2;
     Animation attackVfx2;
-    bool isAttackVfxRender = false;
+    bool isHurtVfx2Render = false;
+    bool isAttackVfx1Render = false;
+    bool isAttackVfx2Render = false;
+    Animation dashAttackVfxFloor;  // 水平冲刺攻击特效
+    Animation dashAttackVfxAir;    // 空中冲刺攻击特效
+    bool isdashAttackVfxFloorRender = false;
+    bool isdashAttackVfxAirRender = false;
+
+    ProgressBar* hpProgressBar;
 };

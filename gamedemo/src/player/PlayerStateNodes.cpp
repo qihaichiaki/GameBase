@@ -2,6 +2,7 @@
 
 #include <GameAf.h>
 #include <game_object/component/Animator.h>
+#include <game_object/component/AudioManager.h>
 #include <game_object/component/CollisionBox.h>
 
 static GameAf& gameAf = GameAf::GetInstance();
@@ -51,6 +52,7 @@ void Run::OnEnter()
 {
     // gameaf::log("run");
     animator->SwitchToAnimation("run");
+    Audio::PlayAudio("walk", true);
 }
 
 void Run::OnUpdate()
@@ -84,6 +86,8 @@ void Run::OnUpdate()
     }
 }
 
+void Run::OnExit() { Audio::StopAudio("walk"); }
+
 // === jump ===
 void Jump::OnEnter()
 {
@@ -91,7 +95,13 @@ void Jump::OnEnter()
     animator->SwitchToAnimation("jump");
     player->SetVelocityY(-player->jumpSpeed);
     player->OnJumpVfx();
+    Audio::PlayAudio("jump");
+    if (gameAf.Random(0, 100) <= 5) {
+        int index = gameAf.Random(1, 4);
+        Audio::PlayAudio(std::string{"playerJumpRoll"} + std::to_string(index));
+    }
 }
+
 void Jump::OnUpdate()
 {
     player->SetVelocityX(player->xSpeed * InputKey::GetHorizontalDir());
@@ -110,6 +120,8 @@ void Jump::OnUpdate()
         player->SwitchState("AttackAerial");
     }
 }
+
+void Jump::OnExit() {}
 
 // === Falling ===
 void Falling::OnEnter()
@@ -136,6 +148,7 @@ void Falling::OnUpdate()
     if (player->isGround) {
         player->SwitchState("Idle");
         player->OnLandVfx();
+        Audio::PlayAudio("land");
     }
     if (InputKey::TryRoll()) {
         player->SwitchState("Roll");
@@ -145,6 +158,8 @@ void Falling::OnUpdate()
         player->SwitchState("AttackAerial");
     }
 }
+
+void Falling::OnExit() {}
 
 // === crouch ===
 void Crouch::OnEnter()
@@ -178,6 +193,10 @@ void Roll::OnEnter()
     animator->SwitchToAnimation("roll");
     player->SetCollisonBoxOffsetY(offset);
     player->isInvincible = true;  // 无敌时间
+    if (gameAf.Random(0, 100) <= 5) {
+        int index = gameAf.Random(1, 4);
+        Audio::PlayAudio(std::string{"playerJumpRoll"} + std::to_string(index));
+    }
 }
 
 void Roll::OnUpdate()
@@ -202,13 +221,17 @@ void AttackStanding::OnEnter()
 {
     // gameaf::log("AttackStanding");
     player->SetVelocityX(0.0f);
+    player->attackShakeIntensity = player->attackStandingShakeIntensity;
     animator->SwitchToAnimation("attack_standing");
+    int index = gameAf.Random(1, 4);
+    Audio::PlayAudio(std::string{"playerAttackLong"} + std::to_string(index));
 }
 void AttackStanding::OnUpdate()
 {
     if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 8) {
         player->AttackStart({player->dir * 650.0f, -350.0f}, player->attackStandingDamge);
         player->isHegemonicState = true;
+        Audio::PlayAudio("playerHitLong");
     }
     if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 11) {
         player->AttackEnd();
@@ -227,13 +250,17 @@ void AttackAerial::OnEnter()
     // gameaf::log("AttackAerial");
     animator->SwitchToAnimation("attack_aerial");
     player->SetAttackBoxOffsetX(-50.0f);
+    player->attackShakeIntensity = player->attackAerialShakeIntensity;
     player->SetVelocity({});           // 空中静止!
     player->SetGravityEnabled(false);  // 关闭重力模拟!
+    int index = gameAf.Random(1, 4);
+    Audio::PlayAudio(std::string{"playerAttackShort"} + std::to_string(index));
 }
 void AttackAerial::OnUpdate()
 {
     if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 9) {
         player->AttackStart({player->dir * 650.0f, 80.0f}, player->attackAirDamge);
+        Audio::PlayAudio("playerHitShort");
     }
     if (animator->GetCurrentAnimation().GetCurrentFrameIndex() == 12) {
         player->AttackEnd();
@@ -279,6 +306,8 @@ void Blocking::OnUpdate()
 {
     if (player->hitAttackIntensity.X != 0.0f) {
         if (hitDuration == 0.0f) {
+            int index = gameAf.Random(1, 3);
+            Audio::PlayAudio(std::string{"block"} + std::to_string(index));
             animator->SwitchToAnimation("hitWhileBlocking");
         }
         if (hitDuration <= player->blockHitMaxDuration) {
@@ -308,6 +337,8 @@ void Hurt::OnEnter()
 {
     player->Character::SetVelocity(player->hitAttackIntensity);
     animator->SwitchToAnimation("hurt");
+    int index = gameAf.Random(1, 6);
+    Audio::PlayAudio(std::string{"playerHurt"} + std::to_string(index));
 }
 
 void Hurt::OnUpdate()
@@ -325,5 +356,7 @@ void Dead::OnEnter()
 {
     animator->SwitchToAnimation("dead");
     player->SetVelocity({});
+    int index = gameAf.Random(1, 4);
+    Audio::PlayAudio(std::string{"playerDead"} + std::to_string(index));
 }
 }  // namespace player

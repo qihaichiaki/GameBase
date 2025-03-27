@@ -12,7 +12,10 @@
 class Player : public Character
 {
 public:
-    Player(ProgressBar* hp) : Character(RenderZOrder::PLAYER, "player"), hpProgressBar(hp) {}
+    Player(ProgressBar* hp, Camera* camera)
+        : Character(RenderZOrder::PLAYER, "player"), hpProgressBar(hp), mainCamera(camera)
+    {
+    }
 
     void OnAwake() override;
 
@@ -69,9 +72,15 @@ public:
 
     bool isHegemonicState = false;  // 是否霸体状态
 
-    int attackStandingDamge = 8;
+    int attackStandingDamge = 6;
     int attackAirDamge = 5;
+
+    float attackShakeIntensity = 0.0f;  // 当前攻击相机抖动强度
+    float attackStandingShakeIntensity = 20.0f;
+    float attackAerialShakeIntensity = 15.0f;
+    float hurtShakeIntensity = 18.0f;
 
 private:
     ProgressBar* hpProgressBar;
+    Camera* mainCamera;
 };

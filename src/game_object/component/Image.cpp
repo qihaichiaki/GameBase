@@ -110,4 +110,11 @@ void Image::Rotate(double radian)
     // m_size *= m_scale;
 }
 
+void Image::Load(TImage* img)
+{
+    m_img = img;
+    m_flipImg = nullptr;
+    m_currentImg = m_img;
+}
+
 }  // namespace gameaf

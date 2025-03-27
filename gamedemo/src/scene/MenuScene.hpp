@@ -85,26 +85,36 @@ public:
         bug->SetChildrenActive(true);
 
         // 添加按钮对象
-        auto buttonNew = std::make_shared<UIChoose>(L"New Game");
-        auto buttonExit = std::make_shared<UIChoose>(L"Exit Game");
+        auto buttonNew = std::make_shared<UIChoose>(L"NewGame");
+        auto buttonOption = std::make_shared<UIChoose>(L"Options");
+        auto buttonAbout = std::make_shared<UIChoose>(L"About");
+        auto buttonExit = std::make_shared<UIChoose>(L"Exit");
 
-        buttonNew->Translate({0.0f, 140.0f});
-        buttonExit->Translate({0.0f, 220.0f});
+        buttonNew->Translate({0.0f, 100.0f});
+        buttonOption->Translate({0.0f, 160.0f});
+        buttonAbout->Translate({0.0f, 220.0f});
+        buttonExit->Translate({0.0f, 280.0f});
 
-        AddGameObjects({bug, title, buttonNew, buttonExit});
+        AddGameObjects({bug, title, buttonNew, buttonOption, buttonAbout, buttonExit});
 
-        buttonNew->RegisterMouseClicked(
-            []() { SceneManager::GetInstance().SwitchTo("game", true); });
+        buttonNew->RegisterMouseClicked([]() {
+            SceneManager::GetInstance().SwitchTo("game", true);
+            Audio::StopAudio("menu-bgm");
+        });
         buttonExit->RegisterMouseClicked([]() { GameAf::GetInstance().Exit(); });  // 设置游戏退出
+        buttonOption->RegisterMouseClicked(
+            []() { SceneManager::GetInstance().SwitchTo("options", true); });
+        buttonAbout->RegisterMouseClicked(
+            []() { SceneManager::GetInstance().SwitchTo("about", true); });
     }
 
     void OnEnter() override
     {
         // 播放menu菜单音乐
-        AudioManager::GetInstance().PlayAudio("menu-bgm");
+        if (!Audio::IsPlayingAudio("menu-bgm")) {
+            Audio::PlayAudio("menu-bgm");
+        }
     }
 
-    void OnExit() override { AudioManager::GetInstance().StopAudio("menu-bgm"); }
-
-private:
+    void OnExit() override {}
 };

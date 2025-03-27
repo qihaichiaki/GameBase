@@ -115,6 +115,7 @@ public:
 
     void OnEnter() override;
     void OnUpdate() override;
+    void OnExit() override;
 
 private:
     float walkDuration = 0.0f;

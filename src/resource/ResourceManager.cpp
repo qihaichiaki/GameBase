@@ -10,7 +10,7 @@
 namespace gameaf {
 
 ResourceManager::ResourceManager() {}
-ResourceManager::~ResourceManager() {}
+ResourceManager::~ResourceManager() { Audio::ClearAllAudio(); }
 
 ResourceManager& ResourceManager::GetInstance()
 {
@@ -69,7 +69,7 @@ bool ResourceManager::LoadFont(const std::string& font_path)
 
 bool ResourceManager::LoadAudio(const std::string& audio_path, const std::string& audio_name)
 {
-    return AudioManager::GetInstance().OpenAudio(audio_path, audio_name);
+    return Audio::OpenAudio(audio_path, audio_name);
 }
 
 void ResourceManager::UnloadImage(const std::string& image_name) { m_images.erase(image_name); }
@@ -81,10 +81,7 @@ void ResourceManager::UnloadFont(const std::string& font_path)
 
 void ResourceManager::UnloadAtlas(const std::string& atlas_name) { m_atlases.erase(atlas_name); }
 
-void ResourceManager::UnloadAudio(const std::string& audio_name)
-{
-    AudioManager::GetInstance().CloseAudio(audio_name);
-}
+void ResourceManager::UnloadAudio(const std::string& audio_name) { Audio::CloseAudio(audio_name); }
 
 TImage* ResourceManager::GetTImage(const std::string& image_name) const
 {

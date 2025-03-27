@@ -11,7 +11,7 @@ class SceneManager
 {
 public:
     using ScenePtr = std::shared_ptr<Scene>;
-    using LoadAsyncFuc = std::function<void()>;  // 异步加载函数回调
+    using LoadAsyncFuc = std::function<void(SceneManager&)>;  // 异步加载函数回调
 
     static SceneManager& GetInstance();
     /// @brief 获取对应id场景
@@ -55,6 +55,12 @@ public:
     /// @brief 设置全局的加载进度
     /// @param progress 通常使用在异步加载任务中, 异步加载任务设置任务进度
     void SetLoadProgress(float progress);
+
+    /// @brief 屏幕颜色渐变效果
+    /// @param dstColorFactor 目标比例
+    /// @param progress 进度
+    /// @note 内容主要是[当前, 纯] 之间进行变换
+    void ApplyFadeEffect(float dstColorFactor, float progress);
 
 private:
     struct SceneInfo
