@@ -15,6 +15,7 @@ void Hornet::OnAwake()
 {
     Character::OnAwake();
     dir = 1.0f;
+    oldDashAttackVfxFloorDir = oldDashAttackVfxAirDir = dir;
 
     // === 加载大黄蜂动画 ===
     auto animator = CreateComponent<Animator>();
@@ -93,13 +94,13 @@ void Hornet::OnAwake()
     dashAttackVfxAir.SetOnFinished([this]() { isdashAttackVfxAirRender = false; });
 
     // 初始化自身的攻击碰撞触发器
-    attackBox->AddDstLayer(CollisionLayerTool::player);  // 对敌人造成伤害
+    attackBox->AddDstLayer(dst);  // 对敌人造成伤害
     attackBox->SetSize(Vector2{250.0f, 100.0f});
     attackBox->SetOffset(Vector2{60.0f, 0.0f});
 
     // 创建碰撞盒子
     collisionBox = CreateComponent<CollisionBox>();
-    collisionBox->SetSrcLayer(CollisionLayerTool::enemy);
+    collisionBox->SetSrcLayer(src);
     collisionBox->AddDstLayer(CollisionLayerTool::wall);
     collisionBox->SetSize(Vector2{60.0f, collisionBox->GetSize().Y});
 
@@ -108,7 +109,7 @@ void Hornet::OnAwake()
     groundDetectionCollision->SetSize(Vector2{40.0f, 5.0f});
 
     ray = CreateComponent<CollisionRaycaster>();
-    ray->SetSrcLayer(CollisionLayerTool::enemy);
+    ray->SetSrcLayer(src);
     ray->AddDstLayer(CollisionLayerTool::wall);
     ray->SetOffset(Vector2{20.0f, collisionBox->GetSize().Y / 2});
     ray->SetDir(RaycasterDir::Down);
@@ -139,9 +140,6 @@ void Hornet::OnAwake()
     stateMachine.RegisterState("Dead", std::make_shared<hornet::Dead>(this));
 
     stateMachine.SetEntry("Sit");
-
-    // 设置初始位置
-    SetPosition({670.0f, 250.0f});
 }
 
 void Hornet::OnUpdate()
@@ -186,7 +184,7 @@ void Hornet::OnDraw(const Camera& camera)
 
 void Hornet::OrientationPlayer()
 {
-    if (GetPosition().X - player->GetPosition().X > 0) {
+    if (GetPosition().X - dstEnemy->GetPosition().X > 0) {
         if (dir > 0) {
             Flip();
         }
@@ -208,20 +206,22 @@ void Hornet::ReStart()
 {
     SwitchState("Sit");
     SetVelocity({});  // 速度恢复
-    // 设置初始位置
-    SetPosition({670.0f, 250.0f});
     isHostileState = false;
     hp = maxHp;
     searchPlayerRange = 400.0f;
     hpProgressBar->SetTargetProgressValue(1.0);
-    hpProgressBar->GetParent()->SetActive(false);
-    hpProgressBar->GetParent()->GetComponent<Animator>()->Restart();
+    if (auto parent = hpProgressBar->GetParent()) {
+        parent->SetActive(false);
+        parent->GetComponent<Animator>()->Restart();
+    }
+    SetPosition(startPos);  // 恢复起始位置
 }
 
 void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
 {
     if (isInvincible) {
-        gameaf::log("大黄蜂是无敌状态!");
+        // gameaf::log("大黄蜂是无敌状态!");
+        reward += 2;
         return;
     }
 
@@ -233,6 +233,7 @@ void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
         }
         hitVfx.Restart();
         hitVfx.SetOffset(GetPosition());
+        reward += 4;                  // 弹反成功
         SwitchState("DefendAttack");  // 触发弹反
     } else {
         isHurtVfxRender = true;
@@ -261,14 +262,23 @@ void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
                 SwitchState("Hurt");
 
                 // 正式开始游戏
-                hpProgressBar->GetParent()->SetActive(true);
+                if (auto parent = hpProgressBar->GetParent()) parent->SetActive(true);
                 Audio::PlayAudio("game-bgm", true);
             } else {
+                if (trainingData.PreAction() == HornetAction::AttackUp ||
+                    trainingData.PreAction() == HornetAction::AttackDown ||
+                    trainingData.PreAction() == HornetAction::Attack) {
+                    reward -= 4;
+                } else if (trainingData.PreAction() == HornetAction::Idle ||
+                           trainingData.PreAction() == HornetAction::DoNothing) {
+                    reward -= 2;
+                }
                 hp -= damage;
                 hpProgressBar->SetTargetProgressValue(hp * 1.0f / maxHp);
-                gameaf::log("大黄蜂受到攻击 {}, 当前血量 {}", damage, hp);
+                // gameaf::log("大黄蜂受到攻击 {}, 当前血量 {}", damage, hp);
                 if (hp <= 0) {
                     SwitchState("Dead");
+                    isGameEnd = true;
                     return;
                 }
             }
@@ -278,7 +288,7 @@ void Hornet::OnHurt(const Vector2& attackIntensity, int damage)
 
 void Hornet::OnAttack(Character* dstObj)
 {
-    gameaf::log("大黄蜂发动攻击.......");
+    // gameaf::log("大黄蜂发动攻击.......");
     // if (attackDir * currentAttackIntensity.X < 0.0f) {
     //     attackDir *= -1.0f;
     //     attackVfx.Flip();
@@ -289,6 +299,12 @@ void Hornet::OnAttack(Character* dstObj)
     // attackVfx2.Restart();
     // attackVfx.SetOffset({GetPosition().X + attackDir * 100.0f, GetPosition().Y});
     // attackVfx2.SetOffset({GetPosition().X + attackDir * 100.0f, GetPosition().Y});
+
+    reward += 2;  // 奖励 + 3
+    if (trainingData.PreAction() == HornetAction::AttackUp ||
+        trainingData.PreAction() == HornetAction::AttackDown) {
+        reward += 1;  // 额外 + 1
+    }
     Character::OnAttack(dstObj);
 }
 
@@ -321,7 +337,7 @@ void Hornet::OnLandVfx()
 bool Hornet::CanAttackHorizontal() const
 {
     Vector2 pos = GetPosition();
-    Vector2 playerPos = player->GetPosition();
+    Vector2 playerPos = dstEnemy->GetPosition();
     return playerPos.Y <= pos.Y + collisionBox->GetSize().Y / 2 &&
            playerPos.Y >= pos.Y - collisionBox->GetSize().Y / 2 &&
            (playerPos - pos).X * dir >= 0.0f;
@@ -355,9 +371,8 @@ void Hornet::AdjustAttackDownBox(bool flag)
 
 void Hornet::OnDashAttackVfxFloor()
 {
-    static int oldDir = 1.0;
-    if (oldDir * dir < 0.0f) {
-        oldDir = dir;
+    if (oldDashAttackVfxFloorDir * dir < 0.0f) {
+        oldDashAttackVfxFloorDir = dir;
         dashAttackVfxFloor.Flip();
     }
 
@@ -369,9 +384,8 @@ void Hornet::OnDashAttackVfxFloor()
 
 void Hornet::OnDashAttackVfxAir()
 {
-    static int oldDir = 1.0;
-    if (oldDir * dir < 0.0f) {
-        oldDir = dir;
+    if (oldDashAttackVfxAirDir * dir < 0.0f) {
+        oldDashAttackVfxAirDir = dir;
         dashAttackVfxAir.Flip();
     }
 

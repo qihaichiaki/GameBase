@@ -107,8 +107,8 @@ public:
             Vector2{15.0f, -img->GetSize().Y / 2 + 10.0f});  //给 Ground 创建碰撞box, 防止玩家掉下去
         collisionBox->SetSize({collisionBox->GetSize().X - 180.0f, collisionBox->GetSize().Y});
         collisionBox->SetSrcLayer(CollisionLayerTool::wall);
-        collisionBox->AddDstLayer(CollisionLayerTool::player |
-                                  CollisionLayerTool::enemy);  // 目标包含player、enemy对象
+        collisionBox->AddDstLayer(CollisionLayerTool::player | CollisionLayerTool::enemy |
+                                  CollisionLayerTool::enemy2);  // 目标包含player、enemy对象
     }
 
     void OnDraw(const Camera& camera) override

@@ -78,6 +78,8 @@ public:
 
     bool isInvincible = false;  // 是否无敌
 
+    int currentAction = 0;  // 当前动作id, 方便后续的强化学习训练
+
 protected:
     StateMachine stateMachine;
     Rigidbody2D* rb;

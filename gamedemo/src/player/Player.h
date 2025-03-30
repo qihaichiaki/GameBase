@@ -3,6 +3,8 @@
 #include <game_object/component/Animation.h>
 #include <game_object/widgets/ProgressBar.h>
 
+#include <game_object/component/CollisionLayer.hpp>
+
 #include "../Character.h"
 #include "../Common.hpp"
 /**
@@ -49,6 +51,9 @@ public:
 
     /// @brief 播放落地特效
     void OnLandVfx();
+
+public:
+    Collisionlayer dst = CollisionLayerTool::enemy;
 
 public:
     float xSpeed = 300.0f;     //水平方向的速度

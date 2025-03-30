@@ -81,7 +81,7 @@ void Player::OnAwake()
     groundDetectionCollision->SetOffset(Vector2{0.0f, -1.5f});
 
     // 初始化自身的攻击碰撞触发器
-    attackBox->AddDstLayer(CollisionLayerTool::enemy);  // 对敌人造成伤害
+    attackBox->AddDstLayer(dst);  // 对敌人造成伤害
     attackBox->SetSize(Vector2{230.0f, 100.0f});
     attackBox->SetOffset(
         Vector2{10.0f, -animator->GetInitialAnimation().CurrentFrameSize().Y / 2 - 50.0f});

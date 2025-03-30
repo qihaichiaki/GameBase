@@ -17,10 +17,20 @@
 #include "../enemy/Hornet.h"
 #include "../other_object/Background.hpp"
 #include "../player/Player.h"
+#include "../rl/LoadModel.h"
+
+/**
+ * 机器学习训练场景
+ * 两个hornet会进入互打阶段
+ * 可以选择：1. 观赏模式 2. 碰撞盒子模式 3. 加速模式
+ * 观赏模式: 按照常规模式显示
+ * 碰撞盒子模式: 只显示碰撞盒子
+ * 加速模式: 不会显示任何画面
+ */
 
 using namespace gameaf;
 
-class GameScene : public Scene
+class TrainScene : public Scene
 {
 public:
     void OnAwake() override
@@ -71,35 +81,42 @@ public:
         // 添加player对象
         auto player = std::make_shared<Player>(playerHpProgressBar.get(), mainCamera);
         _player = player.get();
+        player->dst = CollisionLayerTool::none;
 
         // 添加警示框和敌人血条
-        auto warning = std::make_shared<GameObject>(RenderZOrder::UI_2, "warning");
-        auto warringAnimator = warning->CreateComponent<Animator>();
-        warringAnimator->AddAnimationForAtlas("start", "warning", false);
-        warning->SetPositionY(-GameAf::GetScreenHeight() / 2 + 40.0f);
-        auto warningText = warning->CreateComponent<Text>(std::wstring{L"Syne Mono"});
-        warningText->SetOffset({0.0f, 10.0f});
-        warningText->SetText(L"HORNET");
-        warningText->SetTextColor(ColorRGB{255, 0, 0});
-        warningText->EnableShadow(true);
-        warningText->SetAlignMode(TextAlignMode::CenterTop);
-        warningText->SetFontSize(40);
         auto hornetHpProgressBar = std::make_shared<ProgressBar>();
-        warning->AddChildObject(hornetHpProgressBar);
-        hornetHpProgressBar->Translate({0.0f, 50.0f});
-        hornetHpProgressBar->SetSizeScale({1.4f, 1.0f});
+        hornetHpProgressBar->SetName("warning");
+        hornetHpProgressBar->SetZOrder(RenderZOrder::UI_2);
+        hornetHpProgressBar->SetPositionY(-GameAf::GetScreenHeight() / 2 + 40.0f);
+        hornetHpProgressBar->SetPositionX(300.0f);
+        // hornetHpProgressBar->SetSizeScale({1.4f, 1.0f});
         hornetHpProgressBar->SetGhostBar(true);
         hornetHpProgressBar->SetProgressBarColor(ColorRGB{"#f8312f"});
         hornetHpProgressBar->SetGhostBarColor(ColorRGB{255, 255, 255});
+
+        auto hornetHpProgressBar2 = hornetHpProgressBar->Clone();
+        hornetHpProgressBar2->Translate({-600.0f, 0.0f});
+
         uiCamera->AddRenderObj("warning");        // UI渲染
         mainCamera->DisableRenderObj("warning");  // main相机不渲染
 
-        warning->SetActive(false);  // 隐藏
-
-        // 添加hornet对象
-        auto hornet = std::make_shared<Hornet>(_player, hornetHpProgressBar.get());
+        // 添加两个boss 进行互斗
+        auto hornet = std::make_shared<Hornet>(nullptr, hornetHpProgressBar.get());
+        hornet->src = CollisionLayerTool::enemy;
+        hornet->dst = CollisionLayerTool::enemy2;
+        hornet->startPos = {670.0f, 250.0f};
         _hornet = hornet.get();
-        hornet->SetPosition({670.0f, 250.0f});  // 设置初始位置
+
+        auto hornet2 = std::make_shared<Hornet>(
+            _hornet, static_cast<ProgressBar*>(hornetHpProgressBar2.get()));
+        hornet2->src = CollisionLayerTool::enemy2;
+        hornet2->dst = CollisionLayerTool::enemy;
+        hornet2->startPos = {-670.0f, 250.0f};
+        _hornet2 = hornet2.get();
+        hornet->dstEnemy = _hornet2;
+
+        hornet->SetPosition({670.0f, 250.0f});    // 设置初始位置
+        hornet2->SetPosition({-670.0f, 250.0f});  // 设置初始位置
 
         // 创建中间层背景
         auto backgroundMiddle = std::make_shared<BackgroundMiddle>(player.get());  // 世界坐标渲染
@@ -109,21 +126,26 @@ public:
         auto wall = std::make_shared<Wall>();
         wall->Translate({0.0f, 40.0f});
 
-        AddGameObjects(
-            {test, backgroundBottom, backgroundMiddle, ground, wall, player, hornet, warning});
+        AddGameObjects({test, backgroundBottom, backgroundMiddle, ground, wall, player, hornet,
+                        hornet2, hornetHpProgressBar, hornetHpProgressBar2});
 
         // 主相机跟随玩家
         mainCamera->SetFollowTarget(player, Camera::FollowMode::Smooth);
         mainCamera->SetCameraDeadZone(Vector2{200.0f, 300.0f});
         Vector2 groundSize = ground->GetComponent<Image>()->GetSize();
         mainCamera->SetFixdDeadZone(Vector2{}, {groundSize.X + 100.0f, groundSize.Y + 300.0f});
+
+        ScriptModule::Load();
     }
 
     void OnEnter() override
     {
         _player->ReStart();
         _hornet->ReStart();
-        _hornet->SetPosition({670.0f, 250.0f});
+        _hornet2->ReStart();
+
+        _hornet->isHostileState = true;
+        _hornet->searchPlayerRange = _hornet->searchPlayerRangeHostile;
         GetCamera("main")->LookAt({});  // 相机位置复原
     }
 
@@ -149,19 +171,25 @@ public:
             }
         }
 
-        // 检查玩家位置 - 判断死亡
+        // 检查玩家位置
         if (_player->GetPosition().Y >= 1000.0f) {
             _player->SetVelocity({});
             _player->SetPosition({});
-            _player->OnHurt({}, _player->maxHp);
         }
 
         // 检查敌人是否死亡，死亡重置状态继续训练
-        if (_hornet->isGameEnd) {
+        if (_hornet->isGameEnd || _hornet2->isGameEnd) {
             _hornet->trainingData.Serialization();
             _hornet->trainingData.Clear();
+            _hornet2->trainingData.Serialization();
+            _hornet2->trainingData.Clear();
 
             _hornet->isGameEnd = false;
+            _hornet2->isGameEnd = false;
+            _hornet->ReStart();
+            _hornet2->ReStart();
+            _hornet->isHostileState = true;
+            _hornet->searchPlayerRange = _hornet->searchPlayerRangeHostile;
         }
     }
 
@@ -175,5 +203,8 @@ public:
 private:
     Player* _player;
     Hornet* _hornet;
+    Hornet* _hornet2;
     Text* _testText;
+
+    int sceneMod = 1;  // 1 渲染模式 2 碰撞盒模式  3 加速模式
 };

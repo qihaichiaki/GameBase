@@ -86,16 +86,18 @@ public:
 
         // 添加按钮对象
         auto buttonNew = std::make_shared<UIChoose>(L"NewGame");
+        auto buttonTrain = std::make_shared<UIChoose>(L"Train");
         auto buttonOption = std::make_shared<UIChoose>(L"Options");
         auto buttonAbout = std::make_shared<UIChoose>(L"About");
         auto buttonExit = std::make_shared<UIChoose>(L"Exit");
 
-        buttonNew->Translate({0.0f, 100.0f});
-        buttonOption->Translate({0.0f, 160.0f});
-        buttonAbout->Translate({0.0f, 220.0f});
-        buttonExit->Translate({0.0f, 280.0f});
+        buttonNew->Translate({0.0f, 70.0f});
+        buttonTrain->Translate({0.0f, 130.0f});
+        buttonOption->Translate({0.0f, 190.0f});
+        buttonAbout->Translate({0.0f, 250.0f});
+        buttonExit->Translate({0.0f, 310.0f});
 
-        AddGameObjects({bug, title, buttonNew, buttonOption, buttonAbout, buttonExit});
+        AddGameObjects({bug, title, buttonNew, buttonTrain, buttonOption, buttonAbout, buttonExit});
 
         buttonNew->RegisterMouseClicked([]() {
             SceneManager::GetInstance().SwitchTo("game", true);
@@ -106,6 +108,10 @@ public:
             []() { SceneManager::GetInstance().SwitchTo("options", true); });
         buttonAbout->RegisterMouseClicked(
             []() { SceneManager::GetInstance().SwitchTo("about", true); });
+        buttonTrain->RegisterMouseClicked([]() {
+            SceneManager::GetInstance().SwitchTo("train", true);
+            Audio::StopAudio("menu-bgm");
+        });
     }
 
     void OnEnter() override

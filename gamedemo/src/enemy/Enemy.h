@@ -7,13 +7,11 @@
  * 敌人控制对象
  */
 
-class Player;
-
 class Enemy : public Character
 {
 public:
-    Enemy(const std::string& name, Player* player)
-        : Character(RenderZOrder::ENEMY, name), player(player)
+    Enemy(const std::string& name, Character* dstEnemy)
+        : Character(RenderZOrder::ENEMY, name), dstEnemy(dstEnemy)
     {
     }
 
@@ -21,5 +19,5 @@ public:
     bool PlayerInRange(float distance) const;
 
 public:
-    Player* player;
+    Character* dstEnemy;
 };

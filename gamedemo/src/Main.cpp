@@ -9,6 +9,7 @@
 #include "./scene/LoadScene.hpp"
 #include "./scene/MenuScene.hpp"
 #include "./scene/OptionsScene.hpp"
+#include "./scene/TrainScene.hpp"
 #include "LoadResource.hpp"
 
 using namespace gameaf;
@@ -28,6 +29,7 @@ int main()
     sceneManager.Register("game", std::make_shared<GameScene>());
     sceneManager.Register("options", std::make_shared<OptionsScene>());
     sceneManager.Register("about", std::make_shared<AboutScene>());
+    sceneManager.Register("train", std::make_shared<TrainScene>());
 
     // 异步资源加载
     sceneManager.LoadSceneAsync(LoadResource, "load", "menu", true);

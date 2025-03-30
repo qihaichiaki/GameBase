@@ -4,7 +4,7 @@
 #include <game_object/component/Animator.h>
 #include <game_object/component/AudioManager.h>
 
-#include "../player/Player.h"
+#include "../rl/LoadModel.h"
 
 static GameAf& gameAf = GameAf::GetInstance();
 
@@ -50,6 +50,7 @@ void Idle::OnEnter()
     HornetStateNode::OnEnter();
     animator->SwitchToAnimation("idle");
     hornet->SetVelocityX(0.0f);
+    hornet->currentAction = (int)HornetAction::Idle;
 }
 
 void Idle::OnUpdate()
@@ -63,52 +64,89 @@ void Idle::OnUpdate()
 
 void Idle::ExecutiveDecision()
 {
-    if (hornet->PlayerInRange(hornet->evadeRange)) {
-        int chance = gameAf.Random(0, 100);
-        // 对于敌对状态下, 这种情况下, 可能会进行近战攻击
-        if (hornet->isHostileState && gameAf.Random(0, 100) <= 50) {
-            // 攻击状态
-            if (chance <= 65) {
-                if (hornet->CanAttackHorizontal()) {
-                    hornet->SwitchState("Attack");
+    if (hornet->isdqnAi) {
+        ScriptModule::PredictAction(hornet, hornet->dstEnemy);
+    } else {
+        if (hornet->PlayerInRange(hornet->evadeRange)) {
+            int chance = gameAf.Random(0, 100);
+            // 对于敌对状态下, 这种情况下, 可能会进行近战攻击
+            if (hornet->isHostileState && gameAf.Random(0, 100) <= 50) {
+                // 攻击状态
+                if (chance <= 65) {
+                    if (hornet->CanAttackHorizontal()) {
+                        hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                            HornetAction::Attack, hornet->reward);
+                        hornet->reward = 0.0f;
+                        hornet->SwitchState("Attack");
+                    } else {
+                        hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                            HornetAction::AttackUp, hornet->reward);
+                        hornet->reward = 0.0f;
+                        hornet->SwitchState("AttackUp");
+                    }
                 } else {
-                    hornet->SwitchState("AttackUp");
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::Defend, hornet->reward);
+                    hornet->reward = 0.0f;
+                    hornet->SwitchState("Defend");  // 尝试格挡
                 }
             } else {
-                hornet->SwitchState("Defend");  // 尝试格挡
-                                                // ...
+                // 躲闪状态
+                if (chance <= 45) {
+                    // 45% 躲闪
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::Evade, hornet->reward);
+                    hornet->reward = 0.0f;
+                    hornet->SwitchState("Evade");
+                } else if (chance <= 70) {
+                    // 25% dash
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::Dash, hornet->reward);
+                    hornet->reward = 0.0f;
+                    hornet->SwitchState("Dash");
+                } else if (chance <= 90) {
+                    // 20% walk
+                    hornet->Flip();
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::Walk, hornet->reward);
+                    hornet->reward = 0.0f;
+                    hornet->SwitchState("Walk");
+                } else {
+                    // 10% 什么也不做
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::DoNothing, hornet->reward);
+                    hornet->reward = -0.5f;
+                }
             }
         } else {
-            // 躲闪状态
-            if (chance <= 45) {
-                // 45% 躲闪
-                hornet->SwitchState("Evade");
-            } else if (chance <= 70) {
-                // 25% dash
-                hornet->SwitchState("Dash");
-            } else if (chance <= 90) {
-                // 20% walk
-                hornet->Flip();
-                hornet->SwitchState("Walk");
-            }
-            // 10% 什么也不做
-        }
-    } else {
-        // 存在仇恨的情况下 玩家没有在近战攻击范围内, 但是还是在索敌范围内
-        if (hornet->isHostileState && hornet->PlayerInRange(hornet->searchPlayerRange)) {
-            int chance = gameAf.Random(0, 100);
+            // 存在仇恨的情况下 玩家没有在近战攻击范围内, 但是还是在索敌范围内
+            if (hornet->isHostileState && hornet->PlayerInRange(hornet->searchPlayerRange)) {
+                int chance = gameAf.Random(0, 100);
 
-            if (chance <= 40) {
-                if (hornet->CanAttackHorizontal())
-                    hornet->SwitchState("DashAttackAim");  // 在地面上, 发动冲刺攻击
-                else
-                    hornet->SwitchState("Jump");  // 没有在地面上尝试跳
-            } else if (chance <= 60) {
-                hornet->SwitchState("Walk");  // 走过去打
-            } else if (chance <= 80) {
-                hornet->SwitchState("Dash");  // dash 过去打
-            } else if (chance <= 100) {
-                hornet->SwitchState("Jump");  // 跳过去打
+                if (chance <= 40) {
+                    if (hornet->CanAttackHorizontal()) {
+                        hornet->trainingData.RecordDecision(
+                            hornet, hornet->dstEnemy, HornetAction::DashAttackAim, hornet->reward);
+                        hornet->SwitchState("DashAttackAim");  // 在地面上, 发动冲刺攻击
+                    } else {
+                        hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                            HornetAction::Jump, hornet->reward);
+                        hornet->SwitchState("Jump");  // 没有在地面上尝试跳
+                    }
+                } else if (chance <= 60) {
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::Walk, hornet->reward);
+                    hornet->SwitchState("Walk");  // 走过去打
+                } else if (chance <= 80) {
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::Dash, hornet->reward);
+                    hornet->SwitchState("Dash");  // dash 过去打
+                } else if (chance <= 100) {
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::Jump, hornet->reward);
+                    hornet->SwitchState("Jump");  // 跳过去打
+                }
+                hornet->reward = 0.0f;
             }
         }
     }
@@ -126,6 +164,7 @@ void Evade::OnEnter()
         int index = gameAf.Random(1, 2);
         Audio::PlayAudio(std::string{"hornetEvade"} + std::to_string(index));
     }
+    hornet->currentAction = (int)HornetAction::Evade;
 }
 
 void Evade::OnUpdate()
@@ -155,6 +194,7 @@ void Jump::OnEnter()
     Audio::PlayAudio("jump");
     int index = gameAf.Random(1, 3);
     Audio::PlayAudio(std::string{"hornetJump"} + std::to_string(index));
+    hornet->currentAction = (int)HornetAction::Jump;
 }
 
 void Jump::OnUpdate()
@@ -172,31 +212,53 @@ static inline void AirExecutiveDecision(Hornet* hornet)
     if (hornet->PlayerInRange(hornet->evadeRange)) {
         // 如果在躲闪范围内
         if (chance <= 35) {
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::AirDash,
+                                                hornet->reward);
+            hornet->reward = 0.0f;
             hornet->SwitchState("AirDash");
         } else if (hornet->isHostileState && chance <= 60) {
             // 普通攻击
             if (hornet->CanAttackHorizontal()) {
+                hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Attack,
+                                                    hornet->reward);
                 hornet->SwitchState("Attack");
             } else {
-                if (hornet->player->GetPosition().Y < hornet->GetPosition().Y) {
+                if (hornet->dstEnemy->GetPosition().Y < hornet->GetPosition().Y) {
                     // 在头上
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::AttackUp, hornet->reward);
                     hornet->SwitchState("AttackUp");
                 } else {
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::AttackDown, hornet->reward);
                     hornet->SwitchState("AttackDown");
                 }
             }
-            // }  // 40% 什么都不做?
+            hornet->reward = 0.0f;
+        } else {
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::DoNothing,
+                                                hornet->reward);
+            hornet->reward = -0.5f;
         }
     } else {
         // 如果不在躲闪范围内
         if (hornet->isHostileState) {
             if (chance <= 30) {
                 hornet->OrientationPlayer();  // 朝向玩家方向冲刺
+                hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::AirDash,
+                                                    hornet->reward);
+                hornet->reward = 0.0f;
                 hornet->SwitchState("AirDash");
             } else if (chance <= 60) {
+                hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                    HornetAction::DashAttackAim, hornet->reward);
+                hornet->reward = 0.0f;
                 hornet->SwitchState("DashAttackAim");  // 瞄准状态
             } else {
                 // 40% 什么也不做
+                hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                    HornetAction::DoNothing, hornet->reward);
+                hornet->reward = -0.5f;
             }
         }
     }
@@ -211,6 +273,7 @@ void Fall::OnEnter()
 {
     HornetStateNode::OnEnter();
     animator->SwitchToAnimation("fall");
+    hornet->currentAction = (int)HornetAction::Fall;
 }
 
 void Fall::OnUpdate()
@@ -219,7 +282,12 @@ void Fall::OnUpdate()
     if (hornet->GetPosition().Y >= 340.0f) {
         // 猜测只有hurt的时候被这样搞
         // 在追击时也会触发, 针对性测试下
-        hornet->OrientationPlayer();  // 朝向玩家
+        // 朝向中心(0, 0)
+        // hornet->OrientationPlayer();  // 朝向玩家
+        if (-hornet->GetPosition().X * hornet->dir < 0.0f) {
+            // 朝向中心
+            hornet->Flip();
+        }
         hornet->SwitchState("RushJump");
     }
 
@@ -244,6 +312,7 @@ void Dash::OnEnter()
     hornet->SetVelocityX(hornet->dir * hornet->dashSpeed);
     hornet->isInvincible = true;
     Audio::PlayAudio("hornetDash");
+    hornet->currentAction = (int)HornetAction::Dash;
 }
 
 void Dash::OnUpdate()
@@ -263,12 +332,21 @@ void Dash::OnUpdate()
     }
 
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
-        if (hornet->isGround) {
-            hornet->SwitchState("Idle");
+        if (hornet->PlayerInRange(hornet->evadeRange) && gameAf.Random(0, 100) <= 50) {
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Attack,
+                                                hornet->reward);
+            hornet->SwitchState("Attack");
         } else {
-            hornet->SetVelocityX(hornet->dir * hornet->walkSpeed);
-            hornet->SwitchState("Fall");
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::DoNothing,
+                                                hornet->reward);
+            if (hornet->isGround) {
+                hornet->SwitchState("Idle");
+            } else {
+                hornet->SetVelocityX(hornet->dir * hornet->walkSpeed);
+                hornet->SwitchState("Fall");
+            }
         }
+        hornet->reward = 0.0f;
     }
 }
 
@@ -285,6 +363,7 @@ void AirDash::OnEnter()
     hornet->isInvincible = true;
     hornet->SetGravityEnabled(false);
     Audio::PlayAudio("hornetDash");
+    hornet->currentAction = (int)HornetAction::AirDash;
 }
 
 void AirDash::OnUpdate()
@@ -294,8 +373,30 @@ void AirDash::OnUpdate()
     }
 
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
-        hornet->SetVelocityX(hornet->dir * hornet->walkSpeed);
-        hornet->SwitchState("Fall");
+        if (hornet->PlayerInRange(hornet->evadeRange) && gameAf.Random(0, 100) <= 50) {
+            if (hornet->CanAttackHorizontal()) {
+                hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Attack,
+                                                    hornet->reward);
+                hornet->SwitchState("Attack");
+            } else {
+                if (hornet->dstEnemy->GetPosition().Y < hornet->GetPosition().Y) {
+                    // 在头上
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::AttackUp, hornet->reward);
+                    hornet->SwitchState("AttackUp");
+                } else {
+                    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy,
+                                                        HornetAction::AttackDown, hornet->reward);
+                    hornet->SwitchState("AttackDown");
+                }
+            }
+        } else {
+            hornet->SetVelocityX(hornet->dir * hornet->walkSpeed);
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::DoNothing,
+                                                hornet->reward);
+            hornet->SwitchState("Fall");
+        }
+        hornet->reward = 0.0f;
     }
 }
 
@@ -316,6 +417,7 @@ void Walk::OnEnter()
     walkDuration = 0.0f;
     currentWalkMaxDuration = gameAf.Random(hornet->walkMinDuration, hornet->walkMaxDuration);
     Audio::PlayAudio("run", true);
+    hornet->currentAction = (int)HornetAction::Walk;
 }
 
 void Walk::OnUpdate()
@@ -325,14 +427,21 @@ void Walk::OnUpdate()
     if (hornet->isAboutToFall || hornet->GetVelocity().X == 0.0f) {
         int chance = gameAf.Random(0, 100);
         if (chance <= 50) {
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Idle,
+                                                hornet->reward);
             hornet->SwitchState("Idle");
         } else if (chance <= 65) {
             hornet->Flip();
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Jump,
+                                                hornet->reward);
             hornet->SwitchState("Jump");
         } else {
             hornet->Flip();
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Dash,
+                                                hornet->reward);
             hornet->SwitchState("Dash");
         }
+        hornet->reward = 0.0f;
     }
     if (walkDuration >= currentWalkMaxDuration) {
         hornet->SwitchState("Idle");
@@ -349,6 +458,7 @@ void Hurt::OnEnter()
     hornet->SetCollisonBoxOffsetY(100.0f);
     hornet->SetVelocity(hornet->currentAttackIntensity);
     animator->SwitchToAnimation("hurt");
+    hornet->currentAction = (int)HornetAction::Idle;
 }
 void Hurt::OnUpdate()
 {
@@ -364,9 +474,10 @@ RushJump::RushJump(Hornet* hornet) : HornetStateNode(hornet) {}
 
 void RushJump::OnEnter()
 {
-    gameaf::log("开始超级跳");
+    // gameaf::log("开始超级跳");
     animator->SwitchToAnimation("rushJump");
     jumpXSpeed = 0.0f;
+    hornet->currentAction = (int)HornetAction::Jump;
 }
 
 void RushJump::OnUpdate()
@@ -398,6 +509,7 @@ void Attack::OnEnter()
     hornet->SetVelocity({});
     hornet->SetGravityEnabled(false);
     Audio::PlayAudio("hornetAttack");
+    hornet->currentAction = (int)HornetAction::Attack;
 }
 
 void Attack::OnUpdate()
@@ -410,10 +522,15 @@ void Attack::OnUpdate()
     }
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
         if (gameAf.Random(0, 100) <= 50 && hornet->CanAttackHorizontal()) {
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Attack,
+                                                hornet->reward);
             hornet->SwitchState("Attack");
         } else {
+            hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::Idle,
+                                                hornet->reward);
             hornet->SwitchState("Idle");
         }
+        hornet->reward = 0.0f;
     }
 }
 
@@ -429,6 +546,7 @@ void AttackUp::OnEnter()
     hornet->AdjustAttackUpBox(true);
     animator->SwitchToAnimation("attackUp");
     Audio::PlayAudio("hornetAttack");
+    hornet->currentAction = (int)HornetAction::AttackUp;
 }
 
 void AttackUp::OnUpdate()
@@ -460,6 +578,7 @@ void AttackDown::OnEnter()
     hornet->AdjustAttackDownBox(true);
     animator->SwitchToAnimation("attackDown");
     Audio::PlayAudio("hornetAttack");
+    hornet->currentAction = (int)HornetAction::AttackDown;
 }
 
 void AttackDown::OnUpdate()
@@ -490,7 +609,7 @@ AttackBounce::AttackBounce(Hornet* hornet) : HornetStateNode(hornet) {}
 
 void AttackBounce::OnEnter()
 {
-    animator->SwitchToAnimation("jump");
+    animator->SwitchToAnimation("attackBounce");
     attackBounceXSpeed = gameAf.Random(0.0f, hornet->maxAttackBounceXSpeed);
     hornet->SetVelocity(Vector2{
         hornet->dir * attackBounceXSpeed,
@@ -519,6 +638,7 @@ void DashAttackAim::OnEnter()
 
     hornet->SetVelocity({});
     hornet->SetGravityEnabled(false);
+    hornet->currentAction = (int)HornetAction::DashAttackAim;
 }
 
 void DashAttackAim::OnUpdate()
@@ -527,7 +647,7 @@ void DashAttackAim::OnUpdate()
     if (animator->GetCurrentAnimation().IsEndOfPlay()) {
         // 瞄准最后一帧播放结束后开始dash
         // 开始冲刺时, 决定冲刺方向和冲刺持续时间
-        Vector2 playerPos = hornet->player->GetPosition();
+        Vector2 playerPos = hornet->dstEnemy->GetPosition();
         Vector2 hornetPos = hornet->GetPosition();
         float dashAttacXDuration =
             (hornet->dashAttackPathScale * std::abs(playerPos.X - hornetPos.X)) /
@@ -539,18 +659,19 @@ void DashAttackAim::OnUpdate()
         } else {
             // 玩家处于大黄蜂的上方
             if (playerPos.Y <= hornetPos.Y) {
+                hornet->SwitchState("AirDash");
+            } else {
                 float dashAttacYDuration =
                     (hornet->dashAttackPathScale * std::abs(playerPos.Y - hornetPos.Y)) /
                     hornet->dashSpeed;
                 hornet->dashAttackDuration = dashAttacYDuration > dashAttacXDuration
                                                  ? dashAttacYDuration
                                                  : dashAttacXDuration;
-                hornet->SwitchState("AirDash");
-            } else {
                 hornet->dashAttackDir = (playerPos - hornetPos).Normalized();
                 hornet->SwitchState("DashAttackAir");
             }
         }
+        hornet->reward = 0.0f;
     }
 }
 
@@ -619,6 +740,7 @@ void Defend::OnEnter()
 {
     hornet->isBlocking = true;
     animator->SwitchToAnimation("defend");
+    hornet->currentAction = (int)HornetAction::Defend;
 }
 
 void Defend::OnUpdate()
@@ -661,6 +783,12 @@ void Dead::OnEnter()
     animator->SwitchToAnimation("lowHealth");
     hornet->SetVelocity({});
     Audio::PlayAudio("hornetDead");
+    hornet->trainingData.RecordDecision(hornet, hornet->dstEnemy, HornetAction::DoNothing,
+                                        hornet->reward, true, -100.0f);
+    hornet->reward = 0.0f;
+
+    hornet->trainingData.Serialization();
+    hornet->trainingData.Clear();
 }
 
 }  // namespace hornet

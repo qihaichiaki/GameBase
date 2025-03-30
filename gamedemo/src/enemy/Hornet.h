@@ -4,6 +4,7 @@
 #include <game_object/component/CollisionRaycaster.h>
 #include <game_object/widgets/ProgressBar.h>
 
+#include "../rl/TrainingData.hpp"
 #include "Enemy.h"
 
 /**
@@ -13,7 +14,7 @@
 class Hornet : public Enemy
 {
 public:
-    Hornet(Player* player, ProgressBar* hp) : Enemy("Horent", player), hpProgressBar(hp) {}
+    Hornet(Character* enemy, ProgressBar* hp) : Enemy("Horent", enemy), hpProgressBar(hp) {}
 
     void OnAwake() override;
 
@@ -77,10 +78,17 @@ public:
     void OnDashAttackVfxAir();
 
 public:
+    Collisionlayer src = CollisionLayerTool::enemy;
+    Collisionlayer dst = CollisionLayerTool::player;
+
+public:
     bool isAboutToFall = false;  // 是否将要坠落
 
+    float oldDashAttackVfxFloorDir;  // 朝向
+    float oldDashAttackVfxAirDir;    // 朝向
+
     float searchPlayerRange = 400.0f;          // 当前/初始索敌范围
-    float searchPlayerRangeHostile = 1000.0f;  // 敌意状态下的索敌范围
+    float searchPlayerRangeHostile = 2000.0f;  // 敌意状态下的索敌范围
     float evadeRange = 220.0f;                 // 躲闪范围
 
     // 决策时间 - 在大黄蜂的每一个状态下, 会取下面决策区间作为一次当前决策时间
@@ -122,6 +130,13 @@ public:
     int attackDownDamge = 10;
     int dashAttackDamge = 4;
     int defendAttackDamge = 15;
+
+    TrainingData trainingData;
+    float reward = 0.0f;  // 当前奖励
+
+    Vector2 startPos;  // 起始位置
+    bool isGameEnd = false;
+    bool isdqnAi = true;  // 是否启用强化学习结果
 
 private:
     CollisionRaycaster* ray = nullptr;  // 射线检测, 检查前方是否存在悬崖

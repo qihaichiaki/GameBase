@@ -15,7 +15,8 @@ struct CollisionLayerTool
     constexpr static Collisionlayer none = 0;
     constexpr static Collisionlayer player = Collisionlayer(1 << 0);
     constexpr static Collisionlayer enemy = Collisionlayer(1 << 1);
-    constexpr static Collisionlayer wall = Collisionlayer(1 << 2);
+    constexpr static Collisionlayer enemy2 = Collisionlayer(1 << 2);  // 用于测试, 后续优化
+    constexpr static Collisionlayer wall = Collisionlayer(1 << 3);
 
     /// @brief 检查src层级是否包含dst层级
     static bool IsContain(Collisionlayer src, Collisionlayer dst) { return src & dst; }

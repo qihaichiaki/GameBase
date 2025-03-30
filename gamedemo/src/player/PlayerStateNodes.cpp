@@ -5,6 +5,8 @@
 #include <game_object/component/AudioManager.h>
 #include <game_object/component/CollisionBox.h>
 
+#include "../rl/TrainingInfo.h"  // 强化学习相关数据, 方便大黄蜂记录
+
 static GameAf& gameAf = GameAf::GetInstance();
 
 namespace player {
@@ -21,6 +23,7 @@ void Idle::OnEnter()
     animator->SwitchToAnimation("idle");
     player->attackAerialNum = player->maxAttackAerialNum;  // 恢复空中攻击数
     player->jumpNum = player->maxjumpNum;                  // 恢复空中跳跃数
+    player->currentAction = (int)OpponentAction::Idle;
 }
 void Idle::OnUpdate()
 {
@@ -53,6 +56,7 @@ void Run::OnEnter()
     // gameaf::log("run");
     animator->SwitchToAnimation("run");
     Audio::PlayAudio("walk", true);
+    player->currentAction = (int)OpponentAction::Moving;
 }
 
 void Run::OnUpdate()
@@ -100,6 +104,7 @@ void Jump::OnEnter()
         int index = gameAf.Random(1, 4);
         Audio::PlayAudio(std::string{"playerJumpRoll"} + std::to_string(index));
     }
+    player->currentAction = (int)OpponentAction::Airing;
 }
 
 void Jump::OnUpdate()
@@ -128,6 +133,7 @@ void Falling::OnEnter()
 {
     // gameaf::log("falling");
     animator->SwitchToAnimation("falling");
+    player->currentAction = (int)OpponentAction::Airing;
 }
 
 void Falling::OnUpdate()
@@ -168,6 +174,7 @@ void Crouch::OnEnter()
     player->SetVelocity({});  // 静止
     animator->SwitchToAnimation("crouch");
     player->SetCollisonBoxOffsetY(offset);
+    player->currentAction = (int)OpponentAction::Idle;
 }
 
 void Crouch::OnUpdate()
@@ -197,6 +204,7 @@ void Roll::OnEnter()
         int index = gameAf.Random(1, 4);
         Audio::PlayAudio(std::string{"playerJumpRoll"} + std::to_string(index));
     }
+    player->currentAction = (int)OpponentAction::Moving;
 }
 
 void Roll::OnUpdate()
@@ -225,6 +233,7 @@ void AttackStanding::OnEnter()
     animator->SwitchToAnimation("attack_standing");
     int index = gameAf.Random(1, 4);
     Audio::PlayAudio(std::string{"playerAttackLong"} + std::to_string(index));
+    player->currentAction = (int)OpponentAction::Attacking;
 }
 void AttackStanding::OnUpdate()
 {
@@ -255,6 +264,7 @@ void AttackAerial::OnEnter()
     player->SetGravityEnabled(false);  // 关闭重力模拟!
     int index = gameAf.Random(1, 4);
     Audio::PlayAudio(std::string{"playerAttackShort"} + std::to_string(index));
+    player->currentAction = (int)OpponentAction::Attacking;
 }
 void AttackAerial::OnUpdate()
 {
@@ -282,6 +292,7 @@ void AttackCrouching::OnEnter()
 {
     // gameaf::log("AttackCrouching");
     animator->SwitchToAnimation("attack_crouching");
+    player->currentAction = (int)OpponentAction::Attacking;
 }
 void AttackCrouching::OnUpdate()
 {
@@ -300,6 +311,7 @@ void Blocking::OnEnter()
     animator->SwitchToAnimation("blocking");
     player->hitAttackIntensity.X = 0.0f;
     player->isBlocking = true;
+    player->currentAction = (int)OpponentAction::Defend;
 }
 
 void Blocking::OnUpdate()
@@ -339,6 +351,7 @@ void Hurt::OnEnter()
     animator->SwitchToAnimation("hurt");
     int index = gameAf.Random(1, 6);
     Audio::PlayAudio(std::string{"playerHurt"} + std::to_string(index));
+    player->currentAction = (int)OpponentAction::Idle;
 }
 
 void Hurt::OnUpdate()
